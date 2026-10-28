@@ -11,7 +11,7 @@ window.CONFIG = {
   eventDate: '2026-11-25T18:00:00+08:00',   // countdown target (+08:00 = Philippines time)
   when: 'November 25, 2026 | 6:00 PM',
   where: 'Place, Santa Rosa',               // <- put the real venue here
-  dress: 'Coachella fits: boho, fringe, sunnies, flower crowns. Red and yellow welcome!',
+  dress: 'Coachella fits: boho, fringe, sunnies, flower crowns.',
 
   // Optional: put your official logo file in the repo (e.g. 'logo.svg') and write its name here.
   // Leave empty to use the simple golden-arch drawing.
@@ -20,10 +20,8 @@ window.CONFIG = {
   // Schedule shown as the "lineup poster"
   lineup: [
     { time: '6:00 PM',  act: 'Gates open' },
-    { time: '7:00 PM',  act: 'Dinner and drinks' },
-    { time: '8:00 PM',  act: 'Talent show' },
-    { time: '10:00 PM', act: 'Raffle draw' },
-    { time: '10:30 PM', act: 'Dance floor' }
+    { time: '7:00 PM',  act: 'PepTalk' },
+    { time: '8:00 PM - 12MN',  act: 'ENJOY THE SHOW' },
   ],
 
   // Talent uploads (must match the bucket created by supabase_setup.sql)
