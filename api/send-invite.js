@@ -89,7 +89,15 @@ async function sendMail(...args) {
   throw last || new Error('No email sender configured');
 }
 
-module.exports = async (req, res) => {
+async function rpc(C, fn, args) {
+  const headers = { 'Content-Type': 'application/json', apikey: C.SUPABASE_ANON_KEY };
+  if (!String(C.SUPABASE_ANON_KEY).startsWith('sb_')) headers.Authorization = 'Bearer ' + C.SUPABASE_ANON_KEY;
+  const r = await fetch(`${C.SUPABASE_URL}/rest/v1/rpc/${fn}`, { method: 'POST', headers, body: JSON.stringify(args) });
+  const data = await r.json().catch(() => ({}));
+  return { ok: r.ok, status: r.status, data };
+}
+
+async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   try {
@@ -105,19 +113,18 @@ module.exports = async (req, res) => {
 
     const C = loadConfig();
     // Ask the database: is this a real guest with a raffle number? (also enforces the 5-copy limit)
-    const headers = { 'Content-Type': 'application/json', apikey: C.SUPABASE_ANON_KEY };
-    if (!String(C.SUPABASE_ANON_KEY).startsWith('sb_')) headers.Authorization = 'Bearer ' + C.SUPABASE_ANON_KEY;
-    const r = await fetch(`${C.SUPABASE_URL}/rest/v1/rpc/request_invite_copy`, {
-      method: 'POST', headers, body: JSON.stringify({ p_nickname: nickname, p_email: email })
-    });
-    const guest = await r.json().catch(() => ({}));
-    if (!r.ok) return res.status(400).json({ error: guest.message || 'Could not find your invitation.' });
+    const g = await rpc(C, 'request_invite_copy', { p_nickname: nickname, p_email: email });
+    if (!g.ok) return res.status(400).json({ error: g.data.message || 'Could not find your invitation.' });
 
     await sendMail(C, email, `Your invitation: ${C.partyName}`,
-      buildText(C, guest.nickname, guest.raffle_number), buildHtml(C, guest.nickname, guest.raffle_number));
+      buildText(C, g.data.nickname, g.data.raffle_number), buildHtml(C, g.data.nickname, g.data.raffle_number));
+    await rpc(C, 'mark_invite_sent', { p_nickname: g.data.nickname }).catch(() => {});
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error('send-invite failed:', err);
     return res.status(500).json({ error: 'We could not send the email. Please try again in a moment.' });
   }
-};
+}
+
+module.exports = handler;
+module.exports.helpers = { loadConfig, buildHtml, buildText, sendMail, rpc, providers };
