@@ -1,5 +1,5 @@
 // Vercel serverless function: emails a guest their digital invitation card.
-// Sends with Brevo (BREVO_API_KEY + SENDER_EMAIL) or with Gmail (GMAIL_USER + GMAIL_APP_PASSWORD).
+// Sends with Google Apps Script (APPS_SCRIPT_URL + APPS_SCRIPT_SECRET), or Brevo, or Gmail App Password.
 const fs = require('fs');
 const path = require('path');
 
@@ -52,29 +52,48 @@ function buildText(C, nickname, num) {
     ...(C.lineup || []).map(x => `  ${x.time}  ${x.act}`), '', 'Keep this number safe. You will need it for the raffle draw!'].join('\n');
 }
 
+const hasAppsScript = () => process.env.APPS_SCRIPT_URL && process.env.APPS_SCRIPT_SECRET;
 const hasBrevo = () => process.env.BREVO_API_KEY && process.env.SENDER_EMAIL;
 const hasGmail = () => process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD;
 
-async function sendMail(C, to, subject, text, html) {
-  if (hasBrevo()) {
-    const r = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: { 'api-key': process.env.BREVO_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
-      body: JSON.stringify({ sender: { name: C.partyName, email: process.env.SENDER_EMAIL }, to: [{ email: to }], subject, textContent: text, htmlContent: html })
-    });
-    if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error('Brevo error ' + r.status + ': ' + (d.message || 'unknown')); }
-    return;
-  }
+// 1) Google Apps Script: sends from your real Gmail (best delivery, no App Password needed)
+async function viaAppsScript(C, to, subject, text, html) {
+  const r = await fetch(process.env.APPS_SCRIPT_URL, {
+    method: 'POST', redirect: 'follow', headers: { 'content-type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ secret: process.env.APPS_SCRIPT_SECRET, to, subject, text, html, name: C.partyName })
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok || !d.ok) throw new Error('Apps Script error: ' + (d.error || r.status));
+}
+// 2) Brevo
+async function viaBrevo(C, to, subject, text, html) {
+  const r = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { 'api-key': process.env.BREVO_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify({ sender: { name: C.partyName, email: process.env.SENDER_EMAIL }, to: [{ email: to }], subject, textContent: text, htmlContent: html })
+  });
+  if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error('Brevo error ' + r.status + ': ' + (d.message || 'unknown')); }
+}
+// 3) Gmail App Password
+async function viaGmail(C, to, subject, text, html) {
   const nodemailer = require('nodemailer');
-  const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD } });
-  await transporter.sendMail({ from: `"${C.partyName}" <${process.env.GMAIL_USER}>`, to, subject, text, html });
+  const t = nodemailer.createTransport({ service: 'gmail', auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD } });
+  await t.sendMail({ from: `"${C.partyName}" <${process.env.GMAIL_USER}>`, to, subject, text, html });
+}
+const providers = () => [hasAppsScript() && viaAppsScript, hasBrevo() && viaBrevo, hasGmail() && viaGmail].filter(Boolean);
+
+// tries each configured sender in order until one works
+async function sendMail(...args) {
+  let last;
+  for (const p of providers()) { try { await p(...args); return; } catch (e) { console.error(e.message); last = e; } }
+  throw last || new Error('No email sender configured');
 }
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   try {
-    if (!hasBrevo() && !hasGmail()) return res.status(500).json({ error: 'Email is not set up yet. Please tell the organizers.' });
+    if (!providers().length) return res.status(500).json({ error: 'Email is not set up yet. Please tell the organizers.' });
 
     let body = req.body;
     if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { body = {}; } }
