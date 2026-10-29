@@ -214,6 +214,14 @@ td a{display:block;color:var(--red);font-weight:800;word-break:break-all}
 .pill.going,.pill.yes{background:#9BE3C4}.pill.maybe{background:var(--yellow)}.pill.no{background:#F7A1B8}.pill.pending{background:#eee}
 #mailBtn[disabled]{cursor:not-allowed;filter:grayscale(.6)}
 td .btn.small{font-size:.85rem;padding:6px 10px;box-shadow:2px 2px 0 var(--dark);white-space:nowrap}
+.mbox.danger{border-color:var(--red);text-align:left}
+.mbox.danger h3{margin-bottom:8px}
+.delinfo{font-weight:800;margin-bottom:8px}
+.dellist{padding-left:20px;margin-bottom:14px;font-size:.92rem}
+.dellist li{margin-bottom:4px}
+.chk{display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:14px}
+.chk input{width:20px;height:20px;accent-color:var(--red)}
+.btn.small.rm{background:#fff;color:var(--red);margin-left:6px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -390,6 +398,22 @@ td .btn.small{font-size:.85rem;padding:6px 10px;box-shadow:2px 2px 0 var(--dark)
       <button class="btn dark" id="againBtn" type="button" hidden></button>
     </div>
     <div class="confetti" id="confetti" aria-hidden="true"></div>
+  </div>
+</div>
+
+<div class="modal" id="delModal" hidden role="dialog" aria-modal="true" aria-labelledby="delTitle">
+  <div class="mbox danger">
+    <h3 id="delTitle">Remove participant?</h3>
+    <p id="delInfo" class="delinfo"></p>
+    <ul id="delList" class="dellist"></ul>
+    <label class="chk"><input type="checkbox" id="delOk"> I understand this cannot be undone</label>
+    <label for="delPw">Enter the organizer password again</label>
+    <input type="password" id="delPw" autocomplete="current-password">
+    <div class="msg" id="delMsg" role="status"></div>
+    <div class="mbtns">
+      <button class="btn dark" id="delCancel" type="button">Cancel</button>
+      <button class="btn" id="delGo" type="button" disabled>Delete permanently</button>
+    </div>
   </div>
 </div>
 
@@ -668,6 +692,8 @@ function renderAdmin() {
       });
       ac.appendChild(b);
     }
+    const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'btn small rm'; rm.textContent = 'Remove';
+    rm.setAttribute('aria-label', 'Remove ' + g.nickname); rm.addEventListener('click', () => openDelete(g)); ac.appendChild(rm);
   });
   const waiting = all.filter(g => g.email && g.raffle_number != null && !g.email_sent_at).length;
   $('sendAll').textContent = 'Send to everyone not yet sent (' + waiting + ')';
@@ -696,6 +722,37 @@ async function sendAllPending() {
   msg.textContent = 'Done. Sent ' + ok + ', failed ' + fail + '.' + (fail ? ' Last problem: ' + lastErr + ' (Gmail allows about 100 emails per day. Try the rest tomorrow.)' : '');
 }
 $('sendAll').addEventListener('click', () => arm($('sendAll'), sendAllPending));
+
+/* ---------- remove participant ---------- */
+let delTarget = null;
+function checkDel() { $('delGo').disabled = !($('delOk').checked && $('delPw').value.length > 0); }
+function openDelete(g) {
+  delTarget = g;
+  $('delInfo').textContent = 'You are about to permanently remove "' + g.nickname + '" from the guest list.';
+  const items = [];
+  if (g.raffle_number != null) items.push('Raffle number ' + g.raffle_number + ' becomes free for someone else.');
+  items.push('Their RSVP, talent entry and email are deleted.');
+  const n = (g.talent_files || []).length;
+  if (n) items.push(n + ' uploaded file' + (n > 1 ? 's' : '') + ' stay in Supabase Storage. Delete them there if you want them gone.');
+  $('delList').textContent = '';
+  items.forEach(t => { const li = document.createElement('li'); li.textContent = t; $('delList').appendChild(li); });
+  $('delOk').checked = false; $('delPw').value = ''; $('delMsg').textContent = ''; $('delGo').disabled = true;
+  $('delModal').hidden = false; $('delOk').focus();
+}
+$('delOk').addEventListener('change', checkDel);
+$('delPw').addEventListener('input', checkDel);
+$('delCancel').addEventListener('click', () => { $('delModal').hidden = true; delTarget = null; });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('delModal').hidden = true; delTarget = null; } });
+$('delGo').addEventListener('click', async () => {
+  if (!delTarget) return;
+  const b = $('delGo'); b.disabled = true; b.textContent = 'Deleting...'; $('delMsg').textContent = '';
+  const { error } = await sb.rpc('admin_delete_guest', { p_password: $('delPw').value, p_nickname: delTarget.nickname });
+  b.textContent = 'Delete permanently';
+  if (error) { $('delMsg').textContent = error.message; checkDel(); return; }
+  const name = delTarget.nickname; $('delModal').hidden = true; delTarget = null;
+  $('bulkMsg').className = 'msg ok'; $('bulkMsg').textContent = 'Removed ' + name + '.';
+  await loadAdmin();
+});
 
 $('xlsx').addEventListener('click', () => {
   const sorted = [...all].sort((a, b) => (a.raffle_number ?? 999) - (b.raffle_number ?? 999));
