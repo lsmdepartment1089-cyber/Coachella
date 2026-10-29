@@ -1,5 +1,5 @@
 {
   "functions": {
-    "api/send-invite.js": { "includeFiles": "config.js" }
+    "api/*.js": { "includeFiles": "config.js" }
   }
 }
