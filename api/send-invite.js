@@ -1,8 +1,7 @@
 // Vercel serverless function: emails a guest their digital invitation card.
-// Needs 2 environment variables in Vercel: GMAIL_USER and GMAIL_APP_PASSWORD
+// Sends with Brevo (BREVO_API_KEY + SENDER_EMAIL) or with Gmail (GMAIL_USER + GMAIL_APP_PASSWORD).
 const fs = require('fs');
 const path = require('path');
-const nodemailer = require('nodemailer');
 
 // Reads the same config.js the website uses, so details always match.
 function loadConfig() {
@@ -53,12 +52,29 @@ function buildText(C, nickname, num) {
     ...(C.lineup || []).map(x => `  ${x.time}  ${x.act}`), '', 'Keep this number safe. You will need it for the raffle draw!'].join('\n');
 }
 
+const hasBrevo = () => process.env.BREVO_API_KEY && process.env.SENDER_EMAIL;
+const hasGmail = () => process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD;
+
+async function sendMail(C, to, subject, text, html) {
+  if (hasBrevo()) {
+    const r = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: { 'api-key': process.env.BREVO_API_KEY, 'content-type': 'application/json', accept: 'application/json' },
+      body: JSON.stringify({ sender: { name: C.partyName, email: process.env.SENDER_EMAIL }, to: [{ email: to }], subject, textContent: text, htmlContent: html })
+    });
+    if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error('Brevo error ' + r.status + ': ' + (d.message || 'unknown')); }
+    return;
+  }
+  const nodemailer = require('nodemailer');
+  const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD } });
+  await transporter.sendMail({ from: `"${C.partyName}" <${process.env.GMAIL_USER}>`, to, subject, text, html });
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   try {
-    const user = process.env.GMAIL_USER, pass = process.env.GMAIL_APP_PASSWORD;
-    if (!user || !pass) return res.status(500).json({ error: 'Email is not set up yet. Please tell the organizers.' });
+    if (!hasBrevo() && !hasGmail()) return res.status(500).json({ error: 'Email is not set up yet. Please tell the organizers.' });
 
     let body = req.body;
     if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { body = {}; } }
@@ -78,14 +94,8 @@ module.exports = async (req, res) => {
     const guest = await r.json().catch(() => ({}));
     if (!r.ok) return res.status(400).json({ error: guest.message || 'Could not find your invitation.' });
 
-    const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user, pass } });
-    await transporter.sendMail({
-      from: `"${C.partyName}" <${user}>`,
-      to: email,
-      subject: `Your invitation: ${C.partyName}`,
-      text: buildText(C, guest.nickname, guest.raffle_number),
-      html: buildHtml(C, guest.nickname, guest.raffle_number)
-    });
+    await sendMail(C, email, `Your invitation: ${C.partyName}`,
+      buildText(C, guest.nickname, guest.raffle_number), buildHtml(C, guest.nickname, guest.raffle_number));
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error('send-invite failed:', err);
