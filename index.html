@@ -213,6 +213,7 @@ td a{display:block;color:var(--red);font-weight:800;word-break:break-all}
 .pill{display:inline-block;padding:2px 10px;border-radius:999px;border:2px solid var(--dark);font-weight:800;font-size:.8rem}
 .pill.going,.pill.yes{background:#9BE3C4}.pill.maybe{background:var(--yellow)}.pill.no{background:#F7A1B8}.pill.pending{background:#eee}
 #mailBtn[disabled]{cursor:not-allowed;filter:grayscale(.6)}
+td .btn.small{font-size:.85rem;padding:6px 10px;box-shadow:2px 2px 0 var(--dark);white-space:nowrap}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -366,9 +367,11 @@ td a{display:block;color:var(--red);font-weight:800;word-break:break-all}
         <input type="text" id="filter" placeholder="Search nickname, number, name or stage name">
         <button class="btn small" id="refresh" type="button">Refresh</button>
         <button class="btn small yellow" id="xlsx" type="button">Download Excel</button>
+        <button class="btn small dark" id="sendAll" type="button">Send to everyone not yet sent</button>
       </div>
+      <div class="msg" id="bulkMsg" role="status" style="margin:0 0 12px"></div>
       <div class="tablewrap"><table>
-        <thead><tr><th>Raffle #</th><th>Nickname</th><th>RSVP</th><th>Re-rolled</th><th>Talent</th><th>Real name</th><th>Stage name</th><th>Files</th><th>Email</th><th>Signed up</th></tr></thead>
+        <thead><tr><th>Raffle #</th><th>Nickname</th><th>RSVP</th><th>Re-rolled</th><th>Talent</th><th>Real name</th><th>Stage name</th><th>Files</th><th>Email</th><th>Invitation email</th><th>Signed up</th><th></th></tr></thead>
         <tbody id="rows"></tbody>
       </table></div>
     </div>
@@ -638,7 +641,7 @@ function renderAdmin() {
   const q = $('filter').value.trim().toLowerCase();
   const list = all.filter(g => !q || `${g.nickname} ${g.raffle_number ?? ''} ${g.real_name || ''} ${g.stage_name || ''}`.toLowerCase().includes(q));
   const body = $('rows'); body.textContent = '';
-  if (!list.length) { const td = body.insertRow().insertCell(); td.colSpan = 10; td.textContent = all.length ? 'No guests match your search.' : 'No one has signed up yet.'; return; }
+  if (!list.length) { const td = body.insertRow().insertCell(); td.colSpan = 12; td.textContent = all.length ? 'No guests match your search.' : 'No one has signed up yet.'; return; }
   const pill = (cls, text) => { const s = document.createElement('span'); s.className = 'pill ' + cls; s.textContent = text; return s; };
   list.forEach(g => {
     const tr = body.insertRow();
@@ -652,19 +655,58 @@ function renderAdmin() {
     const fc = tr.insertCell();
     (g.talent_files || []).forEach(f => { const a = document.createElement('a'); a.href = fileUrl(f); a.target = '_blank'; a.rel = 'noopener'; a.textContent = f.name; fc.appendChild(a); });
     tr.insertCell().textContent = g.email || '';
+    tr.insertCell().textContent = g.email_sent_at ? 'Sent ' + fmt(g.email_sent_at) : g.email ? 'Not sent yet' : '—';
     tr.insertCell().textContent = fmt(g.created_at);
+    const ac = tr.insertCell();
+    if (g.email && g.raffle_number != null) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'btn small'; b.textContent = 'Send again';
+      b.addEventListener('click', async () => {
+        b.disabled = true; b.textContent = 'Sending...'; $('bulkMsg').className = 'msg'; $('bulkMsg').textContent = '';
+        const r = await resendOne(g.nickname);
+        if (r.error) { b.disabled = false; b.textContent = 'Send again'; $('bulkMsg').textContent = g.nickname + ': ' + r.error; return; }
+        $('bulkMsg').className = 'msg ok'; $('bulkMsg').textContent = 'Sent to ' + g.email; await loadAdmin();
+      });
+      ac.appendChild(b);
+    }
   });
+  const waiting = all.filter(g => g.email && g.raffle_number != null && !g.email_sent_at).length;
+  $('sendAll').textContent = 'Send to everyone not yet sent (' + waiting + ')';
 }
+/*RESEND_API*/
+async function resendOne(nickname) {
+  try {
+    const r = await fetch('/api/admin-resend', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: adminPw, nickname }) });
+    const d = await r.json().catch(() => ({}));
+    return r.ok ? {} : { error: d.error || 'Could not send the email.' };
+  } catch (e) { return { error: 'Could not reach the server.' }; }
+}
+/*END_RESEND_API*/
+async function sendAllPending() {
+  const todo = all.filter(g => g.email && g.raffle_number != null && !g.email_sent_at);
+  const msg = $('bulkMsg'); msg.className = 'msg';
+  if (!todo.length) { msg.className = 'msg ok'; msg.textContent = 'Everyone with an email has already been sent their invitation.'; return; }
+  $('sendAll').disabled = true; let ok = 0, fail = 0, streak = 0, lastErr = '';
+  for (let i = 0; i < todo.length; i++) {
+    msg.textContent = 'Sending ' + (i + 1) + ' of ' + todo.length + '... please keep this page open.';
+    const r = await resendOne(todo[i].nickname);
+    if (r.error) { fail++; streak++; lastErr = r.error; if (streak >= 3) break; } else { ok++; streak = 0; }
+  }
+  $('sendAll').disabled = false; await loadAdmin();
+  msg.className = fail ? 'msg' : 'msg ok';
+  msg.textContent = 'Done. Sent ' + ok + ', failed ' + fail + '.' + (fail ? ' Last problem: ' + lastErr + ' (Gmail allows about 100 emails per day. Try the rest tomorrow.)' : '');
+}
+$('sendAll').addEventListener('click', () => arm($('sendAll'), sendAllPending));
+
 $('xlsx').addEventListener('click', () => {
   const sorted = [...all].sort((a, b) => (a.raffle_number ?? 999) - (b.raffle_number ?? 999));
   const links = g => (g.talent_files || []).map(fileUrl).join('\n');
   const guests = sorted.map(g => ({ 'Raffle Number': g.raffle_number ?? '', 'Nickname': g.nickname, 'RSVP': LABEL[g.rsvp] || g.rsvp,
     'Re-rolled': g.rerolled ? 'Yes' : 'No', 'Talent': TAL[g.talent_status] || g.talent_status, 'Real Name': g.real_name || '', 'Stage Name': g.stage_name || '',
-    'Files': (g.talent_files || []).length, 'File Links': links(g), 'Email': g.email || '', 'Signed Up': fmt(g.created_at) }));
+    'Files': (g.talent_files || []).length, 'File Links': links(g), 'Email': g.email || '', 'Email Sent': g.email_sent_at ? fmt(g.email_sent_at) : '', 'Signed Up': fmt(g.created_at) }));
   const perf = sorted.filter(g => g.talent_status === 'yes').map(g => ({ 'Stage Name': g.stage_name || '', 'Real Name': g.real_name || '', 'Nickname': g.nickname,
     'Raffle Number': g.raffle_number ?? '', 'RSVP': LABEL[g.rsvp] || g.rsvp, 'File Links': links(g) }));
   const wb = XLSX.utils.book_new();
-  const ws1 = XLSX.utils.json_to_sheet(guests); ws1['!cols'] = [14, 20, 14, 10, 14, 24, 22, 7, 50, 30, 22].map(w => ({ wch: w }));
+  const ws1 = XLSX.utils.json_to_sheet(guests); ws1['!cols'] = [14, 20, 14, 10, 14, 24, 22, 7, 50, 30, 22, 22].map(w => ({ wch: w }));
   const ws2 = XLSX.utils.json_to_sheet(perf); ws2['!cols'] = [22, 24, 20, 14, 14, 50].map(w => ({ wch: w }));
   XLSX.utils.book_append_sheet(wb, ws1, 'Guests'); XLSX.utils.book_append_sheet(wb, ws2, 'Performers');
   XLSX.writeFile(wb, 'year-end-party-guests.xlsx');
