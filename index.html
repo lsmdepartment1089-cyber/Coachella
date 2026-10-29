@@ -45,7 +45,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .btn.dark{background:var(--dark);color:var(--yellow)}
 .btn.small{width:auto;font-size:1rem;padding:10px 18px}
 label{display:block;font-weight:800;font-size:.9rem;margin-bottom:6px}
-input[type=text],input[type=password],select{width:100%;padding:12px 14px;border:3px solid var(--dark);border-radius:12px;background:#fff;margin-bottom:14px;transition:box-shadow .2s}
+input[type=text],input[type=password],input[type=email],select{width:100%;padding:12px 14px;border:3px solid var(--dark);border-radius:12px;background:#fff;margin-bottom:14px;transition:box-shadow .2s}
 input:focus,select:focus{outline:none;box-shadow:0 0 0 4px rgba(255,199,44,.7)}
 .msg{min-height:1.4em;font-size:.9rem;font-weight:800;color:#B0170E;margin-top:10px}
 .msg.ok{color:#1B7A3D}
@@ -212,6 +212,7 @@ td.n{font-family:var(--display);font-size:1.3rem;white-space:nowrap}
 td a{display:block;color:var(--red);font-weight:800;word-break:break-all}
 .pill{display:inline-block;padding:2px 10px;border-radius:999px;border:2px solid var(--dark);font-weight:800;font-size:.8rem}
 .pill.going,.pill.yes{background:#9BE3C4}.pill.maybe{background:var(--yellow)}.pill.no{background:#F7A1B8}.pill.pending{background:#eee}
+#mailBtn[disabled]{cursor:not-allowed;filter:grayscale(.6)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -300,6 +301,17 @@ td a{display:block;color:var(--red);font-weight:800;word-break:break-all}
     <ul id="lineup"></ul>
   </div></section>
 
+  <section class="copy-sec">
+    <form class="card reveal" id="mailForm">
+      <p class="q">Send me a digital copy of my invitation</p>
+      <p class="rnote" id="mailHint" style="margin-bottom:12px"></p>
+      <label for="email">Your email address</label>
+      <input type="email" id="email" maxlength="120" autocomplete="email" placeholder="you@example.com" required>
+      <button class="btn yellow" id="mailBtn" type="submit">Send my invitation</button>
+      <div class="msg" id="mailMsg" role="status"></div>
+    </form>
+  </section>
+
   <section>
     <h2 class="sec reveal">Are you coming?</h2>
     <form class="card reveal" id="rsvpForm">
@@ -356,7 +368,7 @@ td a{display:block;color:var(--red);font-weight:800;word-break:break-all}
         <button class="btn small yellow" id="xlsx" type="button">Download Excel</button>
       </div>
       <div class="tablewrap"><table>
-        <thead><tr><th>Raffle #</th><th>Nickname</th><th>RSVP</th><th>Re-rolled</th><th>Talent</th><th>Real name</th><th>Stage name</th><th>Files</th><th>Signed up</th></tr></thead>
+        <thead><tr><th>Raffle #</th><th>Nickname</th><th>RSVP</th><th>Re-rolled</th><th>Talent</th><th>Real name</th><th>Stage name</th><th>Files</th><th>Email</th><th>Signed up</th></tr></thead>
         <tbody id="rows"></tbody>
       </table></div>
     </div>
@@ -446,7 +458,7 @@ function showGuest(g) {
   $('who').textContent = g.nickname;
   $('rsvp').value = g.rsvp === 'pending' ? 'going' : g.rsvp;
   $('status').textContent = g.rsvp === 'pending' ? 'Save your RSVP below so we can count you in.' : 'RSVP saved.';
-  $('realName').value = g.real_name || ''; $('stageName').value = g.stage_name || '';
+  $('realName').value = g.real_name || ''; $('stageName').value = g.stage_name || ''; $('email').value = g.email || '';
   talent = g.talent_status === 'yes' ? 'yes' : g.talent_status === 'no' ? 'no' : null;
   saved = g.talent_files || []; pending = [];
   renderTalent(); renderPass(); scrollTo({ top: 0 });
@@ -476,6 +488,8 @@ function renderPass() {
   const has = guest.raffle_number != null;
   $('num').textContent = has ? guest.raffle_number : '?';
   $('getBtn').hidden = has; $('rerollBtn').hidden = !has || !!guest.rerolled;
+  $('mailBtn').disabled = !has;
+  $('mailHint').textContent = has ? 'We will email you a card with your nickname, raffle number and all the party details.' : 'Get your raffle number first, then come back here to send yourself a copy.';
   $('rText').textContent = has ? 'Your raffle number is locked in. Keep it handy for the draw.' : 'Ready to find out your raffle number?';
   $('rNote').textContent = !has ? 'You get one number, plus one re-roll if you want a different one.'
     : guest.rerolled ? 'You used your one re-roll. This number is final.'
@@ -520,6 +534,27 @@ $('rerollBtn').addEventListener('click', () => arm($('rerollBtn'), () => reveal(
 $('againBtn').addEventListener('click', () => arm($('againBtn'), () => reveal('reroll_number', true)));
 $('keepBtn').addEventListener('click', () => { $('modal').hidden = true; });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !busy) $('modal').hidden = true; });
+
+/* ---------- email a digital copy ---------- */
+/*INVITE_API*/
+async function postInvite(nickname, email) {
+  try {
+    const r = await fetch('/api/send-invite', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nickname, email }) });
+    const d = await r.json().catch(() => ({}));
+    return r.ok ? {} : { error: d.error || 'Could not send the email. Please try again.' };
+  } catch (e) { return { error: 'Could not reach the server. Check your connection and try again.' }; }
+}
+/*END_INVITE_API*/
+$('mailForm').addEventListener('submit', async e => {
+  e.preventDefault(); const msg = $('mailMsg'); msg.className = 'msg'; msg.textContent = '';
+  const email = $('email').value.trim();
+  if (!email) { msg.textContent = 'Please type your email address.'; return; }
+  const b = $('mailBtn'); b.disabled = true; msg.textContent = 'Sending your invitation...';
+  const res = await postInvite(guest.nickname, email);
+  b.disabled = false;
+  if (res.error) { msg.textContent = res.error; return; }
+  msg.className = 'msg ok'; msg.textContent = 'Sent! Check your inbox at ' + email + ' (and your spam folder).';
+});
 
 /* ---------- talent ---------- */
 let talent = null, saved = [], pending = [];
@@ -603,7 +638,7 @@ function renderAdmin() {
   const q = $('filter').value.trim().toLowerCase();
   const list = all.filter(g => !q || `${g.nickname} ${g.raffle_number ?? ''} ${g.real_name || ''} ${g.stage_name || ''}`.toLowerCase().includes(q));
   const body = $('rows'); body.textContent = '';
-  if (!list.length) { const td = body.insertRow().insertCell(); td.colSpan = 9; td.textContent = all.length ? 'No guests match your search.' : 'No one has signed up yet.'; return; }
+  if (!list.length) { const td = body.insertRow().insertCell(); td.colSpan = 10; td.textContent = all.length ? 'No guests match your search.' : 'No one has signed up yet.'; return; }
   const pill = (cls, text) => { const s = document.createElement('span'); s.className = 'pill ' + cls; s.textContent = text; return s; };
   list.forEach(g => {
     const tr = body.insertRow();
@@ -616,6 +651,7 @@ function renderAdmin() {
     tr.insertCell().textContent = g.stage_name || '';
     const fc = tr.insertCell();
     (g.talent_files || []).forEach(f => { const a = document.createElement('a'); a.href = fileUrl(f); a.target = '_blank'; a.rel = 'noopener'; a.textContent = f.name; fc.appendChild(a); });
+    tr.insertCell().textContent = g.email || '';
     tr.insertCell().textContent = fmt(g.created_at);
   });
 }
@@ -624,11 +660,11 @@ $('xlsx').addEventListener('click', () => {
   const links = g => (g.talent_files || []).map(fileUrl).join('\n');
   const guests = sorted.map(g => ({ 'Raffle Number': g.raffle_number ?? '', 'Nickname': g.nickname, 'RSVP': LABEL[g.rsvp] || g.rsvp,
     'Re-rolled': g.rerolled ? 'Yes' : 'No', 'Talent': TAL[g.talent_status] || g.talent_status, 'Real Name': g.real_name || '', 'Stage Name': g.stage_name || '',
-    'Files': (g.talent_files || []).length, 'File Links': links(g), 'Signed Up': fmt(g.created_at) }));
+    'Files': (g.talent_files || []).length, 'File Links': links(g), 'Email': g.email || '', 'Signed Up': fmt(g.created_at) }));
   const perf = sorted.filter(g => g.talent_status === 'yes').map(g => ({ 'Stage Name': g.stage_name || '', 'Real Name': g.real_name || '', 'Nickname': g.nickname,
     'Raffle Number': g.raffle_number ?? '', 'RSVP': LABEL[g.rsvp] || g.rsvp, 'File Links': links(g) }));
   const wb = XLSX.utils.book_new();
-  const ws1 = XLSX.utils.json_to_sheet(guests); ws1['!cols'] = [14, 20, 14, 10, 14, 24, 22, 7, 50, 22].map(w => ({ wch: w }));
+  const ws1 = XLSX.utils.json_to_sheet(guests); ws1['!cols'] = [14, 20, 14, 10, 14, 24, 22, 7, 50, 30, 22].map(w => ({ wch: w }));
   const ws2 = XLSX.utils.json_to_sheet(perf); ws2['!cols'] = [22, 24, 20, 14, 14, 50].map(w => ({ wch: w }));
   XLSX.utils.book_append_sheet(wb, ws1, 'Guests'); XLSX.utils.book_append_sheet(wb, ws2, 'Performers');
   XLSX.writeFile(wb, 'year-end-party-guests.xlsx');
