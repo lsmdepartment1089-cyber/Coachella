@@ -439,6 +439,7 @@ body.presenting .wactions{display:none}
         <input type="text" id="filter" placeholder="Search nickname, number, name or stage name">
         <button class="btn small" id="refresh" type="button">Refresh</button>
         <button class="btn small" id="wheelBtn" type="button">Spin the wheel</button>
+        <button class="btn small" id="slidesBtn" type="button">Slide show</button>
         <button class="btn small yellow" id="xlsx" type="button">Download Excel</button>
         <button class="btn small dark" id="sendAll" type="button">Send to everyone not yet sent</button>
       </div>
@@ -759,7 +760,7 @@ const fmt = d => new Date(d).toLocaleString([], { dateStyle: 'medium', timeStyle
 const fileUrl = f => sb.storage.from(C.uploadBucket).getPublicUrl(f.path).data.publicUrl;
 function openAdmin() { document.body.classList.add('admin'); scrollTo({ top: 0 }); }
 $('adminOpen').addEventListener('click', openAdmin);
-$('adminExit').addEventListener('click', () => { adminPw = null; all = []; $('adminData').hidden = true; $('adminForm').hidden = false; $('adminPw').value = ''; document.body.classList.remove('admin'); });
+$('adminExit').addEventListener('click', () => { try { sessionStorage.removeItem('fest_admin_pw'); } catch (e) {} adminPw = null; all = []; $('adminData').hidden = true; $('adminForm').hidden = false; $('adminPw').value = ''; document.body.classList.remove('admin'); });
 async function loadAdmin() {
   const { data, error } = await sb.rpc('admin_list', { p_password: adminPw });
   if (error) { adminPw = null; $('adminMsg').textContent = error.message; return false; }
@@ -768,7 +769,7 @@ async function loadAdmin() {
 $('adminForm').addEventListener('submit', async e => {
   e.preventDefault(); $('adminBtn').disabled = true; $('adminMsg').textContent = ''; adminPw = $('adminPw').value;
   const ok = await loadAdmin(); $('adminBtn').disabled = false;
-  if (ok) { $('adminForm').hidden = true; $('adminData').hidden = false; }
+  if (ok) { $('adminForm').hidden = true; $('adminData').hidden = false; try { sessionStorage.setItem('fest_admin_pw', adminPw); } catch (e) {} }
 });
 $('refresh').addEventListener('click', loadAdmin);
 $('filter').addEventListener('input', renderAdmin);
@@ -988,6 +989,7 @@ document.addEventListener('fullscreenchange', () => { document.body.classList.to
 let idleT; document.addEventListener('mousemove', () => { document.body.classList.remove('idle'); clearTimeout(idleT); idleT = setTimeout(() => document.body.classList.add('idle'), 3000); });
 
 $('wheelBtn').addEventListener('click', openWheel);
+$('slidesBtn').addEventListener('click', () => { location.href = 'slides.html'; });
 $('wClose').addEventListener('click', closeWheel);
 $('wSpin').addEventListener('click', doSpin);
 $('wPresent').addEventListener('click', togglePresent);
@@ -1064,7 +1066,10 @@ $('xlsx').addEventListener('click', () => {
   XLSX.utils.book_append_sheet(wb, ws1, 'Guests'); XLSX.utils.book_append_sheet(wb, ws2, 'Performers');
   XLSX.writeFile(wb, 'year-end-party-guests.xlsx');
 });
-if (location.hash === '#admin') openAdmin();
+if (location.hash === '#admin') {
+  openAdmin(); let sp = null; try { sp = sessionStorage.getItem('fest_admin_pw'); } catch (e) {}
+  if (sp) { adminPw = sp; loadAdmin().then(ok => { if (ok) { $('adminForm').hidden = true; $('adminData').hidden = false; } else { try { sessionStorage.removeItem('fest_admin_pw'); } catch (e) {} } }); }
+}
 
 const savedNick = LS.get('fest_nick');
 if (savedNick) login(savedNick, true);
