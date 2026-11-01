@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slide Show | McDonald's Year End Party</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Cormorant+Garamond:wght@500;600&family=Nunito+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<style>
+:root{--red:#DA291C;--yellow:#FFC72C;--dark:#27251F;--cream:#FFF4D6;--orange:#FF8A1F;--display:'Londrina Solid','Arial Narrow',sans-serif;--body:'Nunito Sans',system-ui,sans-serif;--serif:'Cormorant Garamond',Georgia,serif}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font-family:var(--body);color:var(--dark);background:#FFF9EA;overflow:hidden;color-scheme:light}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--dark);outline-offset:2px}
+[hidden]{display:none!important}
+.btn{cursor:pointer;border:3px solid var(--dark);border-radius:12px;padding:8px 14px;font-family:var(--display);font-size:1.05rem;letter-spacing:.04em;background:var(--red);color:#fff;box-shadow:3px 3px 0 var(--dark);transition:transform .18s cubic-bezier(.3,1.5,.5,1),box-shadow .18s,filter .2s;white-space:nowrap}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--dark);filter:brightness(1.06)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--dark)}
+.btn:disabled{opacity:.55;cursor:wait}
+.btn.y{background:var(--yellow);color:var(--dark)}.btn.d{background:var(--dark);color:var(--yellow)}.btn.w{background:#fff;color:var(--dark)}
+.btn.s{font-size:.9rem;padding:5px 10px;box-shadow:2px 2px 0 var(--dark)}
+input[type=text],input[type=password],input[type=number],select,textarea{width:100%;padding:9px 11px;border:3px solid var(--dark);border-radius:10px;background:#fff;margin-bottom:10px}
+textarea{resize:vertical;min-height:84px}
+input:focus,select:focus,textarea:focus,.hl{outline:none;box-shadow:0 0 0 4px rgba(255,199,44,.8)}
+label.l{display:block;font-weight:800;font-size:.82rem;margin-bottom:4px}
+.msg{font-weight:800;font-size:.85rem;color:#B0170E;min-height:1.2em}.msg.ok{color:#1B7A3D}
+
+/* login */
+#gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#DA291C,#FF8A1F);padding:20px}
+.card{background:var(--cream);border:3px solid var(--dark);border-radius:20px;padding:22px;box-shadow:8px 8px 0 var(--dark);width:min(100%,400px)}
+.card h1{font:400 2rem var(--display);color:var(--red);margin-bottom:6px}
+
+/* app shell */
+#app{display:grid;grid-template-rows:auto 1fr;height:100%;position:relative}
+.top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;background:var(--red);border-bottom:3px solid var(--dark)}
+.top h2{font:400 1.7rem var(--display);color:var(--yellow);text-shadow:2px 2px 0 var(--dark);margin-right:6px}
+.top .sp{flex:1}
+#saveSt{font-weight:800;font-size:.85rem;color:#fff;min-width:130px;text-align:right}
+.body{display:grid;grid-template-columns:210px minmax(0,1fr) 330px;min-height:0}
+.rail{overflow:auto;padding:10px;background:#fff;border-right:3px solid var(--dark)}
+.th{position:relative;display:block;width:176px;margin:0 auto 10px;cursor:pointer;border:3px solid var(--dark);border-radius:8px;overflow:hidden;background:#000;transition:transform .15s,box-shadow .15s}
+.th .box{position:relative;width:170px;height:95.6px;overflow:hidden}
+.th .stage{transform:scale(.08854)}
+.th.sel{box-shadow:0 0 0 4px var(--yellow),4px 4px 0 var(--dark);transform:translateY(-1px)}
+.th.drag{opacity:.4}.th.over{outline:3px dashed var(--red)}
+.th b{position:absolute;left:4px;top:3px;background:var(--dark);color:var(--yellow);font:800 .72rem var(--body);border-radius:6px;padding:0 6px;z-index:2}
+.main{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;padding:14px;background:repeating-linear-gradient(45deg,#f6ead0 0 12px,#fbf1da 12px 24px)}
+#fitbox{position:relative;box-shadow:0 14px 40px rgba(39,37,31,.4);border:3px solid var(--dark);border-radius:6px;overflow:hidden;background:#000}
+#fitbox .stage{position:absolute;left:0;top:0}
+.props{overflow:auto;padding:12px;background:#fff;border-left:3px solid var(--dark)}
+.props h3{font:400 1.25rem var(--display);color:var(--red);margin:4px 0 8px}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px}
+.hint{font-size:.78rem;opacity:.75;margin:-4px 0 10px}
+.pop{position:absolute;z-index:30;top:56px;right:12px;width:290px;background:var(--cream);border:3px solid var(--dark);border-radius:14px;box-shadow:6px 6px 0 var(--dark);padding:14px}
+.modal{position:fixed;inset:0;z-index:40;background:rgba(39,37,31,.7);display:flex;align-items:center;justify-content:center;padding:20px}
+.mbox{background:var(--cream);border:3px solid var(--dark);border-radius:20px;box-shadow:8px 8px 0 var(--dark);padding:18px;width:min(100%,760px);max-height:90vh;overflow:auto}
+.mbox h3{font:400 1.8rem var(--display);color:var(--red);margin-bottom:10px}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.lc{cursor:pointer;text-align:left;background:#fff;border:3px solid var(--dark);border-radius:12px;padding:10px;transition:transform .15s,background .15s}
+.lc:hover{transform:translateY(-3px);background:var(--yellow)}
+.lc b{display:block;font:400 1.2rem var(--display);color:var(--red)}.lc span{font-size:.8rem}
+@media(max-width:900px){.body{grid-template-columns:1fr;grid-template-rows:auto 1fr auto;overflow:auto}.rail{display:flex;gap:8px;border-right:0;border-bottom:3px solid var(--dark)}.th{margin:0;flex:none}.props{border-left:0;border-top:3px solid var(--dark);max-height:45vh}}
+
+/* ---------- THE SLIDE (1920 x 1080) ---------- */
+@keyframes rise{from{opacity:0;transform:translateY(50px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes fadeOut{to{opacity:0}}
+@keyframes slideIn{from{opacity:0;transform:translateX(260px)}to{opacity:1;transform:none}}@keyframes slideOut{to{opacity:0;transform:translateX(-260px)}}
+@keyframes zoomIn{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:none}}@keyframes zoomOut{to{opacity:0;transform:scale(1.15)}}
+@keyframes turn{to{transform:rotate(360deg)}}
+@keyframes drift{from{transform:translateX(-700px)}to{transform:translateX(2700px)}}
+@keyframes twinkle{from{opacity:.1}to{opacity:1}}
+@keyframes bk{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:.5}100%{transform:translateY(-1300px) scale(1.3);opacity:0}}
+@keyframes pat{to{background-position:520px 360px}}
+@keyframes beam{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+@keyframes pulse{50%{transform:scale(1.04)}}
+.stage{position:relative;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:#27251F;font-family:var(--body);color:#fff;user-select:none;flex:none}
+.bgwrap,.cwrap{position:absolute;inset:0}
+.bg{position:absolute;inset:0;overflow:hidden;opacity:0;transition:opacity 1.2s}
+.bg.on,.still .bg{opacity:1}
+.still *{animation:none!important}
+.bg.sunset{background:linear-gradient(180deg,#DA291C 0%,#F25C1F 38%,#FF9E1B 68%,#FFC72C 100%)}
+.bg.day{background:linear-gradient(180deg,#3C8DD6 0%,#7CC0EA 55%,#DDF1FA 100%)}
+.bg.night{background:linear-gradient(180deg,#07071E 0%,#1E0F33 55%,#5A1B2A 100%)}
+.bg.rays{background:radial-gradient(ellipse at 50% 50%,#FF8A1F 0%,#DA291C 55%,#7A0D08 100%)}
+.bg.arches{background:linear-gradient(135deg,#DA291C,#A8150E)}
+.bg.arches::before{content:"";position:absolute;inset:-400px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='180' viewBox='0 0 260 180'%3E%3Cg fill='none' stroke='%23FFC72C' stroke-opacity='.28' stroke-width='14' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 80V50C20 6 60 6 65 50 70 6 110 6 110 50V80'/%3E%3Cpath d='M150 170V140C150 96 190 96 195 140 200 96 240 96 240 140V170'/%3E%3C/g%3E%3C/svg%3E");background-size:260px 180px;animation:pat 30s linear infinite}
+.bg.arches::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 40%,rgba(39,37,31,.55) 100%)}
+.sunb{position:absolute;left:50%;bottom:22%;width:950px;height:950px;margin-left:-475px;border-radius:50%;background:radial-gradient(circle,#FFF6C8 0%,#FFD34D 45%,rgba(255,211,77,0) 70%)}
+.day .sunb{bottom:auto;top:-300px;left:auto;right:-150px;margin:0;width:800px;height:800px;background:radial-gradient(circle,#fff 0%,#FFF3B0 40%,rgba(255,243,176,0) 70%)}
+.night .sunb{bottom:auto;top:90px;left:auto;right:240px;margin:0;width:260px;height:260px;background:radial-gradient(circle at 40% 40%,#fff 0%,#E8ECFF 45%,rgba(232,236,255,0) 72%)}
+.cl{position:absolute;left:0;border-radius:999px;background:rgba(255,230,180,.45);filter:blur(14px);animation:drift 90s linear infinite}
+.day .cl{background:rgba(255,255,255,.85)}.night .cl{background:rgba(150,160,220,.14)}
+.cl.c1{top:12%;width:420px;height:70px;animation-delay:-20s}.cl.c2{top:26%;width:560px;height:90px;animation-duration:120s;animation-delay:-70s}.cl.c3{top:6%;width:300px;height:56px;animation-duration:100s;animation-delay:-5s}
+.hl2{position:absolute;left:0;bottom:0;width:100%;height:560px}
+.night .hl2{filter:brightness(.4)}.day .hl2{filter:brightness(1.1)}
+.wheel{transform-box:fill-box;transform-origin:center;animation:turn 90s linear infinite}
+.night .wheel{filter:drop-shadow(0 0 5px #FFE3A8)}
+.st i{position:absolute;border-radius:50%;background:#fff;animation:twinkle 3s ease-in-out infinite alternate}
+.raysp{position:absolute;left:50%;top:50%;width:4600px;height:4600px;margin:-2300px 0 0 -2300px;background:repeating-conic-gradient(rgba(255,199,44,.2) 0 6deg,transparent 6deg 12deg);animation:turn 140s linear infinite}
+.bokeh i{position:absolute;bottom:-120px;border-radius:50%;background:radial-gradient(circle,rgba(255,230,150,.9),rgba(255,199,44,0) 70%);animation:bk 14s linear infinite}
+
+.content{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:70px 110px}
+.content.anim.t-fade{animation:fadeIn .7s both}.content.anim.t-slide{animation:slideIn .8s cubic-bezier(.2,.7,.2,1) both}.content.anim.t-zoom{animation:zoomIn .8s cubic-bezier(.2,.9,.3,1) both}
+.content.leave.t-fade{animation:fadeOut .6s both}.content.leave.t-slide{animation:slideOut .6s both}.content.leave.t-zoom{animation:zoomOut .6s both}
+.anim .rv{animation:rise .9s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0)*.13s + .15s)}
+[data-f]{cursor:text}
+.kicker{font:800 34px var(--body);letter-spacing:.5em;padding-left:.5em;text-transform:uppercase;color:#FFE9A8;text-shadow:0 3px 10px rgba(0,0,0,.35);margin:14px 0}
+.h1{font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:.95;letter-spacing:.02em;color:#fff;text-shadow:0 10px 0 #27251F,0 18px 50px rgba(0,0,0,.35);margin:10px 0;max-width:100%;word-break:break-word}
+.h1.left{text-align:left}
+.pill{display:inline-block;background:#DA291C;color:#FFC72C;border:6px solid #27251F;border-radius:999px;padding:12px 54px;font:400 62px var(--display);letter-spacing:.05em;box-shadow:10px 10px 0 #27251F;transform:rotate(-2deg);margin:22px 0}
+.pill.sm{font-size:48px;padding:8px 40px;margin:0 0 18px}
+.serif{font:600 52px var(--serif);color:#FFF4D6;margin-top:18px;text-shadow:0 3px 10px rgba(0,0,0,.35)}
+.arch svg{height:150px;filter:drop-shadow(0 6px 0 rgba(39,37,31,.45))}
+.seg{display:flex;align-items:center;gap:90px;text-align:left;width:100%}
+.segnum{font:400 520px/.85 var(--display);color:#FFC72C;text-shadow:12px 14px 0 #27251F;flex:none}
+.segtxt{flex:1;min-width:0}
+.desc{font:600 46px/1.3 var(--body);color:#fff;max-width:1000px;margin-top:18px;white-space:pre-line;text-shadow:0 3px 12px rgba(0,0,0,.4)}
+.host{font:800 40px var(--body);letter-spacing:.08em;text-transform:uppercase;color:#FFC72C;margin-top:26px;text-shadow:0 3px 8px rgba(0,0,0,.4)}
+.lnh{font:400 130px var(--display);color:#FFC72C;text-transform:uppercase;text-shadow:0 8px 0 #27251F;margin-bottom:10px}
+.lngrid{display:grid;gap:0 140px;justify-content:center}
+.lni time{display:block;font:800 30px var(--body);letter-spacing:.12em;color:#FFF4D6;opacity:.9}
+.lni b{display:block;font:400 var(--lf,100px)/1.05 var(--display);text-transform:uppercase;color:#FFC72C;text-shadow:0 6px 0 #27251F;padding-bottom:6px}
+.lni:nth-child(even) b{color:#fff}.lni:nth-child(3n) b{color:#FF8A1F}
+.imgrow{display:flex;align-items:center;gap:90px;width:100%}
+.imgframe{flex:none;width:860px;height:760px;border:12px solid #27251F;border-radius:44px;overflow:hidden;box-shadow:16px 16px 0 #27251F;background:#FFF4D6;transform:rotate(-2deg)}
+.imgframe img{width:100%;height:100%;object-fit:cover;display:block}
+.imgph{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;color:#DA291C;font:400 60px var(--display)}
+.imgph svg{height:140px}
+.imgtxt{flex:1;min-width:0;text-align:left}
+.spot{position:relative}
+.beam{position:absolute;top:-200px;width:420px;height:1500px;background:linear-gradient(180deg,rgba(255,244,214,.55),rgba(255,244,214,0));clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);transform-origin:50% 0;animation:beam 7s ease-in-out infinite}
+.beam.b1{left:260px}.beam.b2{right:260px;animation-delay:-3.5s}
+.stagename{font-family:var(--display);font-weight:900;text-transform:uppercase;color:#FFC72C;line-height:.9;text-shadow:0 12px 0 #27251F,0 0 80px rgba(255,199,44,.7);margin:10px 0;animation-name:none}
+.real{font:600 64px var(--serif);color:#FFF4D6}
+.cd{display:flex;gap:36px;margin-top:40px}
+.cdb{width:330px;background:#27251F;border:6px solid #FFC72C;border-radius:36px;padding:26px 0 18px;box-shadow:12px 12px 0 rgba(0,0,0,.35)}
+.cdb b{display:block;font:400 230px/.9 var(--display);color:#FFC72C;font-variant-numeric:tabular-nums}
+.cdb span{font:800 36px var(--body);letter-spacing:.2em;text-transform:uppercase;color:#FFF4D6}
+.cdover{display:none;font:400 200px var(--display);color:#FFC72C;text-transform:uppercase;text-shadow:0 10px 0 #27251F;animation:pulse 2s ease-in-out infinite}
+.cd.over .cdb{display:none}.cd.over .cdover{display:block}
+
+/* presenter */
+#present{position:fixed;inset:0;z-index:100;background:#000;overflow:hidden;cursor:default}
+#present.idle{cursor:none}
+#pfit{position:absolute}
+#pbar{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:rgba(39,37,31,.85);border-radius:999px;padding:8px 14px;transition:opacity .4s;z-index:3}
+#present.idle #pbar{opacity:0;pointer-events:none}
+#pbar span{color:#fff;font-weight:800;min-width:70px;text-align:center}
+#pdots{position:absolute;left:0;right:0;bottom:0;height:5px;background:rgba(255,255,255,.15);z-index:2}
+#pdots i{display:block;height:100%;background:#FFC72C;transition:width .5s}
+#pblack{position:absolute;inset:0;background:#000;z-index:4}
+@media(prefers-reduced-motion:reduce){.stage *{animation-duration:.01s!important}}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <form class="card" id="gateForm">
+    <h1>Slide show</h1>
+    <p style="margin-bottom:12px;font-size:.92rem">Organizers only. Enter the organizer password.</p>
+    <label class="l" for="pw">Organizer password</label>
+    <input type="password" id="pw" autocomplete="current-password" required>
+    <button class="btn" id="gateBtn" type="submit" style="width:100%">Open slides</button>
+    <div class="msg" id="gateMsg" role="status" style="margin-top:8px"></div>
+  </form>
+</div>
+
+<div id="app" hidden>
+  <div class="top">
+    <h2>Slide show</h2>
+    <button class="btn s w" id="back" type="button">Back to organizer desk</button>
+    <button class="btn s y" id="addBtn" type="button">+ Add slide</button>
+    <button class="btn s w" id="perfBtn" type="button">Slides for performers</button>
+    <button class="btn s w" id="setBtn" type="button">Settings</button>
+    <span class="sp"></span>
+    <span id="saveSt" role="status"></span>
+    <button class="btn s w" id="presFrom" type="button">Present from here</button>
+    <button class="btn y" id="presAll" type="button">Present</button>
+    <button class="btn s d" id="lock" type="button">Lock</button>
+  </div>
+  <div class="body">
+    <div class="rail" id="rail"></div>
+    <div class="main" id="main"><div id="fitbox"></div></div>
+    <div class="props" id="props"></div>
+  </div>
+  <div class="pop" id="setPop" hidden>
+    <label class="l" for="sBg">Default background</label>
+    <select id="sBg"></select>
+    <label class="l" for="sTr">Slide change effect</label>
+    <select id="sTr"><option value="fade">Fade</option><option value="slide">Slide</option><option value="zoom">Zoom</option></select>
+    <label class="l" for="sAuto">Auto-advance (seconds, 0 = off)</label>
+    <input type="number" id="sAuto" min="0" max="120" value="0">
+    <p class="hint">With auto-advance on, the show moves by itself and loops back to the start.</p>
+  </div>
+</div>
+
+<div class="modal" id="layoutModal" hidden>
+  <div class="mbox"><h3>Choose a slide type</h3><div class="lgrid" id="lgrid"></div>
+    <div class="row"><button class="btn s w" id="lmClose" type="button">Cancel</button></div></div>
+</div>
+
+<div id="present" hidden>
+  <div id="pfit"></div>
+  <div id="pdots"><i id="pbarFill" style="width:0"></i></div>
+  <div id="pbar">
+    <button class="btn s w" id="pPrev" type="button">Prev</button><span id="pCount"></span>
+    <button class="btn s y" id="pNext" type="button">Next</button>
+    <button class="btn s w" id="pFull" type="button">Full screen (F)</button>
+    <button class="btn s d" id="pExit" type="button">Exit (Esc)</button>
+  </div>
+  <div id="pblack" hidden></div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const C = window.CONFIG;
+const sb = supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Math.random().toString(36).slice(2, 10);
+const SS = { get: k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { sessionStorage.setItem(k, v); } catch (e) {} }, del: k => { try { sessionStorage.removeItem(k); } catch (e) {} } };
+const EVENT = new Date(C.eventDate);
+function h(tag, props, ...kids) { const e = document.createElement(tag);
+  Object.entries(props || {}).forEach(([k, v]) => { if (k === 'class') e.className = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v); else if (v !== false && v != null) e.setAttribute(k, v === true ? '' : v); });
+  kids.flat().forEach(c => e.append(c)); return e; }
+
+/* ---------- backgrounds ---------- */
+const ARCH = '<svg viewBox="0 0 120 80"><path d="M12 74V38C12 -4 56 -4 60 38 64 -4 108 -4 108 38V74" fill="none" stroke="#FFC72C" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function hills() {
+  let w = '<circle cx="600" cy="262" r="112"/><circle cx="600" cy="262" r="94" opacity=".6"/>';
+  for (let i = 0; i < 20; i++) { const a = i * Math.PI / 10, x = (600 + 112 * Math.cos(a)).toFixed(1), y = (262 + 112 * Math.sin(a)).toFixed(1);
+    w += `<line x1="600" y1="262" x2="${x}" y2="${y}"/><circle cx="${x}" cy="${y}" r="6" fill="${i % 2 ? '#FFC72C' : '#DA291C'}" stroke="#27251F" stroke-width="1.5"/>`; }
+  return `<svg class="hl2" viewBox="0 0 1200 320" preserveAspectRatio="xMidYMax slice"><path d="M0 320V190l120-30 150 30 140-40 160 35 150-45 170 50 150-30 160 25v175z" fill="#A8301F" opacity=".8"/><path d="M0 320V235l200-45 180 30 190-35 210 40 220-30 200 25v100z" fill="#6B1F16"/><g stroke="#FFF4D6" stroke-width="2" fill="none" opacity=".95"><line x1="600" y1="262" x2="545" y2="330"/><line x1="600" y1="262" x2="655" y2="330"/><g class="wheel">${w}</g></g><path d="M0 320V282l260-20 240 18 220-14 260 20 220-16v50z" fill="#27251F"/></svg>`;
+}
+const clouds = '<div class="cl c1"></div><div class="cl c2"></div><div class="cl c3"></div>';
+function bgHtml(k) {
+  if (k === 'rays') { let b = ''; for (let i = 0; i < 16; i++) { const z = 60 + Math.random() * 200; b += `<i style="left:${Math.random() * 100}%;width:${z}px;height:${z}px;animation-delay:${-Math.random() * 14}s;animation-duration:${10 + Math.random() * 10}s"></i>`; } return `<div class="bg rays"><div class="raysp"></div><div class="bokeh">${b}</div></div>`; }
+  if (k === 'arches') return '<div class="bg arches"></div>';
+  if (k === 'night') { let s = ''; for (let i = 0; i < 90; i++) { const z = 2 + Math.random() * 4; s += `<i style="left:${Math.random() * 100}%;top:${Math.random() * 62}%;width:${z}px;height:${z}px;animation-delay:${Math.random() * 4}s;animation-duration:${2 + Math.random() * 3}s"></i>`; } return `<div class="bg night"><div class="st">${s}</div><div class="sunb"></div>${clouds}${hills()}</div>`; }
+  if (k === 'day') return `<div class="bg day"><div class="sunb"></div>${clouds}${hills()}</div>`;
+  return `<div class="bg sunset"><div class="sunb"></div>${clouds}${hills()}</div>`;
+}
+const BG_NAMES = { sunset: 'Sunset arches', rays: 'Golden rays', arches: 'Arches pattern', night: 'Night festival', day: 'Blue sky' };
+
+/* ---------- slide types ---------- */
+const fsz = (len, steps) => { for (const [m, s] of steps) if (len <= m) return s; return steps[steps.length - 1][1]; };
+const parseItems = s => String(s || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => { const i = l.indexOf('|'); return i < 0 ? { t: '', a: l } : { t: l.slice(0, i).trim(), a: l.slice(i + 1).trim() }; });
+let ri = 0; const r = () => `style="--i:${ri++}"`;
+const RENDER = {
+  title: f => `<div class="arch rv" ${r()}>${ARCH}</div><div class="kicker rv" data-f="kicker" ${r()}>${esc(f.kicker)}</div><h1 class="h1 rv" data-f="title" ${r()} style="font-size:${fsz((f.title || '').length, [[10, 280], [16, 210], [26, 160], [40, 120], [999, 90]])}px">${esc(f.title)}</h1><div class="pill rv" data-f="sub" ${r()}>${esc(f.sub)}</div><div class="serif rv" data-f="line" ${r()}>${esc(f.line)}</div>`,
+  segment: f => `<div class="seg"><div class="segnum rv" data-f="num" ${r()}>${esc(f.num)}</div><div class="segtxt">${f.time ? `<div class="pill sm rv" data-f="time" ${r()}>${esc(f.time)}</div>` : ''}<h1 class="h1 left rv" data-f="title" ${r()} style="font-size:${fsz((f.title || '').length, [[10, 190], [18, 150], [30, 112], [999, 84]])}px">${esc(f.title)}</h1>${f.desc ? `<p class="desc rv" data-f="desc" ${r()}>${esc(f.desc)}</p>` : ''}${f.host ? `<p class="host rv" data-f="host" ${r()}>${esc(f.host)}</p>` : ''}</div></div>`,
+  lineup: f => { const it = parseItems(f.items), n = it.length, cols = n > 6 ? 2 : 1, per = Math.ceil(n / cols), size = cols === 2 ? (per <= 4 ? 96 : per <= 5 ? 80 : 66) : (n <= 3 ? 130 : n <= 4 ? 112 : n <= 5 ? 92 : 78);
+    return `<div class="lnh rv" data-f="head" ${r()}>${esc(f.head)}</div><div class="lngrid" style="grid-template-columns:repeat(${cols},auto);--lf:${size}px">${it.map(x => `<div class="lni rv" data-f="items" ${r()}>${x.t ? `<time>${esc(x.t)}</time>` : ''}<b>${esc(x.a)}</b></div>`).join('')}</div>`; },
+  statement: f => `<h1 class="h1 rv" data-f="head" ${r()} style="font-size:${fsz((f.head || '').length, [[14, 300], [26, 220], [44, 160], [80, 118], [999, 84]])}px">${esc(f.head)}</h1>${f.text ? `<p class="desc rv" data-f="text" ${r()} style="text-align:center;font-size:56px;max-width:1400px">${esc(f.text)}</p>` : ''}`,
+  image: f => `<div class="imgrow"><div class="imgframe rv" ${r()}>${/^https?:\/\//i.test(f.img || '') ? `<img src="${esc(f.img)}" alt="">` : `<div class="imgph">${ARCH.replace('#FFC72C', '#DA291C')}<span>Add an image</span></div>`}</div><div class="imgtxt"><h1 class="h1 left rv" data-f="head" ${r()} style="font-size:${fsz((f.head || '').length, [[12, 170], [22, 130], [40, 96], [999, 72]])}px">${esc(f.head)}</h1>${f.text ? `<p class="desc rv" data-f="text" ${r()}>${esc(f.text)}</p>` : ''}</div></div>`,
+  spotlight: f => `<div class="beam b1"></div><div class="beam b2"></div><div class="kicker rv" ${r()}>Talent Showcase</div><div class="stagename rv" data-f="stage" ${r()} style="font-size:${fsz((f.stage || '').length, [[8, 330], [14, 240], [22, 180], [999, 120]])}px">${esc(f.stage)}</div>${f.real ? `<div class="real rv" data-f="real" ${r()}>${esc(f.real)}</div>` : ''}${f.act ? `<p class="desc rv" data-f="act" ${r()} style="text-align:center;max-width:1400px">${esc(f.act)}</p>` : ''}`,
+  countdown: f => `<h1 class="h1 rv" data-f="head" ${r()} style="font-size:170px">${esc(f.head)}</h1><div class="cd rv" ${r()}><div class="cdb"><b data-cd="d">0</b><span>days</span></div><div class="cdb"><b data-cd="h">00</b><span>hours</span></div><div class="cdb"><b data-cd="m">00</b><span>minutes</span></div><div class="cdb"><b data-cd="s">00</b><span>seconds</span></div><div class="cdover">The gates are open!</div></div>`,
+  thanks: f => `<div class="arch rv" ${r()}>${ARCH}</div><h1 class="h1 rv" data-f="head" ${r()} style="font-size:${fsz((f.head || '').length, [[12, 300], [22, 220], [999, 150]])}px">${esc(f.head)}</h1>${f.text ? `<div class="serif rv" data-f="text" ${r()}>${esc(f.text)}</div>` : ''}`
+};
+const LAYOUTS = {
+  title: { name: 'Title', info: 'Opening slide with the party name', fields: [['kicker', 'Small heading', 'Coachella: Beyond the Arches'], ['title', 'Title', 'Year End Party'], ['sub', 'Badge text', C.partyName], ['line', 'Date and place', C.when + ' · ' + C.where]] },
+  segment: { name: 'Program segment', info: 'One part of the program: number, time, title', fields: [['num', 'Segment number', '01'], ['time', 'Time', '6:00 PM'], ['title', 'Segment title', 'Segment title'], ['desc', 'Description (optional)', '', 'area'], ['host', 'Host / in charge (optional)', '']] },
+  lineup: { name: 'Program lineup', info: 'Poster-style list of the whole program', fields: [['head', 'Heading', "Tonight's Lineup"], ['items', 'Items, one per line: time | name', '6:00 PM | Gates open\n7:00 PM | Dinner', 'area']] },
+  statement: { name: 'Big announcement', info: 'One big headline with a line of text', fields: [['head', 'Headline', 'Big announcement'], ['text', 'Text (optional)', '', 'area']] },
+  image: { name: 'Picture and text', info: 'A photo next to a headline', fields: [['head', 'Headline', 'Headline'], ['text', 'Text (optional)', '', 'area'], ['img', 'Picture', '', 'image']] },
+  spotlight: { name: 'Talent spotlight', info: 'Stage name of a performer', fields: [['stage', 'Stage name', 'Stage name'], ['real', 'Real name (optional)', ''], ['act', 'About the act (optional)', '', 'area']], picker: true },
+  countdown: { name: 'Countdown', info: 'Live countdown to the party', fields: [['head', 'Heading', 'Gates open in']] },
+  thanks: { name: 'Thank you', info: 'Closing slide', fields: [['head', 'Headline', 'Thank you!'], ['text', 'Text (optional)', 'See you at the next one.']] }
+};
+function newSlide(type, bg) { const f = {}; LAYOUTS[type].fields.forEach(([k, , d]) => { f[k] = d || ''; }); return { id: uid(), type, bg: bg || 'default', f }; }
+function defaultDeck() {
+  const L = C.lineup || [];
+  const s = [{ id: uid(), type: 'title', bg: 'sunset', f: { kicker: 'Coachella: Beyond the Arches', title: 'Year End Party', sub: C.partyName, line: C.when + ' · ' + C.where } },
+    { id: uid(), type: 'countdown', bg: 'rays', f: { head: 'Gates open in' } },
+    { id: uid(), type: 'lineup', bg: 'arches', f: { head: "Tonight's Lineup", items: L.map(x => x.time + ' | ' + x.act).join('\n') } },
+    ...L.map((x, i) => ({ id: uid(), type: 'segment', bg: i % 2 ? 'sunset' : 'rays', f: { num: String(i + 1).padStart(2, '0'), time: x.time, title: x.act, desc: '', host: '' } })),
+    { id: uid(), type: 'thanks', bg: 'night', f: { head: 'Thank you!', text: 'See you at the next one.' } }];
+  return { v: 1, bg: 'sunset', transition: 'fade', autoplay: 0, slides: s };
+}
+
+/* ---------- stage factory ---------- */
+function makeStage(root, still) {
+  root.classList.add('stage'); if (still) root.classList.add('still');
+  const bgw = document.createElement('div'), cw = document.createElement('div'); bgw.className = 'bgwrap'; cw.className = 'cwrap'; root.append(bgw, cw);
+  let kind = null;
+  return {
+    setBg(k) {
+      if (k === kind) return; kind = k;
+      const t = document.createElement('div'); t.innerHTML = bgHtml(k); const nb = t.firstElementChild;
+      const olds = [...bgw.children]; bgw.appendChild(nb);
+      if (still) { olds.forEach(o => o.remove()); return; }
+      requestAnimationFrame(() => { nb.classList.add('on'); setTimeout(() => olds.forEach(o => o.remove()), 1300); });
+    },
+    show(slide, opt) {
+      opt = opt || {}; ri = 0;
+      const layer = document.createElement('div'); layer.className = 'content t-' + (opt.transition || 'fade') + (opt.animate ? ' anim' : '');
+      layer.innerHTML = RENDER[slide.type](slide.f); const olds = [...cw.children]; cw.appendChild(layer);
+      if (opt.animate && olds.length) olds.forEach(o => { o.classList.remove('anim'); o.classList.add('leave'); setTimeout(() => o.remove(), 700); }); else olds.forEach(o => o.remove());
+      tickCd();
+    }
+  };
+}
+const bgOf = s => (!s.bg || s.bg === 'default') ? deck.bg : s.bg;
+function tickCd() {
+  const d = EVENT - Date.now(), p = n => String(n).padStart(2, '0');
+  document.querySelectorAll('.cd').forEach(c => {
+    c.classList.toggle('over', d <= 0); if (d <= 0) return;
+    const v = { d: Math.floor(d / 864e5), h: p(Math.floor(d / 36e5) % 24), m: p(Math.floor(d / 6e4) % 60), s: p(Math.floor(d / 1e3) % 60) };
+    c.querySelectorAll('[data-cd]').forEach(b => { b.textContent = v[b.dataset.cd]; });
+  });
+}
+setInterval(tickCd, 1000);
+
+/* ---------- state ---------- */
+let pw = null, deck = null, sel = 0, guests = [], mainStage = null, thumbs = [], dirty = false, saveTimer = null, saving = false;
+
+async function enter(password) {
+  const g = await sb.rpc('admin_get_deck', { p_password: password });
+  if (g.error) return g.error.message;
+  pw = password; SS.set('fest_admin_pw', password);
+  deck = g.data && g.data.slides && g.data.slides.length ? g.data : defaultDeck();
+  deck.bg = deck.bg || 'sunset'; deck.transition = deck.transition || 'fade'; deck.autoplay = deck.autoplay || 0;
+  const l = await sb.rpc('admin_list', { p_password: password }); guests = (l.data || []).filter(x => x.talent_status === 'yes');
+  $('gate').hidden = true; $('app').hidden = false; buildApp(); if (!g.data) markDirty();
+  return null;
+}
+$('gateForm').addEventListener('submit', async e => {
+  e.preventDefault(); $('gateBtn').disabled = true; $('gateMsg').textContent = '';
+  const err = await enter($('pw').value); $('gateBtn').disabled = false; if (err) $('gateMsg').textContent = err;
+});
+$('lock').addEventListener('click', () => { SS.del('fest_admin_pw'); location.reload(); });
+$('back').addEventListener('click', () => { location.href = 'index.html#admin'; });
+
+/* ---------- saving ---------- */
+function markDirty() { dirty = true; $('saveSt').textContent = 'Unsaved changes...'; clearTimeout(saveTimer); saveTimer = setTimeout(save, 1000); }
+async function save() {
+  if (saving) { saveTimer = setTimeout(save, 600); return; }
+  saving = true; $('saveSt').textContent = 'Saving...'; const snap = JSON.stringify(deck);
+  const { error } = await sb.rpc('admin_save_deck', { p_password: pw, p_deck: JSON.parse(snap) });
+  saving = false;
+  if (error) { $('saveSt').textContent = 'Could not save: ' + error.message; return; }
+  if (JSON.stringify(deck) === snap) { dirty = false; $('saveSt').textContent = 'All changes saved'; } else markDirty();
+}
+addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ---------- editor ---------- */
+function fitMain() {
+  const m = $('main'), box = $('fitbox'), s = Math.min((m.clientWidth - 40) / 1920, (m.clientHeight - 40) / 1080);
+  if (s <= 0) return; box.style.width = 1920 * s + 'px'; box.style.height = 1080 * s + 'px'; mainStage.root.style.transform = `scale(${s})`;
+}
+function buildApp() {
+  const box = $('fitbox'); box.textContent = ''; const root = document.createElement('div'); box.appendChild(root); mainStage = makeStage(root, false);
+  new ResizeObserver(fitMain).observe($('main'));
+  const sbg = $('sBg'); sbg.textContent = ''; Object.entries(BG_NAMES).forEach(([k, v]) => sbg.appendChild(h('option', { value: k }, v)));
+  $('sBg').value = deck.bg; $('sTr').value = deck.transition; $('sAuto').value = deck.autoplay;
+  sel = 0; renderThumbs(); select(0);
+}
+function renderThumbs() {
+  const rail = $('rail'); rail.textContent = ''; thumbs = [];
+  deck.slides.forEach((s, i) => {
+    const box = h('div', { class: 'box' }), root = document.createElement('div'); box.appendChild(root);
+    const st = makeStage(root, true); st.setBg(bgOf(s)); st.show(s);
+    const th = h('div', { class: 'th' + (i === sel ? ' sel' : ''), draggable: 'true', tabindex: '0', role: 'button', 'aria-label': 'Slide ' + (i + 1) }, h('b', {}, String(i + 1)), box);
+    th.addEventListener('click', () => select(i));
+    th.addEventListener('keydown', e => { if (e.key === 'Enter') select(i); });
+    th.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', String(i)); th.classList.add('drag'); });
+    th.addEventListener('dragend', () => th.classList.remove('drag'));
+    th.addEventListener('dragover', e => { e.preventDefault(); th.classList.add('over'); });
+    th.addEventListener('dragleave', () => th.classList.remove('over'));
+    th.addEventListener('drop', e => { e.preventDefault(); const from = +e.dataTransfer.getData('text/plain'); if (isNaN(from) || from === i) { th.classList.remove('over'); return; } const [m] = deck.slides.splice(from, 1); deck.slides.splice(i, 0, m); sel = i; renderThumbs(); select(i); markDirty(); });
+    rail.appendChild(th); thumbs.push({ th, st });
+  });
+}
+function refreshThumb(i) { const t = thumbs[i], s = deck.slides[i]; if (!t) return; t.st.setBg(bgOf(s)); t.st.show(s); }
+function select(i) {
+  sel = Math.max(0, Math.min(i, deck.slides.length - 1)); thumbs.forEach((t, k) => t.th.classList.toggle('sel', k === sel));
+  const s = deck.slides[sel]; mainStage.setBg(bgOf(s)); mainStage.show(s, { animate: true, transition: deck.transition }); fitMain(); buildProps();
+  if (thumbs[sel]) thumbs[sel].th.scrollIntoView({ block: 'nearest' });
+}
+function liveUpdate() { const s = deck.slides[sel]; mainStage.setBg(bgOf(s)); mainStage.show(s, { animate: false }); refreshThumb(sel); markDirty(); }
+
+function buildProps() {
+  const s = deck.slides[sel], L = LAYOUTS[s.type], p = $('props'); p.textContent = '';
+  p.append(h('h3', {}, 'Slide ' + (sel + 1) + ' of ' + deck.slides.length));
+  const ty = h('select', { 'aria-label': 'Slide type' }); Object.entries(LAYOUTS).forEach(([k, v]) => ty.appendChild(h('option', { value: k }, v.name))); ty.value = s.type;
+  ty.addEventListener('change', () => { const old = s.f; s.type = ty.value; const nf = {}; LAYOUTS[s.type].fields.forEach(([k, , d]) => { nf[k] = old[k] != null && old[k] !== '' ? old[k] : (d || ''); }); s.f = nf; liveUpdate(); buildProps(); });
+  p.append(h('label', { class: 'l' }, 'Slide type'), ty);
+  const bg = h('select', { 'aria-label': 'Background' }); bg.appendChild(h('option', { value: 'default' }, 'Use default (' + BG_NAMES[deck.bg] + ')')); Object.entries(BG_NAMES).forEach(([k, v]) => bg.appendChild(h('option', { value: k }, v))); bg.value = s.bg || 'default';
+  bg.addEventListener('change', () => { s.bg = bg.value; liveUpdate(); });
+  p.append(h('label', { class: 'l' }, 'Moving background'), bg);
+  if (L.picker) {
+    const pk = h('select', {}, h('option', { value: '' }, guests.length ? 'Fill from the performer list...' : 'No performers have signed up yet'));
+    guests.slice().sort((a, b) => (a.stage_name || '').localeCompare(b.stage_name || '')).forEach(g => pk.appendChild(h('option', { value: g.nickname }, (g.stage_name || g.nickname) + (g.real_name ? ' (' + g.real_name + ')' : ''))));
+    pk.addEventListener('change', () => { const g = guests.find(x => x.nickname === pk.value); if (!g) return; s.f.stage = g.stage_name || g.nickname; s.f.real = g.real_name || ''; liveUpdate(); buildProps(); });
+    p.append(h('label', { class: 'l' }, 'Performer'), pk);
+  }
+  L.fields.forEach(([k, label, , kind]) => {
+    p.append(h('label', { class: 'l', for: 'f_' + k }, label));
+    if (kind === 'image') {
+      const inp = h('input', { type: 'text', id: 'f_' + k, placeholder: 'https://... or upload below', 'data-k': k }); inp.value = s.f[k] || '';
+      inp.addEventListener('input', () => { s.f[k] = inp.value.trim(); liveUpdate(); });
+      const msg = h('div', { class: 'msg' }), file = h('input', { type: 'file', accept: 'image/*', 'aria-label': 'Upload picture' });
+      file.addEventListener('change', async () => {
+        const f = file.files[0]; if (!f) return; msg.className = 'msg'; msg.textContent = 'Uploading...';
+        const path = 'slides/' + uid() + '/' + f.name.replace(/[^\w.\-]+/g, '_').slice(-60);
+        const { error } = await sb.storage.from(C.uploadBucket).upload(path, f, { contentType: f.type || 'image/jpeg' });
+        if (error) { msg.textContent = 'Upload failed: ' + error.message; return; }
+        s.f[k] = sb.storage.from(C.uploadBucket).getPublicUrl(path).data.publicUrl; inp.value = s.f[k]; msg.className = 'msg ok'; msg.textContent = 'Uploaded.'; liveUpdate();
+      });
+      p.append(inp, file, msg); return;
+    }
+    const inp = kind === 'area' ? h('textarea', { id: 'f_' + k, 'data-k': k }) : h('input', { type: 'text', id: 'f_' + k, 'data-k': k });
+    inp.value = s.f[k] || ''; inp.addEventListener('input', () => { s.f[k] = inp.value; liveUpdate(); }); p.append(inp);
+  });
+  p.append(h('p', { class: 'hint' }, 'Tip: click any text on the slide to jump to its box.'));
+  const arm = (b, label, go) => b.addEventListener('click', () => { if (b.dataset.a) { go(); return; } b.dataset.a = '1'; b.textContent = 'Tap again to confirm'; setTimeout(() => { delete b.dataset.a; b.textContent = label; }, 3000); });
+  const row = h('div', { class: 'row' },
+    h('button', { class: 'btn s w', type: 'button', onclick: () => move(-1) }, 'Move up'), h('button', { class: 'btn s w', type: 'button', onclick: () => move(1) }, 'Move down'),
+    h('button', { class: 'btn s y', type: 'button', onclick: dup }, 'Duplicate'));
+  const del = h('button', { class: 'btn s', type: 'button' }, 'Delete slide'); arm(del, 'Delete slide', remove); row.append(del); p.append(row);
+}
+$('main').addEventListener('click', e => { const el = e.target.closest('[data-f]'); if (!el) return; const inp = document.querySelector('#props [data-k="' + el.dataset.f + '"]'); if (inp) { inp.focus(); inp.classList.add('hl'); setTimeout(() => inp.classList.remove('hl'), 900); } });
+function move(d) { const j = sel + d; if (j < 0 || j >= deck.slides.length) return; const [m] = deck.slides.splice(sel, 1); deck.slides.splice(j, 0, m); sel = j; renderThumbs(); select(j); markDirty(); }
+function dup() { const c = JSON.parse(JSON.stringify(deck.slides[sel])); c.id = uid(); deck.slides.splice(sel + 1, 0, c); renderThumbs(); select(sel + 1); markDirty(); }
+function remove() { if (deck.slides.length <= 1) { $('saveSt').textContent = 'A deck needs at least one slide'; return; } deck.slides.splice(sel, 1); renderThumbs(); select(Math.min(sel, deck.slides.length - 1)); markDirty(); }
+function addSlide(type) { deck.slides.splice(sel + 1, 0, newSlide(type)); $('layoutModal').hidden = true; renderThumbs(); select(sel + 1); markDirty(); }
+$('addBtn').addEventListener('click', () => { const g = $('lgrid'); g.textContent = ''; Object.entries(LAYOUTS).forEach(([k, v]) => g.appendChild(h('button', { class: 'lc', type: 'button', onclick: () => addSlide(k) }, h('b', {}, v.name), h('span', {}, v.info)))); $('layoutModal').hidden = false; });
+$('lmClose').addEventListener('click', () => { $('layoutModal').hidden = true; });
+$('perfBtn').addEventListener('click', () => {
+  if (!guests.length) { $('saveSt').textContent = 'No performers have signed up yet'; return; }
+  const list = guests.slice().sort((a, b) => (a.stage_name || '').localeCompare(b.stage_name || '')).map(g => { const s = newSlide('spotlight', 'rays'); s.f.stage = g.stage_name || g.nickname; s.f.real = g.real_name || ''; s.f.act = ''; return s; });
+  deck.slides.splice(sel + 1, 0, ...list); renderThumbs(); select(sel + 1); markDirty(); $('saveSt').textContent = list.length + ' performer slides added';
+});
+$('setBtn').addEventListener('click', () => { $('setPop').hidden = !$('setPop').hidden; });
+$('sBg').addEventListener('change', () => { deck.bg = $('sBg').value; deck.slides.forEach((_, i) => refreshThumb(i)); select(sel); markDirty(); });
+$('sTr').addEventListener('change', () => { deck.transition = $('sTr').value; markDirty(); });
+$('sAuto').addEventListener('input', () => { deck.autoplay = Math.max(0, Math.min(120, +$('sAuto').value || 0)); markDirty(); });
+
+/* ---------- presenter ---------- */
+let pi = 0, pst = null, autoT = null, presenting = false, idleT = null;
+function fitP() { const w = innerWidth, hh = innerHeight, s = Math.min(w / 1920, hh / 1080), f = $('pfit'); f.style.width = 1920 * s + 'px'; f.style.height = 1080 * s + 'px'; f.style.left = (w - 1920 * s) / 2 + 'px'; f.style.top = (hh - 1080 * s) / 2 + 'px'; pst.root.style.transform = `scale(${s})`; }
+function pShow(i, animate) {
+  pi = Math.max(0, Math.min(i, deck.slides.length - 1)); const s = deck.slides[pi];
+  pst.setBg(bgOf(s)); pst.show(s, { animate, transition: deck.transition });
+  $('pCount').textContent = (pi + 1) + ' / ' + deck.slides.length; $('pbarFill').style.width = ((pi + 1) / deck.slides.length * 100) + '%';
+  clearTimeout(autoT); if (deck.autoplay > 0) autoT = setTimeout(() => pGo(1, true), deck.autoplay * 1000);
+}
+function pGo(d, loop) { const j = pi + d; if (j >= deck.slides.length) { if (loop) pShow(0, true); return; } if (j < 0) return; pShow(j, true); }
+function present(from) {
+  if (dirty) save();
+  presenting = true; $('present').hidden = false; const f = $('pfit'); f.textContent = ''; const root = document.createElement('div'); f.appendChild(root); pst = makeStage(root, false);
+  $('pblack').hidden = true; fitP(); pShow(from, true);
+  const el = $('present'); if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+}
+function exitP() { presenting = false; clearTimeout(autoT); $('present').hidden = true; if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); select(pi); }
+$('presAll').addEventListener('click', () => present(0));
+$('presFrom').addEventListener('click', () => present(sel));
+$('pNext').addEventListener('click', e => { e.stopPropagation(); pGo(1, false); });
+$('pPrev').addEventListener('click', e => { e.stopPropagation(); pGo(-1, false); });
+$('pExit').addEventListener('click', e => { e.stopPropagation(); exitP(); });
+$('pFull').addEventListener('click', e => { e.stopPropagation(); togglePF(); });
+$('pbar').addEventListener('click', e => e.stopPropagation());
+$('present').addEventListener('click', () => pGo(1, false));
+function togglePF() { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else $('present').requestFullscreen && $('present').requestFullscreen().catch(() => {}); }
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && presenting) { /* stay in the overlay, user can press Esc again */ } if (presenting) fitP(); });
+addEventListener('resize', () => { if (presenting) fitP(); });
+document.addEventListener('mousemove', () => { if (!presenting) return; $('present').classList.remove('idle'); clearTimeout(idleT); idleT = setTimeout(() => $('present').classList.add('idle'), 2500); });
+document.addEventListener('keydown', e => {
+  if (!presenting) { if (e.key === 'Escape') { $('layoutModal').hidden = true; $('setPop').hidden = true; } return; }
+  const k = e.key;
+  if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(k)) { e.preventDefault(); pGo(1, false); }
+  else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(k)) { e.preventDefault(); pGo(-1, false); }
+  else if (k === 'Home') pShow(0, true); else if (k === 'End') pShow(deck.slides.length - 1, true);
+  else if (k === 'f' || k === 'F') togglePF();
+  else if (k === 'b' || k === 'B' || k === '.') $('pblack').hidden = !$('pblack').hidden;
+  else if (k === 'Escape') exitP();
+});
+
+/* auto sign-in when coming from the organizer desk */
+(async () => { const sp = SS.get('fest_admin_pw'); if (sp) { const err = await enter(sp); if (err) { SS.del('fest_admin_pw'); $('gateMsg').textContent = ''; } } })();
+</script>
+</body>
+</html>
