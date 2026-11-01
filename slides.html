@@ -48,7 +48,7 @@ label.l{display:block;font-weight:800;font-size:.82rem;margin-bottom:4px}
 .th .stage{transform:scale(.08854)}
 .th.sel{box-shadow:0 0 0 4px var(--yellow),4px 4px 0 var(--dark);transform:translateY(-1px)}
 .th.drag{opacity:.4}.th.over{outline:3px dashed var(--red)}
-.th b{position:absolute;left:4px;top:3px;background:var(--dark);color:var(--yellow);font:800 .72rem var(--body);border-radius:6px;padding:0 6px;z-index:2}
+.th>b{position:absolute;left:4px;top:3px;background:var(--dark);color:var(--yellow);font:800 .72rem var(--body);border-radius:6px;padding:0 6px;z-index:2}
 .main{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;padding:14px;background:repeating-linear-gradient(45deg,#f6ead0 0 12px,#fbf1da 12px 24px)}
 #fitbox{position:relative;box-shadow:0 14px 40px rgba(39,37,31,.4);border:3px solid var(--dark);border-radius:6px;overflow:hidden;background:#000}
 #fitbox .stage{position:absolute;left:0;top:0}
@@ -288,6 +288,7 @@ function makeStage(root, still) {
   const bgw = document.createElement('div'), cw = document.createElement('div'); bgw.className = 'bgwrap'; cw.className = 'cwrap'; root.append(bgw, cw);
   let kind = null;
   return {
+    root,
     setBg(k) {
       if (k === kind) return; kind = k;
       const t = document.createElement('div'); t.innerHTML = bgHtml(k); const nb = t.firstElementChild;
