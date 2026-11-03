@@ -7,7 +7,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Cormorant+Garamond:wght@500;600&family=Nunito+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Cormorant+Garamond:wght@500;600&family=Nunito+Sans:wght@400;600;800&family=Anton&family=Bebas+Neue&family=Oswald:wght@400;700&family=Poppins:wght@400;600;800&family=Playfair+Display:wght@400;800&family=DM+Serif+Display&family=Fredoka:wght@400;700&family=Rubik:wght@400;800&family=Bangers&family=Lobster&family=Pacifico&family=Permanent+Marker&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <style>
@@ -21,27 +21,25 @@ button,input,select,textarea{font:inherit;color:inherit}
 .btn{cursor:pointer;border:3px solid var(--dark);border-radius:12px;padding:8px 14px;font-family:var(--display);font-size:1.05rem;letter-spacing:.04em;background:var(--red);color:#fff;box-shadow:3px 3px 0 var(--dark);transition:transform .18s cubic-bezier(.3,1.5,.5,1),box-shadow .18s,filter .2s;white-space:nowrap}
 .btn:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--dark);filter:brightness(1.06)}
 .btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--dark)}
-.btn:disabled{opacity:.55;cursor:wait}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:3px 3px 0 var(--dark)}
 .btn.y{background:var(--yellow);color:var(--dark)}.btn.d{background:var(--dark);color:var(--yellow)}.btn.w{background:#fff;color:var(--dark)}
 .btn.s{font-size:.9rem;padding:5px 10px;box-shadow:2px 2px 0 var(--dark)}
-input[type=text],input[type=password],input[type=number],select,textarea{width:100%;padding:9px 11px;border:3px solid var(--dark);border-radius:10px;background:#fff;margin-bottom:10px}
+input[type=text],input[type=password],input[type=number],select,textarea{width:100%;padding:8px 10px;border:3px solid var(--dark);border-radius:10px;background:#fff;margin-bottom:10px}
 textarea{resize:vertical;min-height:84px}
-input:focus,select:focus,textarea:focus,.hl{outline:none;box-shadow:0 0 0 4px rgba(255,199,44,.8)}
-label.l{display:block;font-weight:800;font-size:.82rem;margin-bottom:4px}
+input:focus,select:focus,textarea:focus{outline:none;box-shadow:0 0 0 4px rgba(255,199,44,.8)}
+label.l{display:block;font-weight:800;font-size:.8rem;margin-bottom:3px}
 .msg{font-weight:800;font-size:.85rem;color:#B0170E;min-height:1.2em}.msg.ok{color:#1B7A3D}
 
-/* login */
 #gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#DA291C,#FF8A1F);padding:20px}
 .card{background:var(--cream);border:3px solid var(--dark);border-radius:20px;padding:22px;box-shadow:8px 8px 0 var(--dark);width:min(100%,400px)}
 .card h1{font:400 2rem var(--display);color:var(--red);margin-bottom:6px}
 
-/* app shell */
 #app{display:grid;grid-template-rows:auto 1fr;height:100%;position:relative}
 .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;background:var(--red);border-bottom:3px solid var(--dark)}
 .top h2{font:400 1.7rem var(--display);color:var(--yellow);text-shadow:2px 2px 0 var(--dark);margin-right:6px}
 .top .sp{flex:1}
 #saveSt{font-weight:800;font-size:.85rem;color:#fff;min-width:130px;text-align:right}
-.body{display:grid;grid-template-columns:210px minmax(0,1fr) 330px;min-height:0}
+.body{display:grid;grid-template-columns:200px minmax(0,1fr) 320px;min-height:0}
 .rail{overflow:auto;padding:10px;background:#fff;border-right:3px solid var(--dark)}
 .th{position:relative;display:block;width:176px;margin:0 auto 10px;cursor:pointer;border:3px solid var(--dark);border-radius:8px;overflow:hidden;background:#000;transition:transform .15s,box-shadow .15s}
 .th .box{position:relative;width:170px;height:95.6px;overflow:hidden}
@@ -49,13 +47,31 @@ label.l{display:block;font-weight:800;font-size:.82rem;margin-bottom:4px}
 .th.sel{box-shadow:0 0 0 4px var(--yellow),4px 4px 0 var(--dark);transform:translateY(-1px)}
 .th.drag{opacity:.4}.th.over{outline:3px dashed var(--red)}
 .th>b{position:absolute;left:4px;top:3px;background:var(--dark);color:var(--yellow);font:800 .72rem var(--body);border-radius:6px;padding:0 6px;z-index:2}
-.main{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;padding:14px;background:repeating-linear-gradient(45deg,#f6ead0 0 12px,#fbf1da 12px 24px)}
-#fitbox{position:relative;box-shadow:0 14px 40px rgba(39,37,31,.4);border:3px solid var(--dark);border-radius:6px;overflow:hidden;background:#000}
-#fitbox .stage{position:absolute;left:0;top:0}
+.mcol{display:flex;flex-direction:column;min-width:0;min-height:0}
+.tbar{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;padding:6px 10px;background:#fff;border-bottom:3px solid var(--dark);min-height:52px}
+.grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-right:8px;border-right:2px solid #eadfc3}
+.grp:last-child{border-right:0}
+.tbar input,.tbar select{width:auto;margin:0;padding:5px 7px;border-width:2px;border-radius:8px;font-size:.85rem}
+.tbar input[type=color]{padding:0;width:34px;height:30px;cursor:pointer}
+.tbar input[type=number]{width:62px}
+.tbar #fontSel{width:150px}
+.tg{min-width:32px;cursor:pointer;border:2px solid var(--dark);border-radius:8px;background:#fff;padding:4px 8px;font-weight:800}
+.tg[aria-pressed=true]{background:var(--yellow);box-shadow:inset 0 0 0 1px var(--dark)}
+.sw{width:22px;height:22px;border-radius:6px;border:2px solid var(--dark);cursor:pointer;padding:0}
+.main{flex:1;display:flex;overflow:visible;align-items:center;justify-content:center;min-width:0;min-height:0;padding:14px;background:repeating-linear-gradient(45deg,#f6ead0 0 12px,#fbf1da 12px 24px)}
+#fitbox{position:relative;box-shadow:0 14px 40px rgba(39,37,31,.4);border:3px solid var(--dark);border-radius:6px;background:#000}
+#fitbox .stage{border-radius:3px}
+#fitbox .stage{position:absolute;left:0;top:0;touch-action:none}
 .props{overflow:auto;padding:12px;background:#fff;border-left:3px solid var(--dark)}
-.props h3{font:400 1.25rem var(--display);color:var(--red);margin:4px 0 8px}
+.props h3{font:400 1.25rem var(--display);color:var(--red);margin:6px 0 8px}
+.props .sec{border-top:2px solid #eadfc3;margin-top:10px;padding-top:6px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 8px}
 .row{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px}
-.hint{font-size:.78rem;opacity:.75;margin:-4px 0 10px}
+.hint{font-size:.78rem;opacity:.75;margin:2px 0 10px}
+.lay{display:flex;align-items:center;gap:6px;border:2px solid var(--dark);border-radius:8px;padding:4px 8px;margin-bottom:5px;cursor:pointer;background:#fff;font-size:.85rem}
+.lay.on{background:var(--yellow)}
+.lay span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lay button{border:0;background:none;cursor:pointer;font-weight:800;padding:0 4px}
 .pop{position:absolute;z-index:30;top:56px;right:12px;width:290px;background:var(--cream);border:3px solid var(--dark);border-radius:14px;box-shadow:6px 6px 0 var(--dark);padding:14px}
 .modal{position:fixed;inset:0;z-index:40;background:rgba(39,37,31,.7);display:flex;align-items:center;justify-content:center;padding:20px}
 .mbox{background:var(--cream);border:3px solid var(--dark);border-radius:20px;box-shadow:8px 8px 0 var(--dark);padding:18px;width:min(100%,760px);max-height:90vh;overflow:auto}
@@ -64,22 +80,25 @@ label.l{display:block;font-weight:800;font-size:.82rem;margin-bottom:4px}
 .lc{cursor:pointer;text-align:left;background:#fff;border:3px solid var(--dark);border-radius:12px;padding:10px;transition:transform .15s,background .15s}
 .lc:hover{transform:translateY(-3px);background:var(--yellow)}
 .lc b{display:block;font:400 1.2rem var(--display);color:var(--red)}.lc span{font-size:.8rem}
-@media(max-width:900px){.body{grid-template-columns:1fr;grid-template-rows:auto 1fr auto;overflow:auto}.rail{display:flex;gap:8px;border-right:0;border-bottom:3px solid var(--dark)}.th{margin:0;flex:none}.props{border-left:0;border-top:3px solid var(--dark);max-height:45vh}}
+@media(max-width:1000px){.body{grid-template-columns:1fr;grid-template-rows:auto 1fr auto;overflow:auto}.rail{display:flex;gap:8px;border-right:0;border-bottom:3px solid var(--dark)}.th{margin:0;flex:none}.props{border-left:0;border-top:3px solid var(--dark);max-height:40vh}}
 
 /* ---------- THE SLIDE (1920 x 1080) ---------- */
-@keyframes rise{from{opacity:0;transform:translateY(50px)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(60px)}to{opacity:1;transform:none}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes fadeOut{to{opacity:0}}
 @keyframes slideIn{from{opacity:0;transform:translateX(260px)}to{opacity:1;transform:none}}@keyframes slideOut{to{opacity:0;transform:translateX(-260px)}}
 @keyframes zoomIn{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:none}}@keyframes zoomOut{to{opacity:0;transform:scale(1.15)}}
+@keyframes fromL{from{opacity:0;transform:translateX(-300px)}to{opacity:1;transform:none}}
+@keyframes fromR{from{opacity:0;transform:translateX(300px)}to{opacity:1;transform:none}}
+@keyframes popIn{0%{opacity:0;transform:scale(.3)}70%{transform:scale(1.08)}100%{opacity:1;transform:none}}
+@keyframes floaty{50%{transform:translateY(-22px)}}
+@keyframes pulse{50%{transform:scale(1.06)}}
 @keyframes turn{to{transform:rotate(360deg)}}
 @keyframes drift{from{transform:translateX(-700px)}to{transform:translateX(2700px)}}
 @keyframes twinkle{from{opacity:.1}to{opacity:1}}
 @keyframes bk{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:.5}100%{transform:translateY(-1300px) scale(1.3);opacity:0}}
 @keyframes pat{to{background-position:520px 360px}}
-@keyframes beam{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
-@keyframes pulse{50%{transform:scale(1.04)}}
 .stage{position:relative;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:#27251F;font-family:var(--body);color:#fff;user-select:none;flex:none}
-.bgwrap,.cwrap{position:absolute;inset:0}
+.bgwrap,.els{position:absolute;inset:0}
 .bg{position:absolute;inset:0;overflow:hidden;opacity:0;transition:opacity 1.2s}
 .bg.on,.still .bg{opacity:1}
 .still *{animation:none!important}
@@ -104,45 +123,39 @@ label.l{display:block;font-weight:800;font-size:.82rem;margin-bottom:4px}
 .raysp{position:absolute;left:50%;top:50%;width:4600px;height:4600px;margin:-2300px 0 0 -2300px;background:repeating-conic-gradient(rgba(255,199,44,.2) 0 6deg,transparent 6deg 12deg);animation:turn 140s linear infinite}
 .bokeh i{position:absolute;bottom:-120px;border-radius:50%;background:radial-gradient(circle,rgba(255,230,150,.9),rgba(255,199,44,0) 70%);animation:bk 14s linear infinite}
 
-.content{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:70px 110px}
-.content.anim.t-fade{animation:fadeIn .7s both}.content.anim.t-slide{animation:slideIn .8s cubic-bezier(.2,.7,.2,1) both}.content.anim.t-zoom{animation:zoomIn .8s cubic-bezier(.2,.9,.3,1) both}
-.content.leave.t-fade{animation:fadeOut .6s both}.content.leave.t-slide{animation:slideOut .6s both}.content.leave.t-zoom{animation:zoomOut .6s both}
-.anim .rv{animation:rise .9s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0)*.13s + .15s)}
-[data-f]{cursor:text}
-.kicker{font:800 34px var(--body);letter-spacing:.5em;padding-left:.5em;text-transform:uppercase;color:#FFE9A8;text-shadow:0 3px 10px rgba(0,0,0,.35);margin:14px 0}
-.h1{font-family:var(--display);font-weight:900;text-transform:uppercase;line-height:.95;letter-spacing:.02em;color:#fff;text-shadow:0 10px 0 #27251F,0 18px 50px rgba(0,0,0,.35);margin:10px 0;max-width:100%;word-break:break-word}
-.h1.left{text-align:left}
-.pill{display:inline-block;background:#DA291C;color:#FFC72C;border:6px solid #27251F;border-radius:999px;padding:12px 54px;font:400 62px var(--display);letter-spacing:.05em;box-shadow:10px 10px 0 #27251F;transform:rotate(-2deg);margin:22px 0}
-.pill.sm{font-size:48px;padding:8px 40px;margin:0 0 18px}
-.serif{font:600 52px var(--serif);color:#FFF4D6;margin-top:18px;text-shadow:0 3px 10px rgba(0,0,0,.35)}
-.arch svg{height:150px;filter:drop-shadow(0 6px 0 rgba(39,37,31,.45))}
-.seg{display:flex;align-items:center;gap:90px;text-align:left;width:100%}
-.segnum{font:400 520px/.85 var(--display);color:#FFC72C;text-shadow:12px 14px 0 #27251F;flex:none}
-.segtxt{flex:1;min-width:0}
-.desc{font:600 46px/1.3 var(--body);color:#fff;max-width:1000px;margin-top:18px;white-space:pre-line;text-shadow:0 3px 12px rgba(0,0,0,.4)}
-.host{font:800 40px var(--body);letter-spacing:.08em;text-transform:uppercase;color:#FFC72C;margin-top:26px;text-shadow:0 3px 8px rgba(0,0,0,.4)}
-.lnh{font:400 130px var(--display);color:#FFC72C;text-transform:uppercase;text-shadow:0 8px 0 #27251F;margin-bottom:10px}
-.lngrid{display:grid;gap:0 140px;justify-content:center}
-.lni time{display:block;font:800 30px var(--body);letter-spacing:.12em;color:#FFF4D6;opacity:.9}
-.lni b{display:block;font:400 var(--lf,100px)/1.05 var(--display);text-transform:uppercase;color:#FFC72C;text-shadow:0 6px 0 #27251F;padding-bottom:6px}
-.lni:nth-child(even) b{color:#fff}.lni:nth-child(3n) b{color:#FF8A1F}
-.imgrow{display:flex;align-items:center;gap:90px;width:100%}
-.imgframe{flex:none;width:860px;height:760px;border:12px solid #27251F;border-radius:44px;overflow:hidden;box-shadow:16px 16px 0 #27251F;background:#FFF4D6;transform:rotate(-2deg)}
-.imgframe img{width:100%;height:100%;object-fit:cover;display:block}
-.imgph{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;color:#DA291C;font:400 60px var(--display)}
+.els.anim.t-fade{animation:fadeIn .7s both}.els.anim.t-slide{animation:slideIn .8s cubic-bezier(.2,.7,.2,1) both}.els.anim.t-zoom{animation:zoomIn .8s cubic-bezier(.2,.9,.3,1) both}
+.els.leave.t-fade{animation:fadeOut .6s both}.els.leave.t-slide{animation:slideOut .6s both}.els.leave.t-zoom{animation:zoomOut .6s both}
+.el{position:absolute;transform-origin:50% 50%}
+.el>.in{width:100%;height:100%}
+.e-text>.in{height:auto;min-height:1.1em;white-space:pre-wrap;word-break:break-word;outline:none}
+.e-text>.in.editing{cursor:text;user-select:text;box-shadow:0 0 0 3px rgba(123,47,247,.8);background:rgba(255,255,255,.08)}
+.anim .el>.in{animation-fill-mode:both;animation-delay:calc(var(--i,0)*.12s + .15s)}
+.anim .el[data-anim=rise]>.in{animation-name:rise;animation-duration:.9s;animation-timing-function:cubic-bezier(.2,.7,.2,1)}
+.anim .el[data-anim=fade]>.in{animation-name:fadeIn;animation-duration:1s}
+.anim .el[data-anim=zoom]>.in{animation-name:popIn;animation-duration:.8s}
+.anim .el[data-anim=left]>.in{animation-name:fromL;animation-duration:.9s;animation-timing-function:cubic-bezier(.2,.7,.2,1)}
+.anim .el[data-anim=right]>.in{animation-name:fromR;animation-duration:.9s;animation-timing-function:cubic-bezier(.2,.7,.2,1)}
+.anim .el[data-anim=float]>.in{animation:floaty 5s ease-in-out infinite;animation-delay:calc(var(--i,0)*-.7s)}
+.anim .el[data-anim=pulse]>.in{animation:pulse 2.4s ease-in-out infinite}
+.e-img .in img{width:100%;height:100%;display:block}
+.imgph{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:#FFF4D6;color:#DA291C;font:400 60px var(--display)}
 .imgph svg{height:140px}
-.imgtxt{flex:1;min-width:0;text-align:left}
-.spot{position:relative}
-.beam{position:absolute;top:-200px;width:420px;height:1500px;background:linear-gradient(180deg,rgba(255,244,214,.55),rgba(255,244,214,0));clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);transform-origin:50% 0;animation:beam 7s ease-in-out infinite}
-.beam.b1{left:260px}.beam.b2{right:260px;animation-delay:-3.5s}
-.stagename{font-family:var(--display);font-weight:900;text-transform:uppercase;color:#FFC72C;line-height:.9;text-shadow:0 12px 0 #27251F,0 0 80px rgba(255,199,44,.7);margin:10px 0;animation-name:none}
-.real{font:600 64px var(--serif);color:#FFF4D6}
-.cd{display:flex;gap:36px;margin-top:40px}
-.cdb{width:330px;background:#27251F;border:6px solid #FFC72C;border-radius:36px;padding:26px 0 18px;box-shadow:12px 12px 0 rgba(0,0,0,.35)}
-.cdb b{display:block;font:400 230px/.9 var(--display);color:#FFC72C;font-variant-numeric:tabular-nums}
-.cdb span{font:800 36px var(--body);letter-spacing:.2em;text-transform:uppercase;color:#FFF4D6}
-.cdover{display:none;font:400 200px var(--display);color:#FFC72C;text-transform:uppercase;text-shadow:0 10px 0 #27251F;animation:pulse 2s ease-in-out infinite}
+.cdw{width:1428px;transform-origin:0 0}
+.cd{display:flex;gap:36px;height:300px}
+.cdb{width:330px;height:300px;background:#27251F;border:6px solid #FFC72C;border-radius:36px;padding:26px 0 0;text-align:center;box-shadow:12px 12px 0 rgba(0,0,0,.35)}
+.cdb b{display:block;font:400 190px/.95 var(--display);color:#FFC72C;font-variant-numeric:tabular-nums}
+.cdb span{font:800 34px var(--body);letter-spacing:.2em;text-transform:uppercase;color:#FFF4D6}
+.cdover{display:none;font:400 190px/1 var(--display);color:#FFC72C;text-transform:uppercase;text-shadow:0 10px 0 #27251F;white-space:nowrap}
 .cd.over .cdb{display:none}.cd.over .cdover{display:block}
+
+/* editor overlay */
+.ovl{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;pointer-events:none;z-index:50;--hs:24px;--bw:3px}
+.selbox{position:absolute;border:var(--bw) solid #7B2FF7;box-sizing:border-box}
+.hd{position:absolute;width:var(--hs);height:var(--hs);background:#fff;border:var(--bw) solid #7B2FF7;border-radius:50%;pointer-events:auto;transform:translate(-50%,-50%);box-sizing:border-box}
+.hd[data-h=nw],.hd[data-h=se]{cursor:nwse-resize}.hd[data-h=ne],.hd[data-h=sw]{cursor:nesw-resize}.hd[data-h=n],.hd[data-h=s]{cursor:ns-resize;border-radius:6px}.hd[data-h=e],.hd[data-h=w]{cursor:ew-resize;border-radius:6px}
+.hd[data-h=rot]{cursor:grab;background:#7B2FF7}
+.gd{position:absolute;background:#FF3D9A;pointer-events:none}
+.ovl.hide .selbox{display:none}
 
 /* presenter */
 #present{position:fixed;inset:0;z-index:100;background:#000;overflow:hidden;cursor:default}
@@ -185,7 +198,20 @@ label.l{display:block;font-weight:800;font-size:.82rem;margin-bottom:4px}
   </div>
   <div class="body">
     <div class="rail" id="rail"></div>
-    <div class="main" id="main"><div id="fitbox"></div></div>
+    <div class="mcol">
+      <div class="tbar" id="tbar">
+        <div class="grp"><button class="btn s w" id="undoB" type="button" title="Undo (Ctrl+Z)">Undo</button><button class="btn s w" id="redoB" type="button" title="Redo (Ctrl+Y)">Redo</button></div>
+        <div class="grp">
+          <button class="btn s y" id="addText" type="button">+ Text</button>
+          <button class="btn s y" id="addImg" type="button">+ Image</button>
+          <select id="addShape" aria-label="Add shape"><option value="">+ Shape</option><option value="rect">Rectangle</option><option value="round">Rounded box</option><option value="circle">Circle</option><option value="pill">Pill</option></select>
+          <button class="btn s y" id="addArch" type="button">+ Arch</button>
+          <button class="btn s y" id="addCd" type="button">+ Countdown</button>
+        </div>
+        <div class="grp" id="ctx"></div>
+      </div>
+      <div class="main" id="main"><div id="fitbox"></div></div>
+    </div>
     <div class="props" id="props"></div>
   </div>
   <div class="pop" id="setPop" hidden>
@@ -197,10 +223,11 @@ label.l{display:block;font-weight:800;font-size:.82rem;margin-bottom:4px}
     <input type="number" id="sAuto" min="0" max="120" value="0">
     <p class="hint">With auto-advance on, the show moves by itself and loops back to the start.</p>
   </div>
+  <input type="file" id="imgIn" accept="image/*" hidden>
 </div>
 
 <div class="modal" id="layoutModal" hidden>
-  <div class="mbox"><h3>Choose a slide type</h3><div class="lgrid" id="lgrid"></div>
+  <div class="mbox"><h3>Choose a starting design</h3><div class="lgrid" id="lgrid"></div>
     <div class="row"><button class="btn s w" id="lmClose" type="button">Cancel</button></div></div>
 </div>
 
@@ -229,7 +256,7 @@ function h(tag, props, ...kids) { const e = document.createElement(tag);
   kids.flat().forEach(c => e.append(c)); return e; }
 
 /* ---------- backgrounds ---------- */
-const ARCH = '<svg viewBox="0 0 120 80"><path d="M12 74V38C12 -4 56 -4 60 38 64 -4 108 -4 108 38V74" fill="none" stroke="#FFC72C" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ARCHSVG = c => `<svg viewBox="0 0 120 80" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block"><path d="M12 74V38C12 -4 56 -4 60 38 64 -4 108 -4 108 38V74" fill="none" stroke="${c}" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 function hills() {
   let w = '<circle cx="600" cy="262" r="112"/><circle cx="600" cy="262" r="94" opacity=".6"/>';
   for (let i = 0; i < 20; i++) { const a = i * Math.PI / 10, x = (600 + 112 * Math.cos(a)).toFixed(1), y = (262 + 112 * Math.sin(a)).toFixed(1);
@@ -246,61 +273,116 @@ function bgHtml(k) {
 }
 const BG_NAMES = { sunset: 'Sunset arches', rays: 'Golden rays', arches: 'Arches pattern', night: 'Night festival', day: 'Blue sky' };
 
-/* ---------- slide types ---------- */
+/* ---------- elements ---------- */
+const FONTS = ['Londrina Solid', 'Nunito Sans', 'Cormorant Garamond', 'Anton', 'Bebas Neue', 'Oswald', 'Poppins', 'Playfair Display', 'DM Serif Display', 'Fredoka', 'Rubik', 'Bangers', 'Lobster', 'Pacifico', 'Permanent Marker', 'Caveat'];
+const SHADOWS = { none: 'none', soft: '0 4px 18px rgba(0,0,0,.45)', hard: '0 .07em 0 #27251F,0 .12em .35em rgba(0,0,0,.35)', glow: '0 0 .22em rgba(255,199,44,.95),0 .05em 0 #27251F' };
+const BOXSH = { none: 'none', soft: '0 10px 30px rgba(0,0,0,.4)', hard: '10px 10px 0 #27251F' };
+const SW = ['#FFFFFF', '#FFC72C', '#DA291C', '#FF8A1F', '#27251F', '#FFF4D6'];
+const ANIMS = { rise: 'Rise up', fade: 'Fade in', zoom: 'Pop in', left: 'From left', right: 'From right', float: 'Floating (loops)', pulse: 'Pulse (loops)', none: 'None' };
+const DISP = 'Londrina Solid', BODY = 'Nunito Sans', SERIF = 'Cormorant Garamond';
+const mk = (t, o) => Object.assign({ id: uid(), t, x: 0, y: 0, w: 400, r: 0, op: 1, anim: 'rise' }, o);
+const tx = o => mk('text', Object.assign({ x: 110, w: 1700, text: '', font: BODY, size: 48, color: '#FFFFFF', b: true, i: false, u: false, up: false, al: 'center', lh: 1.15, ls: 0, sh: 'soft' }, o));
+const disp = o => tx(Object.assign({ font: DISP, b: true, up: true, lh: .95, ls: 2, sh: 'hard' }, o));
+const shp = o => mk('shape', Object.assign({ h: 300, shape: 'rect', fill: '#DA291C', bw: 0, bc: '#27251F', rad: 0, sh: 'none' }, o));
+const arch = o => mk('arch', Object.assign({ w: 190, h: 127, color: '#FFC72C', sh: 'soft' }, o));
+const imgEl = o => mk('img', Object.assign({ w: 800, h: 600, src: '', fit: 'cover', rad: 0, bw: 0, bc: '#27251F', sh: 'none' }, o));
+const cdEl = o => mk('cd', Object.assign({ w: 1428 }, o));
 const fsz = (len, steps) => { for (const [m, s] of steps) if (len <= m) return s; return steps[steps.length - 1][1]; };
+const estLines = (t, size, w, cw) => String(t || '').split('\n').reduce((a, l) => a + Math.max(1, Math.ceil(l.length * size * cw / w)), 0);
+const estH = (t, size, w, lh, cw) => Math.round(estLines(t, size, w, cw || .5) * size * lh);
+const item = (hh, make) => ({ h: hh, make });
+function col(items, gap) { items = items.filter(Boolean); const tot = items.reduce((a, i) => a + i.h, 0) + gap * (items.length - 1); let y = Math.round((1080 - tot) / 2), out = []; items.forEach(it => { out.push(...it.make(y)); y += it.h + gap; }); return out; }
+function badge(text, x, y, size, al) { const w = Math.round(String(text).length * size * .5 + 110), hh = Math.round(size * 1.7), bx = al === 'left' ? x : Math.round(x - w / 2);
+  return [shp({ x: bx, y, w, h: hh, shape: 'pill', fill: '#DA291C', bw: 6, bc: '#27251F', sh: 'hard' }), disp({ x: bx, y: y + Math.round((hh - size * .95) / 2), w, text, size, color: '#FFC72C', sh: 'none', up: false, ls: 2 })]; }
 const parseItems = s => String(s || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => { const i = l.indexOf('|'); return i < 0 ? { t: '', a: l } : { t: l.slice(0, i).trim(), a: l.slice(i + 1).trim() }; });
-let ri = 0; const r = () => `style="--i:${ri++}"`;
-const RENDER = {
-  title: f => `<div class="arch rv" ${r()}>${ARCH}</div><div class="kicker rv" data-f="kicker" ${r()}>${esc(f.kicker)}</div><h1 class="h1 rv" data-f="title" ${r()} style="font-size:${fsz((f.title || '').length, [[10, 280], [16, 210], [26, 160], [40, 120], [999, 90]])}px">${esc(f.title)}</h1><div class="pill rv" data-f="sub" ${r()}>${esc(f.sub)}</div><div class="serif rv" data-f="line" ${r()}>${esc(f.line)}</div>`,
-  segment: f => `<div class="seg"><div class="segnum rv" data-f="num" ${r()}>${esc(f.num)}</div><div class="segtxt">${f.time ? `<div class="pill sm rv" data-f="time" ${r()}>${esc(f.time)}</div>` : ''}<h1 class="h1 left rv" data-f="title" ${r()} style="font-size:${fsz((f.title || '').length, [[10, 190], [18, 150], [30, 112], [999, 84]])}px">${esc(f.title)}</h1>${f.desc ? `<p class="desc rv" data-f="desc" ${r()}>${esc(f.desc)}</p>` : ''}${f.host ? `<p class="host rv" data-f="host" ${r()}>${esc(f.host)}</p>` : ''}</div></div>`,
+
+const TPL = {
+  blank: () => [],
+  title: f => { const S = fsz((f.title || '').length, [[10, 280], [16, 210], [26, 160], [40, 120], [999, 90]]);
+    return col([item(127, y => [arch({ x: 865, y })]), f.kicker && item(46, y => [tx({ y, text: f.kicker, size: 34, up: true, ls: 17, color: '#FFE9A8', lh: 1 })]),
+      item(estH(f.title, S, 1700, .95, .48), y => [disp({ y, text: f.title, size: S })]), f.sub && item(105, y => badge(f.sub, 960, y, 62)),
+      f.line && item(70, y => [tx({ y, text: f.line, font: SERIF, size: 52, color: '#FFF4D6' })])], 22); },
+  segment: f => { const S = fsz((f.title || '').length, [[10, 190], [18, 150], [30, 112], [999, 84]]);
+    return [disp({ x: 90, y: 300, w: 760, text: f.num, size: 520, color: '#FFC72C', lh: .85, ls: 0 }),
+      ...col([f.time && item(82, y => badge(f.time, 900, y, 48, 'left')), item(estH(f.title, S, 940, .95, .48), y => [disp({ x: 900, y, w: 940, text: f.title, size: S, al: 'left' })]),
+        f.desc && item(estH(f.desc, 44, 940, 1.3, .52), y => [tx({ x: 900, y, w: 940, text: f.desc, size: 44, al: 'left', lh: 1.3 })]),
+        f.host && item(50, y => [tx({ x: 900, y, w: 940, text: f.host, size: 38, up: true, ls: 3, color: '#FFC72C', al: 'left' })])], 20)]; },
   lineup: f => { const it = parseItems(f.items), n = it.length, cols = n > 6 ? 2 : 1, per = Math.ceil(n / cols), size = cols === 2 ? (per <= 4 ? 96 : per <= 5 ? 80 : 66) : (n <= 3 ? 130 : n <= 4 ? 112 : n <= 5 ? 92 : 78);
-    return `<div class="lnh rv" data-f="head" ${r()}>${esc(f.head)}</div><div class="lngrid" style="grid-template-columns:repeat(${cols},auto);--lf:${size}px">${it.map(x => `<div class="lni rv" data-f="items" ${r()}>${x.t ? `<time>${esc(x.t)}</time>` : ''}<b>${esc(x.a)}</b></div>`).join('')}</div>`; },
-  statement: f => `<h1 class="h1 rv" data-f="head" ${r()} style="font-size:${fsz((f.head || '').length, [[14, 300], [26, 220], [44, 160], [80, 118], [999, 84]])}px">${esc(f.head)}</h1>${f.text ? `<p class="desc rv" data-f="text" ${r()} style="text-align:center;font-size:56px;max-width:1400px">${esc(f.text)}</p>` : ''}`,
-  image: f => `<div class="imgrow"><div class="imgframe rv" ${r()}>${/^https?:\/\//i.test(f.img || '') ? `<img src="${esc(f.img)}" alt="">` : `<div class="imgph">${ARCH.replace('#FFC72C', '#DA291C')}<span>Add an image</span></div>`}</div><div class="imgtxt"><h1 class="h1 left rv" data-f="head" ${r()} style="font-size:${fsz((f.head || '').length, [[12, 170], [22, 130], [40, 96], [999, 72]])}px">${esc(f.head)}</h1>${f.text ? `<p class="desc rv" data-f="text" ${r()}>${esc(f.text)}</p>` : ''}</div></div>`,
-  spotlight: f => `<div class="beam b1"></div><div class="beam b2"></div><div class="kicker rv" ${r()}>Talent Showcase</div><div class="stagename rv" data-f="stage" ${r()} style="font-size:${fsz((f.stage || '').length, [[8, 330], [14, 240], [22, 180], [999, 120]])}px">${esc(f.stage)}</div>${f.real ? `<div class="real rv" data-f="real" ${r()}>${esc(f.real)}</div>` : ''}${f.act ? `<p class="desc rv" data-f="act" ${r()} style="text-align:center;max-width:1400px">${esc(f.act)}</p>` : ''}`,
-  countdown: f => `<h1 class="h1 rv" data-f="head" ${r()} style="font-size:170px">${esc(f.head)}</h1><div class="cd rv" ${r()}><div class="cdb"><b data-cd="d">0</b><span>days</span></div><div class="cdb"><b data-cd="h">00</b><span>hours</span></div><div class="cdb"><b data-cd="m">00</b><span>minutes</span></div><div class="cdb"><b data-cd="s">00</b><span>seconds</span></div><div class="cdover">The gates are open!</div></div>`,
-  thanks: f => `<div class="arch rv" ${r()}>${ARCH}</div><h1 class="h1 rv" data-f="head" ${r()} style="font-size:${fsz((f.head || '').length, [[12, 300], [22, 220], [999, 150]])}px">${esc(f.head)}</h1>${f.text ? `<div class="serif rv" data-f="text" ${r()}>${esc(f.text)}</div>` : ''}`
+    const bh = Math.round(30 * 1.4 + size * 1.05 + 12), total = 130 + 30 + per * bh, y0 = Math.round((1080 - total) / 2), cw = cols === 2 ? 820 : 1700, els = [disp({ y: y0, text: f.head, size: 130, color: '#FFC72C' })];
+    it.forEach((x, k) => { const c = Math.floor(k / per), r = k % per, cx = cols === 2 ? (c ? 980 : 120) : 110, y = y0 + 160 + r * bh, nn = k + 1;
+      if (x.t) els.push(tx({ x: cx, y, w: cw, text: x.t, size: 30, ls: 4, color: '#FFF4D6', lh: 1.2 }));
+      els.push(disp({ x: cx, y: y + 40, w: cw, text: x.a, size, color: nn % 3 === 0 ? '#FF8A1F' : nn % 2 === 0 ? '#FFFFFF' : '#FFC72C' })); }); return els; },
+  statement: f => { const S = fsz((f.head || '').length, [[14, 300], [26, 220], [44, 160], [80, 118], [999, 84]]);
+    return col([item(estH(f.head, S, 1700, .95, .48), y => [disp({ y, text: f.head, size: S })]), f.text && item(estH(f.text, 56, 1400, 1.3, .52), y => [tx({ x: 260, y, w: 1400, text: f.text, size: 56, lh: 1.3 })])], 30); },
+  image: f => { const S = fsz((f.head || '').length, [[12, 170], [22, 130], [40, 96], [999, 72]]);
+    return [imgEl({ x: 110, y: 160, w: 860, h: 760, src: f.img || '', rad: 44, bw: 12, bc: '#27251F', sh: 'hard', r: -2 }),
+      ...col([item(estH(f.head, S, 770, .95, .48), y => [disp({ x: 1040, y, w: 770, text: f.head, size: S, al: 'left' })]), f.text && item(estH(f.text, 46, 770, 1.3, .52), y => [tx({ x: 1040, y, w: 770, text: f.text, size: 46, al: 'left', lh: 1.3 })])], 24)]; },
+  spotlight: f => { const S = fsz((f.stage || '').length, [[8, 330], [14, 240], [22, 180], [999, 120]]);
+    return col([item(46, y => [tx({ y, text: 'Talent Showcase', size: 34, up: true, ls: 17, color: '#FFE9A8', lh: 1 })]), item(estH(f.stage, S, 1700, .95, .48), y => [disp({ y, text: f.stage, size: S, color: '#FFC72C', sh: 'glow' })]),
+      f.real && item(70, y => [tx({ y, text: f.real, font: SERIF, size: 64, color: '#FFF4D6' })]), f.act && item(estH(f.act, 46, 1400, 1.3, .52), y => [tx({ x: 260, y, w: 1400, text: f.act, size: 46, lh: 1.3 })])], 26); },
+  countdown: f => col([item(162, y => [disp({ y, text: f.head, size: 170 })]), item(300, y => [cdEl({ x: 246, y, w: 1428 })])], 40),
+  thanks: f => { const S = fsz((f.head || '').length, [[12, 300], [22, 220], [999, 150]]);
+    return col([item(127, y => [arch({ x: 865, y })]), item(estH(f.head, S, 1700, .95, .48), y => [disp({ y, text: f.head, size: S })]), f.text && item(70, y => [tx({ y, text: f.text, font: SERIF, size: 52, color: '#FFF4D6' })])], 24); }
 };
 const LAYOUTS = {
-  title: { name: 'Title', info: 'Opening slide with the party name', fields: [['kicker', 'Small heading', 'Coachella: Beyond the Arches'], ['title', 'Title', 'Year End Party'], ['sub', 'Badge text', C.partyName], ['line', 'Date and place', C.when + ' · ' + C.where]] },
-  segment: { name: 'Program segment', info: 'One part of the program: number, time, title', fields: [['num', 'Segment number', '01'], ['time', 'Time', '6:00 PM'], ['title', 'Segment title', 'Segment title'], ['desc', 'Description (optional)', '', 'area'], ['host', 'Host / in charge (optional)', '']] },
-  lineup: { name: 'Program lineup', info: 'Poster-style list of the whole program', fields: [['head', 'Heading', "Tonight's Lineup"], ['items', 'Items, one per line: time | name', '6:00 PM | Gates open\n7:00 PM | Dinner', 'area']] },
-  statement: { name: 'Big announcement', info: 'One big headline with a line of text', fields: [['head', 'Headline', 'Big announcement'], ['text', 'Text (optional)', '', 'area']] },
-  image: { name: 'Picture and text', info: 'A photo next to a headline', fields: [['head', 'Headline', 'Headline'], ['text', 'Text (optional)', '', 'area'], ['img', 'Picture', '', 'image']] },
-  spotlight: { name: 'Talent spotlight', info: 'Stage name of a performer', fields: [['stage', 'Stage name', 'Stage name'], ['real', 'Real name (optional)', ''], ['act', 'About the act (optional)', '', 'area']], picker: true },
-  countdown: { name: 'Countdown', info: 'Live countdown to the party', fields: [['head', 'Heading', 'Gates open in']] },
-  thanks: { name: 'Thank you', info: 'Closing slide', fields: [['head', 'Headline', 'Thank you!'], ['text', 'Text (optional)', 'See you at the next one.']] }
+  blank: { name: 'Blank slide', info: 'Start from nothing and add your own', d: {} },
+  title: { name: 'Title', info: 'Opening slide with the party name', d: { kicker: 'Coachella: Beyond the Arches', title: 'Year End Party', sub: C.partyName, line: C.when + ' · ' + C.where } },
+  segment: { name: 'Program segment', info: 'Number, time, title and description', d: { num: '01', time: '6:00 PM', title: 'Segment title', desc: '', host: '' } },
+  lineup: { name: 'Program lineup', info: 'Poster-style list of the program', d: { head: "Tonight's Lineup", items: '6:00 PM | Gates open\n7:00 PM | Dinner\n8:00 PM | Show' } },
+  statement: { name: 'Big announcement', info: 'One big headline and a line of text', d: { head: 'Big announcement', text: '' } },
+  image: { name: 'Picture and text', info: 'A photo next to a headline', d: { head: 'Headline', text: '', img: '' } },
+  spotlight: { name: 'Talent spotlight', info: 'Stage name of a performer', d: { stage: 'Stage name', real: '', act: '' } },
+  countdown: { name: 'Countdown', info: 'Live countdown to the party', d: { head: 'Gates open in' } },
+  thanks: { name: 'Thank you', info: 'Closing slide', d: { head: 'Thank you!', text: 'See you at the next one.' } }
 };
-function newSlide(type, bg) { const f = {}; LAYOUTS[type].fields.forEach(([k, , d]) => { f[k] = d || ''; }); return { id: uid(), type, bg: bg || 'default', f }; }
+function newSlide(type, bg, over) { return { id: uid(), type, bg: bg || 'default', els: TPL[type](Object.assign({}, LAYOUTS[type].d, over || {})) }; }
 function defaultDeck() {
   const L = C.lineup || [];
-  const s = [{ id: uid(), type: 'title', bg: 'sunset', f: { kicker: 'Coachella: Beyond the Arches', title: 'Year End Party', sub: C.partyName, line: C.when + ' · ' + C.where } },
-    { id: uid(), type: 'countdown', bg: 'rays', f: { head: 'Gates open in' } },
-    { id: uid(), type: 'lineup', bg: 'arches', f: { head: "Tonight's Lineup", items: L.map(x => x.time + ' | ' + x.act).join('\n') } },
-    ...L.map((x, i) => ({ id: uid(), type: 'segment', bg: i % 2 ? 'sunset' : 'rays', f: { num: String(i + 1).padStart(2, '0'), time: x.time, title: x.act, desc: '', host: '' } })),
-    { id: uid(), type: 'thanks', bg: 'night', f: { head: 'Thank you!', text: 'See you at the next one.' } }];
-  return { v: 1, bg: 'sunset', transition: 'fade', autoplay: 0, slides: s };
+  const s = [newSlide('title', 'sunset'), newSlide('countdown', 'rays'), newSlide('lineup', 'arches', { items: L.map(x => x.time + ' | ' + x.act).join('\n') }),
+    ...L.map((x, i) => newSlide('segment', i % 2 ? 'sunset' : 'rays', { num: String(i + 1).padStart(2, '0'), time: x.time, title: x.act })), newSlide('thanks', 'night')];
+  return { v: 2, bg: 'sunset', transition: 'fade', autoplay: 0, slides: s };
 }
+function migrate(d) { let ch = false; d.slides.forEach(s => { if (!s.els) { s.els = (TPL[s.type] || TPL.blank)(s.f || {}); delete s.f; ch = true; } }); d.v = 2; return ch; }
 
-/* ---------- stage factory ---------- */
+/* ---------- rendering ---------- */
+function elNode(e, i) {
+  const o = document.createElement('div'); o.className = 'el e-' + e.t; o.dataset.id = e.id; o.dataset.anim = e.anim || 'rise';
+  let st = `left:${e.x}px;top:${e.y}px;width:${e.w}px;transform:rotate(${e.r || 0}deg);opacity:${e.op == null ? 1 : e.op};--i:${i};`;
+  const n = document.createElement('div'); n.className = 'in';
+  if (e.t === 'text') {
+    n.style.cssText = `font-family:'${e.font}',Arial,sans-serif;font-size:${e.size}px;color:${e.color};font-weight:${e.b ? 800 : 400};font-style:${e.i ? 'italic' : 'normal'};text-decoration:${e.u ? 'underline' : 'none'};text-transform:${e.up ? 'uppercase' : 'none'};text-align:${e.al};line-height:${e.lh};letter-spacing:${e.ls}px;text-shadow:${SHADOWS[e.sh] || 'none'}`;
+    n.textContent = e.text;
+  } else if (e.t === 'shape') {
+    const rad = e.shape === 'circle' ? '50%' : e.shape === 'pill' ? '999px' : e.shape === 'round' ? Math.max(48, e.rad || 0) + 'px' : (e.rad || 0) + 'px';
+    st += `height:${e.h}px;`; n.style.cssText = `background:${e.fill};border:${e.bw}px solid ${e.bc};border-radius:${rad};box-shadow:${BOXSH[e.sh] || 'none'};box-sizing:border-box`;
+  } else if (e.t === 'img') {
+    st += `height:${e.h}px;`; n.style.cssText = `border-radius:${e.rad || 0}px;border:${e.bw || 0}px solid ${e.bc};box-shadow:${BOXSH[e.sh] || 'none'};overflow:hidden;box-sizing:border-box`;
+    n.innerHTML = /^https?:\/\//i.test(e.src || '') ? `<img src="${esc(e.src)}" alt="" draggable="false" style="object-fit:${e.fit || 'cover'}">` : `<div class="imgph">${ARCHSVG('#DA291C').replace('style="', 'style="height:140px;width:auto;')}<span>Add an image</span></div>`;
+  } else if (e.t === 'arch') {
+    st += `height:${e.h}px;`; n.style.cssText = `filter:${e.sh === 'none' ? 'none' : 'drop-shadow(0 6px 0 rgba(39,37,31,.45))'}`; n.innerHTML = ARCHSVG(e.color);
+  } else if (e.t === 'cd') {
+    st += `height:${Math.round(300 * e.w / 1428)}px;`; n.innerHTML = `<div class="cdw" style="transform:scale(${e.w / 1428})"><div class="cd"><div class="cdb"><b data-cd="d">0</b><span>days</span></div><div class="cdb"><b data-cd="h">00</b><span>hours</span></div><div class="cdb"><b data-cd="m">00</b><span>minutes</span></div><div class="cdb"><b data-cd="s">00</b><span>seconds</span></div><div class="cdover">The gates are open!</div></div></div>`;
+  }
+  o.style.cssText = st; o.appendChild(n); return o;
+}
 function makeStage(root, still) {
   root.classList.add('stage'); if (still) root.classList.add('still');
-  const bgw = document.createElement('div'), cw = document.createElement('div'); bgw.className = 'bgwrap'; cw.className = 'cwrap'; root.append(bgw, cw);
+  const bgw = document.createElement('div'), cw = document.createElement('div'); bgw.className = 'bgwrap'; cw.className = 'cwrap'; cw.style.cssText = 'position:absolute;inset:0'; root.append(bgw, cw);
   let kind = null;
   return {
-    root,
+    root, cw,
     setBg(k) {
       if (k === kind) return; kind = k;
-      const t = document.createElement('div'); t.innerHTML = bgHtml(k); const nb = t.firstElementChild;
-      const olds = [...bgw.children]; bgw.appendChild(nb);
+      const t = document.createElement('div'); t.innerHTML = bgHtml(k); const nb = t.firstElementChild; const olds = [...bgw.children]; bgw.appendChild(nb);
       if (still) { olds.forEach(o => o.remove()); return; }
       requestAnimationFrame(() => { nb.classList.add('on'); setTimeout(() => olds.forEach(o => o.remove()), 1300); });
     },
     show(slide, opt) {
-      opt = opt || {}; ri = 0;
-      const layer = document.createElement('div'); layer.className = 'content t-' + (opt.transition || 'fade') + (opt.animate ? ' anim' : '');
-      layer.innerHTML = RENDER[slide.type](slide.f); const olds = [...cw.children]; cw.appendChild(layer);
-      if (opt.animate && olds.length) olds.forEach(o => { o.classList.remove('anim'); o.classList.add('leave'); setTimeout(() => o.remove(), 700); }); else olds.forEach(o => o.remove());
+      opt = opt || {};
+      const layer = document.createElement('div'); layer.className = 'els t-' + (opt.transition || 'fade') + (opt.animate ? ' anim' : '');
+      slide.els.forEach((e, i) => layer.appendChild(elNode(e, i)));
+      const olds = [...cw.children]; cw.appendChild(layer);
+      if (opt.animate && olds.length) olds.forEach(o => { o.classList.remove('anim'); o.classList.add('leave'); o.style.pointerEvents = 'none'; setTimeout(() => o.remove(), 700); }); else olds.forEach(o => o.remove());
       tickCd();
     }
   };
@@ -317,26 +399,27 @@ function tickCd() {
 setInterval(tickCd, 1000);
 
 /* ---------- state ---------- */
-let pw = null, deck = null, sel = 0, guests = [], mainStage = null, thumbs = [], dirty = false, saveTimer = null, saving = false;
+let pw = null, deck = null, sel = 0, selId = null, editing = false, guests = [], mainStage = null, thumbs = [], dirty = false, saveTimer = null, saving = false;
+let mainScale = .5, hist = [], hpos = -1, histTimer = null, clip = null, ovl = null, selBox = null, gv = null, gh = null;
+const slide = () => deck.slides[sel];
+const curEl = () => slide().els.find(e => e.id === selId) || null;
 
 async function enter(password) {
   const g = await sb.rpc('admin_get_deck', { p_password: password });
   if (g.error) return g.error.message;
   pw = password; SS.set('fest_admin_pw', password);
   deck = g.data && g.data.slides && g.data.slides.length ? g.data : defaultDeck();
+  const migrated = migrate(deck);
   deck.bg = deck.bg || 'sunset'; deck.transition = deck.transition || 'fade'; deck.autoplay = deck.autoplay || 0;
   const l = await sb.rpc('admin_list', { p_password: password }); guests = (l.data || []).filter(x => x.talent_status === 'yes');
-  $('gate').hidden = true; $('app').hidden = false; buildApp(); if (!g.data) markDirty();
+  $('gate').hidden = true; $('app').hidden = false; buildApp(); if (!g.data || migrated) markDirty();
   return null;
 }
-$('gateForm').addEventListener('submit', async e => {
-  e.preventDefault(); $('gateBtn').disabled = true; $('gateMsg').textContent = '';
-  const err = await enter($('pw').value); $('gateBtn').disabled = false; if (err) $('gateMsg').textContent = err;
-});
+$('gateForm').addEventListener('submit', async e => { e.preventDefault(); $('gateBtn').disabled = true; $('gateMsg').textContent = ''; const err = await enter($('pw').value); $('gateBtn').disabled = false; if (err) $('gateMsg').textContent = err; });
 $('lock').addEventListener('click', () => { SS.del('fest_admin_pw'); location.reload(); });
 $('back').addEventListener('click', () => { location.href = 'index.html#admin'; });
 
-/* ---------- saving ---------- */
+/* ---------- saving + history ---------- */
 function markDirty() { dirty = true; $('saveSt').textContent = 'Unsaved changes...'; clearTimeout(saveTimer); saveTimer = setTimeout(save, 1000); }
 async function save() {
   if (saving) { saveTimer = setTimeout(save, 600); return; }
@@ -347,18 +430,29 @@ async function save() {
   if (JSON.stringify(deck) === snap) { dirty = false; $('saveSt').textContent = 'All changes saved'; } else markDirty();
 }
 addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+function updHist() { $('undoB').disabled = hpos <= 0; $('redoB').disabled = hpos >= hist.length - 1; }
+function commit() { clearTimeout(histTimer); histTimer = null; const j = JSON.stringify(deck); if (hist[hpos] !== j) { hist = hist.slice(0, hpos + 1); hist.push(j); if (hist.length > 80) hist.shift(); hpos = hist.length - 1; } updHist(); markDirty(); }
+function commitSoon() { clearTimeout(histTimer); histTimer = setTimeout(commit, 500); refreshThumb(sel); }
+function flushHist() { if (histTimer) commit(); }
+function restore(j) { deck = JSON.parse(j); sel = Math.min(sel, deck.slides.length - 1); selId = null; editing = false; renderThumbs(); selectSlide(sel, false); markDirty(); updHist(); }
+function undo() { flushHist(); if (hpos <= 0) return; hpos--; restore(hist[hpos]); }
+function redo() { flushHist(); if (hpos >= hist.length - 1) return; hpos++; restore(hist[hpos]); }
+$('undoB').addEventListener('click', undo); $('redoB').addEventListener('click', redo);
 
-/* ---------- editor ---------- */
+/* ---------- editor shell ---------- */
 function fitMain() {
-  const m = $('main'), box = $('fitbox'), s = Math.min((m.clientWidth - 40) / 1920, (m.clientHeight - 40) / 1080);
-  if (s <= 0) return; box.style.width = 1920 * s + 'px'; box.style.height = 1080 * s + 'px'; mainStage.root.style.transform = `scale(${s})`;
+  const m = $('main'), box = $('fitbox'), s = Math.min((m.clientWidth - 30) / 1920, (m.clientHeight - 30) / 1080);
+  if (!(s > 0) || !mainStage) return; mainScale = s; box.style.width = 1920 * s + 'px'; box.style.height = 1080 * s + 'px'; mainStage.root.style.transform = `scale(${s})`; ovl.style.transform = `scale(${s})`;
+  ovl.style.setProperty('--hs', (15 / s) + 'px'); ovl.style.setProperty('--bw', (2.5 / s) + 'px'); placeOverlay();
 }
 function buildApp() {
   const box = $('fitbox'); box.textContent = ''; const root = document.createElement('div'); box.appendChild(root); mainStage = makeStage(root, false);
+  ovl = h('div', { class: 'ovl' }); selBox = h('div', { class: 'selbox' }); gv = h('div', { class: 'gd' }); gh = h('div', { class: 'gd' }); ovl.append(selBox, gv, gh); box.appendChild(ovl); gv.hidden = gh.hidden = true;
+  $('main').addEventListener('pointerdown', onDown); $('main').addEventListener('dblclick', e => { const n = e.target.closest('.el'); if (n) startEdit(n.dataset.id); });
   new ResizeObserver(fitMain).observe($('main'));
   const sbg = $('sBg'); sbg.textContent = ''; Object.entries(BG_NAMES).forEach(([k, v]) => sbg.appendChild(h('option', { value: k }, v)));
   $('sBg').value = deck.bg; $('sTr').value = deck.transition; $('sAuto').value = deck.autoplay;
-  sel = 0; renderThumbs(); select(0);
+  hist = [JSON.stringify(deck)]; hpos = 0; updHist(); sel = 0; renderThumbs(); selectSlide(0, true);
 }
 function renderThumbs() {
   const rail = $('rail'); rail.textContent = ''; thumbs = [];
@@ -366,80 +460,221 @@ function renderThumbs() {
     const box = h('div', { class: 'box' }), root = document.createElement('div'); box.appendChild(root);
     const st = makeStage(root, true); st.setBg(bgOf(s)); st.show(s);
     const th = h('div', { class: 'th' + (i === sel ? ' sel' : ''), draggable: 'true', tabindex: '0', role: 'button', 'aria-label': 'Slide ' + (i + 1) }, h('b', {}, String(i + 1)), box);
-    th.addEventListener('click', () => select(i));
-    th.addEventListener('keydown', e => { if (e.key === 'Enter') select(i); });
+    th.addEventListener('click', () => selectSlide(i, true));
+    th.addEventListener('keydown', e => { if (e.key === 'Enter') selectSlide(i, true); });
     th.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', String(i)); th.classList.add('drag'); });
     th.addEventListener('dragend', () => th.classList.remove('drag'));
     th.addEventListener('dragover', e => { e.preventDefault(); th.classList.add('over'); });
     th.addEventListener('dragleave', () => th.classList.remove('over'));
-    th.addEventListener('drop', e => { e.preventDefault(); const from = +e.dataTransfer.getData('text/plain'); if (isNaN(from) || from === i) { th.classList.remove('over'); return; } const [m] = deck.slides.splice(from, 1); deck.slides.splice(i, 0, m); sel = i; renderThumbs(); select(i); markDirty(); });
+    th.addEventListener('drop', e => { e.preventDefault(); const from = +e.dataTransfer.getData('text/plain'); if (isNaN(from) || from === i) { th.classList.remove('over'); return; } flushHist(); const [m] = deck.slides.splice(from, 1); deck.slides.splice(i, 0, m); sel = i; renderThumbs(); selectSlide(i, false); commit(); });
     rail.appendChild(th); thumbs.push({ th, st });
   });
 }
 function refreshThumb(i) { const t = thumbs[i], s = deck.slides[i]; if (!t) return; t.st.setBg(bgOf(s)); t.st.show(s); }
-function select(i) {
-  sel = Math.max(0, Math.min(i, deck.slides.length - 1)); thumbs.forEach((t, k) => t.th.classList.toggle('sel', k === sel));
-  const s = deck.slides[sel]; mainStage.setBg(bgOf(s)); mainStage.show(s, { animate: true, transition: deck.transition }); fitMain(); buildProps();
-  if (thumbs[sel]) thumbs[sel].th.scrollIntoView({ block: 'nearest' });
+function selectSlide(i, animate) {
+  flushHist(); finishEdit(true);
+  sel = Math.max(0, Math.min(i, deck.slides.length - 1)); selId = null; thumbs.forEach((t, k) => t.th.classList.toggle('sel', k === sel));
+  renderMain(animate); fitMain(); buildBar(); buildProps(); if (thumbs[sel]) thumbs[sel].th.scrollIntoView({ block: 'nearest' });
 }
-function liveUpdate() { const s = deck.slides[sel]; mainStage.setBg(bgOf(s)); mainStage.show(s, { animate: false }); refreshThumb(sel); markDirty(); }
+function renderMain(animate) { const s = slide(); mainStage.setBg(bgOf(s)); mainStage.show(s, { animate: !!animate, transition: deck.transition }); placeOverlay(); }
+const nodeOf = id => [...mainStage.root.querySelectorAll('.el')].reverse().find(n => n.dataset.id === id);
 
-function buildProps() {
-  const s = deck.slides[sel], L = LAYOUTS[s.type], p = $('props'); p.textContent = '';
-  p.append(h('h3', {}, 'Slide ' + (sel + 1) + ' of ' + deck.slides.length));
-  const ty = h('select', { 'aria-label': 'Slide type' }); Object.entries(LAYOUTS).forEach(([k, v]) => ty.appendChild(h('option', { value: k }, v.name))); ty.value = s.type;
-  ty.addEventListener('change', () => { const old = s.f; s.type = ty.value; const nf = {}; LAYOUTS[s.type].fields.forEach(([k, , d]) => { nf[k] = old[k] != null && old[k] !== '' ? old[k] : (d || ''); }); s.f = nf; liveUpdate(); buildProps(); });
-  p.append(h('label', { class: 'l' }, 'Slide type'), ty);
-  const bg = h('select', { 'aria-label': 'Background' }); bg.appendChild(h('option', { value: 'default' }, 'Use default (' + BG_NAMES[deck.bg] + ')')); Object.entries(BG_NAMES).forEach(([k, v]) => bg.appendChild(h('option', { value: k }, v))); bg.value = s.bg || 'default';
-  bg.addEventListener('change', () => { s.bg = bg.value; liveUpdate(); });
-  p.append(h('label', { class: 'l' }, 'Moving background'), bg);
-  if (L.picker) {
-    const pk = h('select', {}, h('option', { value: '' }, guests.length ? 'Fill from the performer list...' : 'No performers have signed up yet'));
-    guests.slice().sort((a, b) => (a.stage_name || '').localeCompare(b.stage_name || '')).forEach(g => pk.appendChild(h('option', { value: g.nickname }, (g.stage_name || g.nickname) + (g.real_name ? ' (' + g.real_name + ')' : ''))));
-    pk.addEventListener('change', () => { const g = guests.find(x => x.nickname === pk.value); if (!g) return; s.f.stage = g.stage_name || g.nickname; s.f.real = g.real_name || ''; liveUpdate(); buildProps(); });
-    p.append(h('label', { class: 'l' }, 'Performer'), pk);
-  }
-  L.fields.forEach(([k, label, , kind]) => {
-    p.append(h('label', { class: 'l', for: 'f_' + k }, label));
-    if (kind === 'image') {
-      const inp = h('input', { type: 'text', id: 'f_' + k, placeholder: 'https://... or upload below', 'data-k': k }); inp.value = s.f[k] || '';
-      inp.addEventListener('input', () => { s.f[k] = inp.value.trim(); liveUpdate(); });
-      const msg = h('div', { class: 'msg' }), file = h('input', { type: 'file', accept: 'image/*', 'aria-label': 'Upload picture' });
-      file.addEventListener('change', async () => {
-        const f = file.files[0]; if (!f) return; msg.className = 'msg'; msg.textContent = 'Uploading...';
-        const path = 'slides/' + uid() + '/' + f.name.replace(/[^\w.\-]+/g, '_').slice(-60);
-        const { error } = await sb.storage.from(C.uploadBucket).upload(path, f, { contentType: f.type || 'image/jpeg' });
-        if (error) { msg.textContent = 'Upload failed: ' + error.message; return; }
-        s.f[k] = sb.storage.from(C.uploadBucket).getPublicUrl(path).data.publicUrl; inp.value = s.f[k]; msg.className = 'msg ok'; msg.textContent = 'Uploaded.'; liveUpdate();
-      });
-      p.append(inp, file, msg); return;
-    }
-    const inp = kind === 'area' ? h('textarea', { id: 'f_' + k, 'data-k': k }) : h('input', { type: 'text', id: 'f_' + k, 'data-k': k });
-    inp.value = s.f[k] || ''; inp.addEventListener('input', () => { s.f[k] = inp.value; liveUpdate(); }); p.append(inp);
-  });
-  p.append(h('p', { class: 'hint' }, 'Tip: click any text on the slide to jump to its box.'));
-  const arm = (b, label, go) => b.addEventListener('click', () => { if (b.dataset.a) { go(); return; } b.dataset.a = '1'; b.textContent = 'Tap again to confirm'; setTimeout(() => { delete b.dataset.a; b.textContent = label; }, 3000); });
-  const row = h('div', { class: 'row' },
-    h('button', { class: 'btn s w', type: 'button', onclick: () => move(-1) }, 'Move up'), h('button', { class: 'btn s w', type: 'button', onclick: () => move(1) }, 'Move down'),
-    h('button', { class: 'btn s y', type: 'button', onclick: dup }, 'Duplicate'));
-  const del = h('button', { class: 'btn s', type: 'button' }, 'Delete slide'); arm(del, 'Delete slide', remove); row.append(del); p.append(row);
+/* ---------- selection overlay ---------- */
+function handlesFor(t) { return t === 'text' ? ['nw', 'ne', 'sw', 'se', 'e', 'w'] : (t === 'arch' || t === 'cd') ? ['nw', 'ne', 'sw', 'se'] : ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w']; }
+const HPOS = { nw: [0, 0], n: [50, 0], ne: [100, 0], e: [100, 50], se: [100, 100], s: [50, 100], sw: [0, 100], w: [0, 50] };
+function placeOverlay() {
+  if (!selBox) return; const e = selId && curEl(), n = e && nodeOf(e.id);
+  if (!e || !n || editing) { selBox.hidden = true; return; }
+  selBox.hidden = false; Object.assign(selBox.style, { left: n.offsetLeft + 'px', top: n.offsetTop + 'px', width: n.offsetWidth + 'px', height: n.offsetHeight + 'px', transform: `rotate(${e.r || 0}deg)` });
+  const key = e.id + ':' + e.t; if (selBox.dataset.k !== key) { selBox.dataset.k = key; selBox.textContent = '';
+    handlesFor(e.t).forEach(k => { const d = h('div', { class: 'hd', 'data-h': k }); d.style.left = HPOS[k][0] + '%'; d.style.top = HPOS[k][1] + '%'; selBox.appendChild(d); });
+    const r = h('div', { class: 'hd', 'data-h': 'rot' }); r.style.left = '50%'; r.style.top = 'calc(var(--hs) * -2.2)'; selBox.appendChild(r); }
 }
-$('main').addEventListener('click', e => { const el = e.target.closest('[data-f]'); if (!el) return; const inp = document.querySelector('#props [data-k="' + el.dataset.f + '"]'); if (inp) { inp.focus(); inp.classList.add('hl'); setTimeout(() => inp.classList.remove('hl'), 900); } });
-function move(d) { const j = sel + d; if (j < 0 || j >= deck.slides.length) return; const [m] = deck.slides.splice(sel, 1); deck.slides.splice(j, 0, m); sel = j; renderThumbs(); select(j); markDirty(); }
-function dup() { const c = JSON.parse(JSON.stringify(deck.slides[sel])); c.id = uid(); deck.slides.splice(sel + 1, 0, c); renderThumbs(); select(sel + 1); markDirty(); }
-function remove() { if (deck.slides.length <= 1) { $('saveSt').textContent = 'A deck needs at least one slide'; return; } deck.slides.splice(sel, 1); renderThumbs(); select(Math.min(sel, deck.slides.length - 1)); markDirty(); }
-function addSlide(type) { deck.slides.splice(sel + 1, 0, newSlide(type)); $('layoutModal').hidden = true; renderThumbs(); select(sel + 1); markDirty(); }
+function selectEl(id) {
+  if (editing && id !== selId) finishEdit(true);
+  selId = id; if (selBox) selBox.dataset.k = ''; placeOverlay(); buildBar(); buildProps();
+}
+const stagePt = ev => { const r = mainStage.root.getBoundingClientRect(); return { x: (ev.clientX - r.left) / mainScale, y: (ev.clientY - r.top) / mainScale }; };
+function onDown(ev) {
+  if (ev.button !== 0 || presenting) return;
+  if (editing) { if (ev.target.closest('.in.editing')) return; finishEdit(); }
+  const hd = ev.target.closest('.hd'); if (hd) { ev.preventDefault(); startHandle(ev, hd.dataset.h); return; }
+  const n = ev.target.closest('.el');
+  if (n) { ev.preventDefault(); selectEl(n.dataset.id); startMove(ev); } else selectEl(null);
+}
+function snapTargets(id) { const xs = [0, 960, 1920], ys = [0, 540, 1080]; slide().els.forEach(o => { if (o.id === id) return; const n = nodeOf(o.id); if (!n) return; const w = n.offsetWidth, hh = n.offsetHeight; xs.push(o.x, o.x + w / 2, o.x + w); ys.push(o.y, o.y + hh / 2, o.y + hh); }); return { xs, ys }; }
+function snapAxis(p, size, list, T) { let best = null; [0, size / 2, size].forEach(off => list.forEach(t => { const d = t - (p + off); if (Math.abs(d) <= T && (!best || Math.abs(d) < Math.abs(best.d))) best = { d, g: t }; })); return best; }
+function startMove(ev) {
+  const e = curEl(); if (!e) return; const n = nodeOf(e.id), p0 = stagePt(ev), x0 = e.x, y0 = e.y, w = n.offsetWidth, hh = n.offsetHeight, tg = snapTargets(e.id), T = 9 / mainScale; let moved = false;
+  const mv = ev2 => { const p = stagePt(ev2); if (!moved && Math.hypot(p.x - p0.x, p.y - p0.y) < 4 / mainScale) return; moved = true;
+    let nx = x0 + p.x - p0.x, ny = y0 + p.y - p0.y, gx = null, gy = null;
+    if (!ev2.altKey && !e.r) { const sx = snapAxis(nx, w, tg.xs, T), sy = snapAxis(ny, hh, tg.ys, T); if (sx) { nx += sx.d; gx = sx.g; } if (sy) { ny += sy.d; gy = sy.g; } }
+    e.x = Math.round(nx); e.y = Math.round(ny); n.style.left = e.x + 'px'; n.style.top = e.y + 'px'; placeOverlay(); showGuides(gx, gy); syncPos(); };
+  const up = () => { removeEventListener('pointermove', mv); hideGuides(); if (moved) { commit(); refreshThumb(sel); } };
+  addEventListener('pointermove', mv); addEventListener('pointerup', up, { once: true });
+}
+function showGuides(gx, gy) { gv.hidden = gx == null; gh.hidden = gy == null; if (gx != null) Object.assign(gv.style, { left: gx + 'px', top: 0, width: 'var(--bw)', height: '1080px' }); if (gy != null) Object.assign(gh.style, { top: gy + 'px', left: 0, height: 'var(--bw)', width: '1920px' }); }
+function hideGuides() { gv.hidden = gh.hidden = true; }
+function startHandle(ev, dir) {
+  const e = curEl(), n = nodeOf(e.id), w0 = n.offsetWidth, h0 = n.offsetHeight, r = (e.r || 0) * Math.PI / 180, cos = Math.cos(r), sin = Math.sin(r), C0 = { x: e.x + w0 / 2, y: e.y + h0 / 2 }, p0 = stagePt(ev), size0 = e.size;
+  if (dir === 'rot') {
+    const mv = ev2 => { const p = stagePt(ev2); let a = Math.atan2(p.y - C0.y, p.x - C0.x) * 180 / Math.PI + 90; if (ev2.shiftKey) a = Math.round(a / 15) * 15; a = ((a + 180) % 360 + 360) % 360 - 180; e.r = Math.round(a); renderMain(false); syncPos(); };
+    const up = () => { removeEventListener('pointermove', mv); commit(); refreshThumb(sel); }; addEventListener('pointermove', mv); addEventListener('pointerup', up, { once: true }); return;
+  }
+  const hx = dir.includes('e') ? 1 : dir.includes('w') ? -1 : 0, hy = dir.includes('s') ? 1 : dir.includes('n') ? -1 : 0, corner = hx && hy, lock = corner && ['text', 'img', 'arch', 'cd'].includes(e.t);
+  const mv = ev2 => {
+    const p = stagePt(ev2), dx = p.x - p0.x, dy = p.y - p0.y, dxl = dx * cos + dy * sin, dyl = -dx * sin + dy * cos; let nw = w0, nh = h0;
+    if (hx) nw = Math.max(30, w0 + hx * dxl); if (hy) nh = Math.max(30, h0 + hy * dyl);
+    if (lock) { const f = nw / w0; nh = h0 * f; }
+    const al = { x: -hx * w0 / 2, y: -hy * h0 / 2 }, ag = { x: C0.x + al.x * cos - al.y * sin, y: C0.y + al.x * sin + al.y * cos }, nl = { x: -hx * nw / 2, y: -hy * nh / 2 };
+    const C1 = { x: ag.x - (nl.x * cos - nl.y * sin), y: ag.y - (nl.x * sin + nl.y * cos) };
+    e.w = Math.round(nw); e.x = Math.round(C1.x - nw / 2); e.y = Math.round(C1.y - nh / 2);
+    if (e.t === 'text') { if (corner) e.size = Math.max(8, Math.round(size0 * nw / w0)); } else if (e.t !== 'cd') e.h = Math.round(nh);
+    renderMain(false); syncPos(); syncSize();
+  };
+  const up = () => { removeEventListener('pointermove', mv); commit(); refreshThumb(sel); buildBar(); }; addEventListener('pointermove', mv); addEventListener('pointerup', up, { once: true });
+}
+function syncPos() { const e = curEl(); if (!e) return; [['p_x', e.x], ['p_y', e.y], ['p_w', e.w], ['p_h', e.h], ['p_r', e.r || 0]].forEach(([id, v]) => { const i = $(id); if (i && document.activeElement !== i && v != null) i.value = Math.round(v); }); }
+function syncSize() { const e = curEl(); if (e && e.t === 'text') { const i = $('sizeIn'); if (i) i.value = e.size; } }
+
+/* ---------- inline text editing ---------- */
+function startEdit(id) {
+  const e = slide().els.find(x => x.id === id); if (!e || e.t !== 'text') return; selectEl(id); editing = true; placeOverlay();
+  const inn = nodeOf(id).querySelector('.in'); inn.contentEditable = 'plaintext-only'; if (inn.contentEditable !== 'plaintext-only') inn.contentEditable = 'true';
+  inn.classList.add('editing'); inn.focus(); document.execCommand('selectAll');
+  inn.addEventListener('blur', () => finishEdit(), { once: true });
+  inn.addEventListener('keydown', ev => { ev.stopPropagation(); if (ev.key === 'Escape') { ev.preventDefault(); inn.blur(); } });
+  inn.addEventListener('paste', ev => { ev.preventDefault(); document.execCommand('insertText', false, (ev.clipboardData || window.clipboardData).getData('text')); });
+  inn.addEventListener('input', () => { e.text = inn.innerText.replace(/\n$/, ''); const t = $('p_text'); if (t) t.value = e.text; refreshThumb(sel); });
+}
+function finishEdit(silent) {
+  if (!editing) return; editing = false; const e = curEl(), n = selId && nodeOf(selId);
+  if (e && n) { const inn = n.querySelector('.in'); if (inn) e.text = inn.innerText.replace(/\n$/, ''); }
+  renderMain(false); if (!silent) { buildProps(); } commit(); refreshThumb(sel);
+}
+
+/* ---------- element actions ---------- */
+function addEl(e) { flushHist(); slide().els.push(e); selId = e.id; selBox.dataset.k = ''; renderMain(false); buildBar(); buildProps(); commit(); refreshThumb(sel); }
+$('addText').addEventListener('click', () => { const e = disp({ x: 460, y: 440, w: 1000, text: 'Double-click to edit', size: 100, up: false }); addEl(e); startEdit(e.id); });
+$('addArch').addEventListener('click', () => addEl(arch({ x: 865, y: 420 })));
+$('addCd').addEventListener('click', () => addEl(cdEl({ x: 246, y: 390, w: 1428 })));
+$('addShape').addEventListener('change', e => { const k = e.target.value; e.target.value = ''; if (!k) return; addEl(shp({ x: 700, y: 380, w: 520, h: k === 'circle' ? 520 : 300, shape: k, fill: '#FFC72C', bw: 6, bc: '#27251F', sh: 'hard' })); });
+async function uploadImage(file) {
+  $('saveSt').textContent = 'Uploading picture...';
+  const path = 'slides/' + uid() + '/' + file.name.replace(/[^\w.\-]+/g, '_').slice(-60);
+  const { error } = await sb.storage.from(C.uploadBucket).upload(path, file, { contentType: file.type || 'image/jpeg' });
+  if (error) { $('saveSt').textContent = 'Upload failed: ' + error.message; return null; }
+  $('saveSt').textContent = ''; return sb.storage.from(C.uploadBucket).getPublicUrl(path).data.publicUrl;
+}
+let imgTarget = null;
+$('addImg').addEventListener('click', () => { imgTarget = null; $('imgIn').click(); });
+$('imgIn').addEventListener('change', async () => {
+  const f = $('imgIn').files[0]; $('imgIn').value = ''; if (!f) return; const url = await uploadImage(f); if (!url) return;
+  if (imgTarget) { const e = slide().els.find(x => x.id === imgTarget); if (e) { e.src = url; renderMain(false); buildProps(); commit(); refreshThumb(sel); } return; }
+  const im = new Image(); im.onload = () => { const k = Math.min(1000 / im.naturalWidth, 700 / im.naturalHeight, 1), w = Math.round(im.naturalWidth * k), hh = Math.round(im.naturalHeight * k); addEl(imgEl({ x: Math.round((1920 - w) / 2), y: Math.round((1080 - hh) / 2), w, h: hh, src: url })); };
+  im.onerror = () => addEl(imgEl({ x: 560, y: 190, w: 800, h: 700, src: url })); im.src = url;
+});
+function delEl() { const s = slide(), i = s.els.findIndex(e => e.id === selId); if (i < 0) return; flushHist(); s.els.splice(i, 1); selId = null; renderMain(false); buildBar(); buildProps(); commit(); refreshThumb(sel); }
+function dupEl() { const e = curEl(); if (!e) return; const c = JSON.parse(JSON.stringify(e)); c.id = uid(); c.x += 40; c.y += 40; addEl(c); }
+function layer(d) { const s = slide(), i = s.els.findIndex(e => e.id === selId); if (i < 0) return; const j = d === 'front' ? s.els.length - 1 : d === 'back' ? 0 : Math.max(0, Math.min(s.els.length - 1, i + d)); const [m] = s.els.splice(i, 1); s.els.splice(j, 0, m); renderMain(false); buildProps(); commit(); refreshThumb(sel); }
+
+/* ---------- toolbar (context) ---------- */
+function tgl(label, on, fn, title) { const b = h('button', { class: 'tg', type: 'button', 'aria-pressed': on ? 'true' : 'false', title: title || label }, label); b.addEventListener('click', fn); return b; }
+function upd(fn, rebuild) { const e = curEl(); if (!e) return; fn(e); renderMain(false); commitSoon(); if (rebuild) { buildBar(); buildProps(); } }
+function buildBar() {
+  const c = $('ctx'); c.textContent = ''; const e = curEl(); if (!e) { c.append(h('span', { class: 'hint', style: 'margin:0' }, 'Click an item on the slide to edit it. Double-click text to type.')); return; }
+  if (e.t === 'text') {
+    const fs = h('select', { id: 'fontSel', 'aria-label': 'Font' }); const fl = FONTS.includes(e.font) ? FONTS : [e.font, ...FONTS]; fl.forEach(f => { const o = h('option', { value: f }, f); o.style.fontFamily = `'${f}'`; fs.appendChild(o); }); fs.value = e.font;
+    fs.addEventListener('change', () => upd(x => { x.font = fs.value; }));
+    const sz = h('input', { type: 'number', id: 'sizeIn', min: 8, max: 800, 'aria-label': 'Font size' }); sz.value = e.size; sz.addEventListener('input', () => { const v = parseInt(sz.value); if (v >= 8) upd(x => { x.size = Math.min(800, v); }); });
+    const step = d => () => upd(x => { x.size = Math.max(8, Math.min(800, x.size + d * (x.size >= 100 ? 10 : 4))); sz.value = x.size; });
+    const col = h('input', { type: 'color', 'aria-label': 'Text color' }); col.value = e.color; col.addEventListener('input', () => upd(x => { x.color = col.value; }));
+    const sw = h('span', { style: 'display:flex;gap:4px' }, SW.map(c0 => { const b = h('button', { class: 'sw', type: 'button', 'aria-label': 'Color ' + c0, style: 'background:' + c0 }); b.addEventListener('click', () => { col.value = c0; upd(x => { x.color = c0; }); }); return b; }));
+    c.append(h('div', { class: 'grp' }, fs, h('button', { class: 'tg', type: 'button', onclick: step(-1), title: 'Smaller' }, '–'), sz, h('button', { class: 'tg', type: 'button', onclick: step(1), title: 'Bigger' }, '+')),
+      h('div', { class: 'grp' }, col, sw),
+      h('div', { class: 'grp' }, tgl('B', e.b, () => upd(x => { x.b = !x.b; }, true), 'Bold'), tgl('I', e.i, () => upd(x => { x.i = !x.i; }, true), 'Italic'), tgl('U', e.u, () => upd(x => { x.u = !x.u; }, true), 'Underline'), tgl('Aa', e.up, () => upd(x => { x.up = !x.up; }, true), 'UPPERCASE'),
+        tgl('Left', e.al === 'left', () => upd(x => { x.al = 'left'; }, true)), tgl('Center', e.al === 'center', () => upd(x => { x.al = 'center'; }, true)), tgl('Right', e.al === 'right', () => upd(x => { x.al = 'right'; }, true))));
+  } else if (e.t === 'shape') {
+    const f = h('input', { type: 'color', 'aria-label': 'Fill' }); f.value = e.fill; f.addEventListener('input', () => upd(x => { x.fill = f.value; }));
+    const b = h('input', { type: 'color', 'aria-label': 'Border color' }); b.value = e.bc; b.addEventListener('input', () => upd(x => { x.bc = b.value; }));
+    const bw = h('input', { type: 'number', min: 0, max: 60, 'aria-label': 'Border width' }); bw.value = e.bw; bw.addEventListener('input', () => upd(x => { x.bw = Math.max(0, parseInt(bw.value) || 0); }));
+    c.append(h('div', { class: 'grp' }, h('span', { class: 'hint', style: 'margin:0' }, 'Fill'), f, h('span', { class: 'hint', style: 'margin:0' }, 'Border'), b, bw));
+  } else if (e.t === 'arch') {
+    const f = h('input', { type: 'color', 'aria-label': 'Arch color' }); f.value = e.color; f.addEventListener('input', () => upd(x => { x.color = f.value; })); c.append(h('div', { class: 'grp' }, h('span', { class: 'hint', style: 'margin:0' }, 'Color'), f));
+  } else if (e.t === 'img') {
+    c.append(h('div', { class: 'grp' }, h('button', { class: 'btn s w', type: 'button', onclick: () => { imgTarget = e.id; $('imgIn').click(); } }, 'Replace picture'), tgl('Fill', (e.fit || 'cover') === 'cover', () => upd(x => { x.fit = 'cover'; }, true), 'Fill the frame'), tgl('Fit', e.fit === 'contain', () => upd(x => { x.fit = 'contain'; }, true), 'Show the whole picture')));
+  }
+  const arm = (b, label, go) => b.addEventListener('click', () => { if (b.dataset.a) { go(); return; } b.dataset.a = '1'; b.textContent = 'Sure?'; setTimeout(() => { delete b.dataset.a; b.textContent = label; }, 2500); });
+  const del = h('button', { class: 'btn s', type: 'button' }, 'Delete'); arm(del, 'Delete', delEl);
+  c.append(h('div', { class: 'grp' }, h('button', { class: 'btn s w', type: 'button', onclick: dupEl }, 'Duplicate'), h('button', { class: 'btn s w', type: 'button', onclick: () => layer('front'), title: 'Bring to front' }, 'Front'), h('button', { class: 'btn s w', type: 'button', onclick: () => layer('back'), title: 'Send to back' }, 'Back'), del));
+}
+
+/* ---------- right panel ---------- */
+const labelOf = e => e.t === 'text' ? (e.text || 'Empty text').replace(/\s+/g, ' ').slice(0, 26) : ({ shape: 'Shape', img: 'Picture', arch: 'Golden arch', cd: 'Countdown' }[e.t] || e.t);
+function field(label, input) { return h('div', {}, h('label', { class: 'l' }, label), input); }
+function numIn(id, get, set, min, max, step) { const i = h('input', { type: 'number', id, min, max, step: step || 1 }); i.value = get(); i.addEventListener('input', () => { const v = parseFloat(i.value); if (isNaN(v)) return; set(Math.max(min, Math.min(max, v))); renderMain(false); commitSoon(); }); return i; }
+function selIn(opts, get, set) { const s = h('select', {}); Object.entries(opts).forEach(([k, v]) => s.appendChild(h('option', { value: k }, v))); s.value = get(); s.addEventListener('change', () => { set(s.value); renderMain(false); commit(); refreshThumb(sel); buildBar(); }); return s; }
+function buildProps() {
+  const p = $('props'), s = slide(), e = curEl(); p.textContent = '';
+  p.append(h('h3', {}, 'Slide ' + (sel + 1) + ' of ' + deck.slides.length));
+  const bg = h('select', { 'aria-label': 'Background' }); bg.appendChild(h('option', { value: 'default' }, 'Default (' + BG_NAMES[deck.bg] + ')')); Object.entries(BG_NAMES).forEach(([k, v]) => bg.appendChild(h('option', { value: k }, v))); bg.value = s.bg || 'default';
+  bg.addEventListener('change', () => { s.bg = bg.value; renderMain(false); refreshThumb(sel); commit(); });
+  p.append(field('Moving background', bg));
+  if (e) {
+    p.append(h('h3', { class: '' }, { text: 'Text', shape: 'Shape', img: 'Picture', arch: 'Golden arch', cd: 'Countdown' }[e.t]));
+    if (e.t === 'text') { const ta = h('textarea', { id: 'p_text', 'aria-label': 'Text' }); ta.value = e.text; ta.addEventListener('input', () => { e.text = ta.value; renderMain(false); commitSoon(); }); p.append(field('Text', ta)); }
+    if (e.t === 'img') { const u = h('input', { type: 'text', placeholder: 'https://...' }); u.value = e.src || ''; u.addEventListener('input', () => { e.src = u.value.trim(); renderMain(false); commitSoon(); }); p.append(field('Picture link', u)); }
+    const g = h('div', { class: 'g2' }, field('X', numIn('p_x', () => e.x, v => { e.x = Math.round(v); }, -3000, 4000)), field('Y', numIn('p_y', () => e.y, v => { e.y = Math.round(v); }, -3000, 4000)), field('Width', numIn('p_w', () => e.w, v => { e.w = Math.round(v); }, 20, 4000)));
+    if (e.t !== 'text' && e.t !== 'cd') g.append(field('Height', numIn('p_h', () => e.h, v => { e.h = Math.round(v); }, 20, 4000)));
+    g.append(field('Rotation', numIn('p_r', () => e.r || 0, v => { e.r = Math.round(v); }, -180, 180)), field('Opacity %', numIn('p_o', () => Math.round((e.op == null ? 1 : e.op) * 100), v => { e.op = v / 100; }, 5, 100)));
+    p.append(g);
+    if (e.t === 'text') p.append(h('div', { class: 'g2' }, field('Line spacing', numIn('p_lh', () => e.lh, v => { e.lh = v; }, .6, 3, .05)), field('Letter spacing', numIn('p_ls', () => e.ls, v => { e.ls = v; }, -10, 60, 1))), field('Text effect', selIn({ none: 'None', soft: 'Soft shadow', hard: 'Bold shadow (theme)', glow: 'Golden glow' }, () => e.sh || 'none', v => { e.sh = v; })));
+    if (e.t === 'shape') p.append(field('Shape', selIn({ rect: 'Rectangle', round: 'Rounded box', circle: 'Circle', pill: 'Pill' }, () => e.shape, v => { e.shape = v; })), field('Shadow', selIn({ none: 'None', soft: 'Soft', hard: 'Bold (theme)' }, () => e.sh || 'none', v => { e.sh = v; })));
+    if (e.t === 'img') p.append(h('div', { class: 'g2' }, field('Corner radius', numIn('p_rad', () => e.rad || 0, v => { e.rad = v; }, 0, 400)), field('Border width', numIn('p_bw', () => e.bw || 0, v => { e.bw = v; }, 0, 60))), field('Shadow', selIn({ none: 'None', soft: 'Soft', hard: 'Bold (theme)' }, () => e.sh || 'none', v => { e.sh = v; })));
+    p.append(field('Animation when presenting', selIn(ANIMS, () => e.anim || 'rise', v => { e.anim = v; })));
+    p.append(h('p', { class: 'hint' }, 'Items appear one after another when presenting, in the order they were added.'));
+  } else p.append(h('p', { class: 'hint' }, 'Click an item on the slide to edit it. Drag to move, drag the dots to resize, the top dot rotates. Double-click text to type. Hold Alt to turn off snapping.'));
+  const lh = h('h3', {}, 'Layers'); p.append(lh);
+  slide().els.slice().reverse().forEach(x => { const row = h('div', { class: 'lay' + (x.id === selId ? ' on' : ''), role: 'button', tabindex: '0' }, h('span', {}, labelOf(x)));
+    row.addEventListener('click', () => selectEl(x.id)); row.addEventListener('keydown', ev => { if (ev.key === 'Enter') selectEl(x.id); }); p.append(row); });
+  if (!slide().els.length) p.append(h('p', { class: 'hint' }, 'This slide is empty. Use + Text, + Image, + Shape above.'));
+  const arm = (b, label, go) => b.addEventListener('click', () => { if (b.dataset.a) { go(); return; } b.dataset.a = '1'; b.textContent = 'Tap again to confirm'; setTimeout(() => { delete b.dataset.a; b.textContent = label; }, 3000); });
+  const del = h('button', { class: 'btn s', type: 'button' }, 'Delete slide'); arm(del, 'Delete slide', removeSlide);
+  p.append(h('div', { class: 'sec' }), h('h3', {}, 'This slide'), h('div', { class: 'row' }, h('button', { class: 'btn s w', type: 'button', onclick: () => moveSlide(-1) }, 'Move up'), h('button', { class: 'btn s w', type: 'button', onclick: () => moveSlide(1) }, 'Move down'), h('button', { class: 'btn s y', type: 'button', onclick: dupSlide }, 'Duplicate slide'), del));
+}
+function moveSlide(d) { flushHist(); const j = sel + d; if (j < 0 || j >= deck.slides.length) return; const [m] = deck.slides.splice(sel, 1); deck.slides.splice(j, 0, m); sel = j; renderThumbs(); selectSlide(j, false); commit(); }
+function dupSlide() { flushHist(); const c = JSON.parse(JSON.stringify(slide())); c.id = uid(); c.els.forEach(x => { x.id = uid(); }); deck.slides.splice(sel + 1, 0, c); renderThumbs(); selectSlide(sel + 1, true); commit(); }
+function removeSlide() { if (deck.slides.length <= 1) { $('saveSt').textContent = 'A deck needs at least one slide'; return; } flushHist(); deck.slides.splice(sel, 1); renderThumbs(); selectSlide(Math.min(sel, deck.slides.length - 1), true); commit(); }
+function addSlide(type) { flushHist(); deck.slides.splice(sel + 1, 0, newSlide(type)); $('layoutModal').hidden = true; renderThumbs(); selectSlide(sel + 1, true); commit(); }
 $('addBtn').addEventListener('click', () => { const g = $('lgrid'); g.textContent = ''; Object.entries(LAYOUTS).forEach(([k, v]) => g.appendChild(h('button', { class: 'lc', type: 'button', onclick: () => addSlide(k) }, h('b', {}, v.name), h('span', {}, v.info)))); $('layoutModal').hidden = false; });
 $('lmClose').addEventListener('click', () => { $('layoutModal').hidden = true; });
 $('perfBtn').addEventListener('click', () => {
   if (!guests.length) { $('saveSt').textContent = 'No performers have signed up yet'; return; }
-  const list = guests.slice().sort((a, b) => (a.stage_name || '').localeCompare(b.stage_name || '')).map(g => { const s = newSlide('spotlight', 'rays'); s.f.stage = g.stage_name || g.nickname; s.f.real = g.real_name || ''; s.f.act = ''; return s; });
-  deck.slides.splice(sel + 1, 0, ...list); renderThumbs(); select(sel + 1); markDirty(); $('saveSt').textContent = list.length + ' performer slides added';
+  flushHist(); const list = guests.slice().sort((a, b) => (a.stage_name || '').localeCompare(b.stage_name || '')).map(g => newSlide('spotlight', 'rays', { stage: g.stage_name || g.nickname, real: g.real_name || '', act: '' }));
+  deck.slides.splice(sel + 1, 0, ...list); renderThumbs(); selectSlide(sel + 1, true); commit(); $('saveSt').textContent = list.length + ' performer slides added';
 });
 $('setBtn').addEventListener('click', () => { $('setPop').hidden = !$('setPop').hidden; });
-$('sBg').addEventListener('change', () => { deck.bg = $('sBg').value; deck.slides.forEach((_, i) => refreshThumb(i)); select(sel); markDirty(); });
-$('sTr').addEventListener('change', () => { deck.transition = $('sTr').value; markDirty(); });
-$('sAuto').addEventListener('input', () => { deck.autoplay = Math.max(0, Math.min(120, +$('sAuto').value || 0)); markDirty(); });
+$('sBg').addEventListener('change', () => { deck.bg = $('sBg').value; deck.slides.forEach((_, i) => refreshThumb(i)); renderMain(false); buildProps(); commit(); });
+$('sTr').addEventListener('change', () => { deck.transition = $('sTr').value; commit(); });
+$('sAuto').addEventListener('input', () => { deck.autoplay = Math.max(0, Math.min(120, +$('sAuto').value || 0)); commit(); });
+
+/* ---------- keyboard (editor) ---------- */
+document.addEventListener('keydown', ev => {
+  if (presenting || $('app').hidden) return; const t = ev.target;
+  if (t && (['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName) || t.isContentEditable)) return;
+  const mod = ev.ctrlKey || ev.metaKey, k = ev.key;
+  if (mod && k.toLowerCase() === 'z') { ev.preventDefault(); ev.shiftKey ? redo() : undo(); return; }
+  if (mod && k.toLowerCase() === 'y') { ev.preventDefault(); redo(); return; }
+  if (mod && k.toLowerCase() === 'd') { ev.preventDefault(); dupEl(); return; }
+  if (mod && k.toLowerCase() === 'c') { const e = curEl(); if (e) { clip = JSON.parse(JSON.stringify(e)); ev.preventDefault(); } return; }
+  if (mod && k.toLowerCase() === 'v') { if (clip) { ev.preventDefault(); const c = JSON.parse(JSON.stringify(clip)); c.id = uid(); c.x += 40; c.y += 40; clip.x += 40; clip.y += 40; addEl(c); } return; }
+  const e = curEl();
+  if (k === 'Escape') { $('layoutModal').hidden = true; $('setPop').hidden = true; selectEl(null); return; }
+  if (!e) return;
+  if (k === 'Delete' || k === 'Backspace') { ev.preventDefault(); delEl(); }
+  else if (k === 'Enter' && e.t === 'text') { ev.preventDefault(); startEdit(e.id); }
+  else if (k.startsWith('Arrow')) { ev.preventDefault(); const d = ev.shiftKey ? 10 : 1; if (k === 'ArrowLeft') e.x -= d; if (k === 'ArrowRight') e.x += d; if (k === 'ArrowUp') e.y -= d; if (k === 'ArrowDown') e.y += d; renderMain(false); syncPos(); commitSoon(); }
+});
 
 /* ---------- presenter ---------- */
 let pi = 0, pst = null, autoT = null, presenting = false, idleT = null;
@@ -452,12 +687,12 @@ function pShow(i, animate) {
 }
 function pGo(d, loop) { const j = pi + d; if (j >= deck.slides.length) { if (loop) pShow(0, true); return; } if (j < 0) return; pShow(j, true); }
 function present(from) {
-  if (dirty) save();
+  finishEdit(true); flushHist(); if (dirty) save();
   presenting = true; $('present').hidden = false; const f = $('pfit'); f.textContent = ''; const root = document.createElement('div'); f.appendChild(root); pst = makeStage(root, false);
   $('pblack').hidden = true; fitP(); pShow(from, true);
   const el = $('present'); if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
 }
-function exitP() { presenting = false; clearTimeout(autoT); $('present').hidden = true; if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); select(pi); }
+function exitP() { presenting = false; clearTimeout(autoT); $('present').hidden = true; if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); selectSlide(pi, false); }
 $('presAll').addEventListener('click', () => present(0));
 $('presFrom').addEventListener('click', () => present(sel));
 $('pNext').addEventListener('click', e => { e.stopPropagation(); pGo(1, false); });
@@ -467,12 +702,11 @@ $('pFull').addEventListener('click', e => { e.stopPropagation(); togglePF(); });
 $('pbar').addEventListener('click', e => e.stopPropagation());
 $('present').addEventListener('click', () => pGo(1, false));
 function togglePF() { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else $('present').requestFullscreen && $('present').requestFullscreen().catch(() => {}); }
-document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && presenting) { /* stay in the overlay, user can press Esc again */ } if (presenting) fitP(); });
+document.addEventListener('fullscreenchange', () => { if (presenting) fitP(); });
 addEventListener('resize', () => { if (presenting) fitP(); });
 document.addEventListener('mousemove', () => { if (!presenting) return; $('present').classList.remove('idle'); clearTimeout(idleT); idleT = setTimeout(() => $('present').classList.add('idle'), 2500); });
 document.addEventListener('keydown', e => {
-  if (!presenting) { if (e.key === 'Escape') { $('layoutModal').hidden = true; $('setPop').hidden = true; } return; }
-  const k = e.key;
+  if (!presenting) return; const k = e.key;
   if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(k)) { e.preventDefault(); pGo(1, false); }
   else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(k)) { e.preventDefault(); pGo(-1, false); }
   else if (k === 'Home') pShow(0, true); else if (k === 'End') pShow(deck.slides.length - 1, true);
