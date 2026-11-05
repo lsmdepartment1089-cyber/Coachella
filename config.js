@@ -9,7 +9,7 @@ window.CONFIG = {
   // Event details
   partyName: "McDonald's Year End Party",
   eventDate: '2026-11-24T18:00:00+08:00',   // countdown target (+08:00 = Philippines time)
-  when: 'November 25, 2026 | 6:00 PM',
+  when: 'November 24, 2026 | 6:00 PM',
   where: 'Terrazas De Teodora Pavilion and Resort | Santa Rosa',               // <- put the real venue here
   dress: 'Coachella fits: boho, fringe, sunnies, flower crowns.',
 
@@ -19,9 +19,17 @@ window.CONFIG = {
 
   // Schedule shown as the "lineup poster"
   lineup: [
-    { time: '6:00 PM',  act: 'Gates open' },
-    { time: '7:00 PM',  act: 'PepTalk' },
-    { time: '8:00 PM - 12MN',  act: 'ENJOY THE SHOW' },
+    { time: '', : 'Gates open' },
+    { time: '',  act: 'PepTalk' },
+    { time: '',  act: 'Opening Prayer' },
+    { time: '',  act: 'Introduction' },
+    { time: '',  act: 'Opening Remarks' },
+    { time: '',  act: 'Games and Activities' },
+    { time: '',  act: 'Ramp' },
+    { time: '',  act: 'Santa Rosa Got Talent' },
+    { time: '',  act: 'Awarding and Recognition' },
+    { time: '',  act: 'Raffle Draw' },
+    { time: '',  act: 'Closing Remarks' },
   ],
 
   // Talent uploads (must match the bucket created by supabase_setup.sql)
