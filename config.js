@@ -8,9 +8,9 @@ window.CONFIG = {
 
   // Event details
   partyName: "McDonald's Year End Party",
-  eventDate: '2026-11-25T18:00:00+08:00',   // countdown target (+08:00 = Philippines time)
+  eventDate: '2026-11-24T18:00:00+08:00',   // countdown target (+08:00 = Philippines time)
   when: 'November 25, 2026 | 6:00 PM',
-  where: 'TBA',               // <- put the real venue here
+  where: 'Terrazas De Teodora Pavilion and Resort | Santa Rosa',               // <- put the real venue here
   dress: 'Coachella fits: boho, fringe, sunnies, flower crowns.',
 
   // Optional: put your official logo file in the repo (e.g. 'logo.svg') and write its name here.
