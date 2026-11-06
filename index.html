@@ -346,6 +346,14 @@ body.presenting .wactions{display:none}
     </div>
   </section>
 
+  <section class="raffle photo-sec">
+    <div class="card rcard reveal">
+      <p class="q">Photo Wall</p>
+      <p>Take a picture with festival frames and filters. It shows up on the big LED wall!</p>
+      <button class="btn yellow" id="camBtn" type="button">Take a picture!</button>
+    </div>
+  </section>
+
   <section class="cd reveal">
     <h2 id="cdTitle">Gates open in</h2>
     <div class="cdgrid" id="cdGrid">
@@ -440,6 +448,7 @@ body.presenting .wactions{display:none}
         <button class="btn small" id="refresh" type="button">Refresh</button>
         <button class="btn small" id="wheelBtn" type="button">Spin the wheel</button>
         <button class="btn small" id="slidesBtn" type="button">Slide show</button>
+        <button class="btn small" id="wallBtn" type="button">Photo wall</button>
         <button class="btn small yellow" id="xlsx" type="button">Download Excel</button>
         <button class="btn small dark" id="sendAll" type="button">Send to everyone not yet sent</button>
       </div>
@@ -990,6 +999,8 @@ let idleT; document.addEventListener('mousemove', () => { document.body.classLis
 
 $('wheelBtn').addEventListener('click', openWheel);
 $('slidesBtn').addEventListener('click', () => { location.href = 'slides.html'; });
+$('wallBtn').addEventListener('click', () => { location.href = 'wall.html'; });
+$('camBtn').addEventListener('click', () => { location.href = 'camera.html'; });
 $('wClose').addEventListener('click', closeWheel);
 $('wSpin').addEventListener('click', doSpin);
 $('wPresent').addEventListener('click', togglePresent);
