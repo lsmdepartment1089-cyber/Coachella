@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Photo Wall | McDonald's Year End Party</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Cormorant+Garamond:wght@500;600&family=Nunito+Sans:wght@400;600;800&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<style>
+:root{--red:#DA291C;--yellow:#FFC72C;--dark:#27251F;--cream:#FFF4D6;--orange:#FF8A1F;--display:'Londrina Solid','Arial Narrow',sans-serif;--body:'Nunito Sans',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0}
+html,body{min-height:100%}
+body{font-family:var(--body);color:var(--dark);background:linear-gradient(180deg,#FFF4D6,#FFE7A8);color-scheme:light;padding-bottom:env(safe-area-inset-bottom)}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--dark);outline-offset:2px}
+[hidden]{display:none!important}
+@keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+@keyframes flash{from{opacity:.95}to{opacity:0}}
+.btn{cursor:pointer;border:3px solid var(--dark);border-radius:14px;padding:10px 16px;font-family:var(--display);font-size:1.15rem;letter-spacing:.04em;background:var(--red);color:#fff;box-shadow:3px 3px 0 var(--dark);transition:transform .18s cubic-bezier(.3,1.5,.5,1),box-shadow .18s,filter .2s}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--dark)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--dark)}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.btn.y{background:var(--yellow);color:var(--dark)}.btn.w{background:#fff;color:var(--dark)}.btn.d{background:var(--dark);color:var(--yellow)}
+.btn.s{font-size:.95rem;padding:6px 12px;box-shadow:2px 2px 0 var(--dark)}
+.bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--red);border-bottom:3px solid var(--dark);position:sticky;top:0;z-index:20}
+.bar h1{flex:1;text-align:center;font:400 1.9rem var(--display);color:var(--yellow);text-shadow:2px 2px 0 var(--dark);line-height:1}
+main{max-width:620px;margin:0 auto;padding:12px 12px 40px}
+.stagewrap{display:flex;justify-content:center;animation:rise .6s both}
+.stage{position:relative;--ar:.628;aspect-ratio:var(--ar);width:min(100%,calc(50vh * var(--ar)));min-width:220px;background:#e8dcc0;border-radius:10px;overflow:hidden;box-shadow:0 12px 30px rgba(39,37,31,.35);border:3px solid var(--dark)}
+.slotbox{position:absolute;overflow:hidden;background:#111}
+.slotbox video{width:100%;height:100%;object-fit:cover;display:block;transform-origin:50% 50%}
+.ov{position:absolute;inset:0;pointer-events:none}
+#frameCv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.count{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:400 min(40vw,220px) var(--display);color:#fff;text-shadow:0 8px 0 var(--dark),0 0 40px rgba(0,0,0,.5);background:rgba(0,0,0,.18);z-index:5}
+.count span{animation:pop .5s both}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:6}
+.flash.go{animation:flash .6s ease-out}
+.nocam{position:absolute;inset:0;z-index:4;background:rgba(255,244,214,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:18px;text-align:center}
+.nocam p{font-weight:800}
+.row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;margin-top:12px}
+.shutter{width:84px;height:84px;border-radius:50%;border:6px solid var(--dark);background:var(--yellow);box-shadow:0 0 0 6px #fff,0 6px 0 6px var(--dark);cursor:pointer;transition:transform .15s}
+.shutter:active{transform:scale(.92)}
+.shutter:disabled{opacity:.5;cursor:wait}
+.zoomrow{display:flex;align-items:center;gap:10px;margin-top:8px;font-weight:800;font-size:.85rem}
+.zoomrow input{flex:1;accent-color:var(--red)}
+.pick{margin-top:16px;animation:rise .7s .1s both}
+.pick h2{font:400 1.4rem var(--display);color:var(--red);margin:10px 0 6px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:6px 4px 10px;scroll-snap-type:x proximity}
+.chip{flex:none;scroll-snap-align:start;cursor:pointer;border:3px solid var(--dark);border-radius:12px;background:#fff;padding:5px;text-align:center;font-weight:800;font-size:.75rem;min-width:78px;transition:transform .15s,background .15s}
+.chip[aria-pressed=true]{background:var(--yellow);box-shadow:3px 3px 0 var(--dark);transform:translateY(-2px)}
+.chip canvas{display:block;margin:0 auto 4px;height:74px;width:auto;border-radius:4px}
+.chip i{display:block;width:60px;height:60px;border-radius:8px;margin:0 auto 4px;border:2px solid var(--dark)}
+label.l{display:block;font-weight:800;font-size:.85rem;margin:10px 0 4px}
+input[type=text]{width:100%;padding:10px 12px;border:3px solid var(--dark);border-radius:12px;background:#fff}
+.msg{font-weight:800;font-size:.9rem;min-height:1.3em;margin-top:10px;text-align:center}.msg.ok{color:#1B7A3D}.msg.err{color:#B0170E}
+.modal{position:fixed;inset:0;z-index:40;background:rgba(39,37,31,.75);display:flex;align-items:center;justify-content:center;padding:16px}
+.mbox{background:var(--cream);border:3px solid var(--dark);border-radius:20px;box-shadow:8px 8px 0 var(--dark);padding:16px;width:min(100%,560px);max-height:88vh;overflow:auto}
+.mbox h2{font:400 1.8rem var(--display);color:var(--red);margin-bottom:8px}
+.mine{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin:10px 0}
+.mine figure{position:relative;border:3px solid var(--dark);border-radius:10px;overflow:hidden;background:#fff}
+.mine img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover}
+.mine figcaption{font-size:.7rem;font-weight:800;padding:3px 5px;background:var(--yellow)}
+#gate{max-width:420px;margin:60px auto;padding:20px;text-align:center}
+#gate h1{font:400 2.2rem var(--display);color:var(--red);margin-bottom:10px}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important}}
+</style>
+</head>
+<body>
+
+<div id="gate" hidden>
+  <h1>Photo Wall</h1>
+  <p style="margin-bottom:16px">Open your invitation first and enter your nickname. Then come back to take a picture.</p>
+  <button class="btn" id="gateBack" type="button">Go to my invitation</button>
+</div>
+
+<div id="app" hidden>
+  <header class="bar">
+    <button class="btn s w" id="back" type="button">Back</button>
+    <h1>Photo Wall</h1>
+    <button class="btn s y" id="mineBtn" type="button">My photos</button>
+  </header>
+  <main>
+    <div class="stagewrap">
+      <div class="stage" id="stage">
+        <div class="slotbox" id="slotbox">
+          <video id="vid" playsinline muted autoplay></video>
+          <div class="ov" id="tintO"></div><div class="ov" id="vigO"></div><div class="ov" id="grainO"></div>
+        </div>
+        <canvas id="frameCv"></canvas>
+        <div class="count" id="count" hidden><span id="countN">3</span></div>
+        <div class="flash" id="flash"></div>
+        <div class="nocam" id="nocam" hidden>
+          <p id="nocamMsg">Camera not available.</p>
+          <button class="btn y" id="retryCam" type="button">Try the camera again</button>
+          <button class="btn w" id="phoneCam" type="button">Open phone camera app</button>
+          <button class="btn w" id="galBtn2" type="button">Choose from gallery</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="live">
+      <div class="row">
+        <button class="btn s w" id="flip" type="button">Switch camera</button>
+        <button class="btn s w" id="timerB" type="button">Timer: Off</button>
+        <button class="btn s w" id="flashB" type="button">Flash: Off</button>
+        <button class="btn s w" id="galBtn" type="button">Gallery</button>
+      </div>
+      <div class="zoomrow"><span>Zoom</span><input type="range" id="zoom" min="1" max="3" step="0.05" value="1" aria-label="Zoom"><span id="zoomV">1x</span></div>
+      <div class="row"><button class="shutter" id="shutter" type="button" aria-label="Take picture"></button></div>
+      <p class="msg" id="liveMsg" role="status"></p>
+    </div>
+
+    <div id="review" hidden>
+      <div class="row">
+        <button class="btn" id="send" type="button">Send to the wall</button>
+        <button class="btn y" id="dl" type="button">Download</button>
+        <button class="btn w" id="share" type="button" hidden>Share</button>
+        <button class="btn d" id="retake" type="button">Retake</button>
+      </div>
+      <p class="msg" id="revMsg" role="status"></p>
+    </div>
+
+    <section class="pick">
+      <h2>Frames</h2><div class="chips" id="frames"></div>
+      <h2>Filters</h2><div class="chips" id="filters"></div>
+      <label class="l" for="cap">Words on the frame</label>
+      <input type="text" id="cap" maxlength="28" autocomplete="off">
+    </section>
+  </main>
+  <input type="file" id="gal" accept="image/*" multiple hidden>
+  <input type="file" id="phone" accept="image/*" capture="user" hidden>
+</div>
+
+<div class="modal" id="mineM" hidden>
+  <div class="mbox"><h2>My photos</h2><p id="mineInfo" style="font-size:.9rem"></p><div class="mine" id="mineG"></div><button class="btn s w" id="mineClose" type="button">Close</button></div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const C = window.CONFIG;
+const sb = supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY);
+const BUCKET = C.wallBucket || 'photo-wall';
+const LS = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } } };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const uid = () => Math.random().toString(36).slice(2, 10);
+const TAU = Math.PI * 2;
+const R = '#DA291C', Y = '#FFC72C', K = '#27251F', CR = '#FFF4D6', O = '#FF8A1F';
+const FD = '"Londrina Solid"', FB = '"Nunito Sans"', FS = '"Cormorant Garamond"', FH = 'Caveat';
+const partyDate = (C.when || '').split('|')[0].trim();
+
+/* ---------- drawing helpers (design units) ---------- */
+function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function fit(c, text, font, size, maxW, wt) { let s = size; c.font = `${wt || ''} ${s}px ${font}`; while (c.measureText(text).width > maxW && s > 18) { s -= 4; c.font = `${wt || ''} ${s}px ${font}`; } return s; }
+function words(c, text, x, y, o) { c.save(); c.textAlign = o.align || 'center'; c.textBaseline = 'middle'; const s = fit(c, text, o.font, o.size, o.maxW || 99999, o.weight); c.fillStyle = o.color;
+  if (o.shadow) { c.shadowColor = o.shadow[0]; c.shadowOffsetX = o.shadow[1]; c.shadowOffsetY = o.shadow[2]; c.shadowBlur = o.shadow[3] || 0; } c.fillText(text, x, y); c.restore(); return s; }
+function tracked(c, text, cx, y, size, sp, color, font, wt) { c.save(); c.font = `${wt || 800} ${size}px ${font || FB}`; c.fillStyle = color; c.textBaseline = 'middle'; c.textAlign = 'left';
+  let w = 0; for (const ch of text) w += c.measureText(ch).width + sp; w -= sp; let x = cx - w / 2; for (const ch of text) { c.fillText(ch, x, y); x += c.measureText(ch).width + sp; } c.restore(); }
+function arch(c, x, y, w, h) { c.beginPath(); c.moveTo(x, y + h); c.lineTo(x, y + h * .5); c.bezierCurveTo(x, y - h * .2, x + w * .45, y - h * .2, x + w * .5, y + h * .5); c.bezierCurveTo(x + w * .55, y - h * .2, x + w, y - h * .2, x + w, y + h * .5); c.lineTo(x + w, y + h); c.stroke(); }
+function archPattern(c, w, h, a) { c.save(); c.strokeStyle = `rgba(255,199,44,${a})`; c.lineWidth = 12; c.lineCap = 'round'; c.lineJoin = 'round'; for (let y = 0; y < h + 120; y += 150) for (let x = ((y / 150) % 2) * 65 - 60; x < w + 130; x += 130) arch(c, x, y, 70, 46); c.restore(); }
+function wheel(c, cx, cy, r, al) { c.save(); c.globalAlpha = al || 1; c.strokeStyle = CR; c.lineWidth = r * .025; c.beginPath(); c.arc(cx, cy, r, 0, TAU); c.stroke(); c.beginPath(); c.arc(cx, cy, r * .84, 0, TAU); c.globalAlpha = (al || 1) * .6; c.stroke(); c.globalAlpha = al || 1;
+  for (let i = 0; i < 20; i++) { const a = i * TAU / 20, x = cx + r * Math.cos(a), y = cy + r * Math.sin(a); c.strokeStyle = CR; c.lineWidth = r * .025; c.beginPath(); c.moveTo(cx, cy); c.lineTo(x, y); c.stroke(); c.fillStyle = i % 2 ? Y : R; c.beginPath(); c.arc(x, y, r * .055, 0, TAU); c.fill(); c.strokeStyle = K; c.lineWidth = r * .012; c.stroke(); }
+  c.strokeStyle = CR; c.lineWidth = r * .025; c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx - r * .5, cy + r * 1.2); c.moveTo(cx, cy); c.lineTo(cx + r * .5, cy + r * 1.2); c.stroke(); c.restore(); }
+function mountains(c, w, y0, hg) { const layer = (col, pts) => { c.fillStyle = col; c.beginPath(); c.moveTo(0, y0 + hg); pts.forEach(([px, py]) => c.lineTo(px * w, y0 + py * hg)); c.lineTo(w, y0 + hg); c.closePath(); c.fill(); };
+  layer('#A8301F', [[0, .45], [.12, .2], [.28, .5], [.42, .1], [.6, .45], [.78, .15], [1, .4]]); layer('#6B1F16', [[0, .7], [.2, .45], [.38, .7], [.55, .4], [.75, .7], [1, .5]]); layer('#27251F', [[0, .9], [.3, .78], [.55, .9], [.8, .76], [1, .88]]); }
+const paper = (c, w, h) => { const g = c.createLinearGradient(0, 0, w, h); g.addColorStop(0, '#FFFDF8'); g.addColorStop(1, '#F3EDE0'); c.fillStyle = g; c.fillRect(0, 0, w, h); };
+const slotEdge = (c, s, col, wd) => { c.save(); c.strokeStyle = col; c.lineWidth = wd; rr(c, s.x, s.y, s.w, s.h, s.r || 0); c.stroke(); c.restore(); };
+const instax = (w, h, slot, capY, subY) => ({ bg: c => paper(c, w, h), fg: (c, cap) => { slotEdge(c, slot, 'rgba(0,0,0,.2)', 6); words(c, cap, w / 2, capY, { font: FH, size: 150, color: '#2b2623', maxW: w - 200, weight: 700 }); tracked(c, 'BEYOND THE ARCHES', w / 2, subY, 34, 12, '#8a7f70'); } });
+
+/* ---------- frames ---------- */
+const FRAMES = [
+  Object.assign({ id: 'mini', name: 'Instax Mini', w: 1080, h: 1720, shots: 1, slots: [{ x: 80, y: 80, w: 920, h: 1240, r: 8 }] }, instax(1080, 1720, { x: 80, y: 80, w: 920, h: 1240, r: 8 }, 1500, 1640)),
+  Object.assign({ id: 'square', name: 'Instax Square', w: 1440, h: 1720, shots: 1, slots: [{ x: 100, y: 100, w: 1240, h: 1240, r: 8 }] }, instax(1440, 1720, { x: 100, y: 100, w: 1240, h: 1240, r: 8 }, 1520, 1650)),
+  Object.assign({ id: 'wide', name: 'Instax Wide', w: 2160, h: 1720, shots: 1, slots: [{ x: 90, y: 90, w: 1980, h: 1240, r: 8 }] }, instax(2160, 1720, { x: 90, y: 90, w: 1980, h: 1240, r: 8 }, 1500, 1640)),
+  { id: 'coachella', name: 'Coachella Poster', w: 1080, h: 1620, shots: 1, slots: [{ x: 80, y: 300, w: 920, h: 920, r: 30 }],
+    bg: c => { const g = c.createLinearGradient(0, 0, 0, 1620); g.addColorStop(0, R); g.addColorStop(.35, '#F25C1F'); g.addColorStop(.62, '#FF9E1B'); g.addColorStop(1, Y); c.fillStyle = g; c.fillRect(0, 0, 1080, 1620);
+      const rg = c.createRadialGradient(540, 1250, 20, 540, 1250, 560); rg.addColorStop(0, 'rgba(255,246,200,.9)'); rg.addColorStop(1, 'rgba(255,211,77,0)'); c.fillStyle = rg; c.fillRect(0, 700, 1080, 920);
+      wheel(c, 850, 1440, 140, .9); mountains(c, 1080, 1400, 220); c.fillStyle = K; rr(c, 98, 318, 920, 920, 30); c.fill(); },
+    fg: (c, cap) => { words(c, 'COACHELLA', 540, 150, { font: FD, size: 200, color: '#fff', weight: 900, maxW: 960, shadow: [K, 0, 10, 0] }); tracked(c, 'BEYOND THE ARCHES', 540, 250, 38, 16, CR);
+      c.save(); c.strokeStyle = K; c.lineWidth = 14; rr(c, 80, 300, 920, 920, 30); c.stroke(); c.restore();
+      c.font = `400 76px ${FD}`; const tw = Math.min(900, c.measureText(cap).width + 120); c.save(); c.fillStyle = R; c.strokeStyle = K; c.lineWidth = 10; rr(c, 540 - tw / 2, 1262, tw, 118, 59); c.fill(); c.stroke(); c.restore(); words(c, cap, 540, 1324, { font: FD, size: 76, color: Y, maxW: 800 });
+      words(c, "McDonald's Year End Party", 540, 1500, { font: FB, size: 38, color: CR, weight: 800, maxW: 940 }); words(c, partyDate, 540, 1550, { font: FB, size: 30, color: CR, weight: 600 }); } },
+  { id: 'arches', name: 'Golden Arches', w: 1080, h: 1500, shots: 1, slots: [{ x: 110, y: 210, w: 860, h: 860, r: 70 }],
+    bg: c => { const g = c.createLinearGradient(0, 0, 1080, 1500); g.addColorStop(0, R); g.addColorStop(1, '#A8150E'); c.fillStyle = g; c.fillRect(0, 0, 1080, 1500); archPattern(c, 1080, 1500, .28); },
+    fg: (c, cap) => { words(c, 'BEYOND THE ARCHES', 540, 110, { font: FD, size: 120, color: CR, weight: 900, maxW: 940, shadow: [K, 0, 8, 0] }); c.save(); c.strokeStyle = CR; c.lineWidth = 18; rr(c, 110, 210, 860, 860, 70); c.stroke(); c.restore();
+      c.font = `400 84px ${FD}`; const tw = Math.min(960, c.measureText(cap).width + 140); c.save(); c.fillStyle = Y; c.strokeStyle = K; c.lineWidth = 10; rr(c, 540 - tw / 2, 1130, tw, 132, 66); c.fill(); c.stroke(); c.restore(); words(c, cap, 540, 1197, { font: FD, size: 84, color: K, maxW: 860 });
+      words(c, "McDonald's Year End Party", 540, 1340, { font: FB, size: 40, color: CR, weight: 800, maxW: 940 }); words(c, partyDate, 540, 1395, { font: FB, size: 32, color: CR, weight: 600 }); } },
+  { id: 'pass', name: 'Festival Pass', w: 1800, h: 760, shots: 1, slots: [{ x: 60, y: 60, w: 640, h: 640, r: 24 }],
+    bg: c => { c.fillStyle = R; c.fillRect(0, 0, 1800, 760); c.fillStyle = CR; rr(c, 20, 20, 1760, 720, 40); c.fill(); c.fillStyle = R; c.beginPath(); c.arc(760, 20, 28, 0, TAU); c.arc(760, 740, 28, 0, TAU); c.fill();
+      c.save(); c.setLineDash([16, 16]); c.strokeStyle = 'rgba(39,37,31,.45)'; c.lineWidth = 5; c.beginPath(); c.moveTo(760, 60); c.lineTo(760, 700); c.stroke(); c.restore(); c.fillStyle = Y; c.fillRect(20, 650, 1760, 50); },
+    fg: (c, cap) => { slotEdge(c, { x: 60, y: 60, w: 640, h: 640, r: 24 }, K, 12); words(c, 'ALL ACCESS', 1270, 170, { font: FD, size: 190, color: R, weight: 900, maxW: 900, shadow: [Y, 0, 8, 0] }); tracked(c, 'COACHELLA: BEYOND THE ARCHES', 1270, 290, 34, 8, K);
+      words(c, cap, 1270, 420, { font: FD, size: 170, color: K, weight: 900, maxW: 900 }); words(c, "McDonald's Year End Party", 1270, 545, { font: FB, size: 46, color: '#6B3A1E', weight: 800, maxW: 900 }); words(c, partyDate, 1270, 600, { font: FB, size: 38, color: '#6B3A1E', weight: 600 });
+      c.fillStyle = K; for (let i = 0; i < 46; i++) c.fillRect(1010 + i * 15, 655, i % 3 ? 5 : 9, 38); } },
+  { id: 'strip', name: 'Photo Strip (3)', w: 600, h: 1800, shots: 3, slots: [{ x: 50, y: 150, w: 500, h: 420, r: 10 }, { x: 50, y: 610, w: 500, h: 420, r: 10 }, { x: 50, y: 1070, w: 500, h: 420, r: 10 }],
+    bg: c => { const g = c.createLinearGradient(0, 0, 0, 1800); g.addColorStop(0, R); g.addColorStop(1, '#8E0F0A'); c.fillStyle = g; c.fillRect(0, 0, 600, 1800); archPattern(c, 600, 1800, .16); },
+    fg: (c, cap) => { [150, 610, 1070].forEach(y => slotEdge(c, { x: 50, y, w: 500, h: 420, r: 10 }, CR, 10)); words(c, 'BEYOND THE ARCHES', 300, 80, { font: FD, size: 84, color: CR, weight: 900, maxW: 540, shadow: [K, 0, 6, 0] });
+      words(c, cap, 300, 1590, { font: FH, size: 120, color: CR, weight: 700, maxW: 520 }); words(c, "McDonald's Year End Party", 300, 1685, { font: FB, size: 30, color: Y, weight: 800, maxW: 540 }); words(c, partyDate, 300, 1735, { font: FB, size: 26, color: CR, weight: 600 }); } },
+  { id: 'full', name: 'Full photo', w: 1200, h: 1600, shots: 1, slots: [{ x: 0, y: 0, w: 1200, h: 1600, r: 0 }], bg: c => { c.fillStyle = K; c.fillRect(0, 0, 1200, 1600); },
+    fg: (c, cap) => { const g = c.createLinearGradient(0, 1200, 0, 1600); g.addColorStop(0, 'rgba(39,37,31,0)'); g.addColorStop(1, 'rgba(39,37,31,.85)'); c.fillStyle = g; c.fillRect(0, 1200, 1200, 400);
+      words(c, cap, 70, 1480, { font: FD, size: 130, color: '#fff', weight: 900, align: 'left', maxW: 1060, shadow: ['rgba(0,0,0,.5)', 0, 6, 8] }); words(c, "McDonald's Year End Party  |  " + partyDate, 70, 1550, { font: FB, size: 34, color: Y, weight: 800, align: 'left', maxW: 1060 }); } }
+];
+
+/* ---------- filters ---------- */
+const FILTERS = [
+  { id: 'orig', name: 'Original', sw: 'linear-gradient(135deg,#ddd,#999)' },
+  { id: 'golden', name: 'Golden Hour', s: 1.3, sep: .25, c: 1.05, b: 1.05, tint: { blend: 'soft-light', stops: [[0, 'rgba(255,170,40,.7)'], [1, 'rgba(255,120,40,.5)']] }, vig: .2, sw: 'linear-gradient(135deg,#FFC72C,#FF8A1F)' },
+  { id: 'sunset', name: 'Desert Sunset', s: 1.4, c: 1.08, tint: { blend: 'soft-light', stops: [[0, 'rgba(255,120,60,.8)'], [1, 'rgba(230,50,140,.7)']] }, vig: .25, sw: 'linear-gradient(135deg,#FF8A1F,#E6328C)' },
+  { id: 'neon', name: 'Neon Night', s: 1.5, c: 1.2, b: .95, tint: { blend: 'soft-light', stops: [[0, 'rgba(120,60,255,.8)'], [1, 'rgba(255,40,180,.7)']] }, vig: .3, sw: 'linear-gradient(135deg,#7B3CFF,#FF28B4)' },
+  { id: 'v70', name: 'Vintage 70s', sep: .5, c: .92, b: 1.08, s: 1.2, tint: { blend: 'soft-light', stops: [[0, 'rgba(255,190,90,.6)'], [1, 'rgba(200,110,60,.5)']] }, vig: .35, grain: .22, sw: 'linear-gradient(135deg,#C9A06A,#8E5A35)' },
+  { id: 'bw', name: 'B&W Film', gray: 1, c: 1.2, b: 1.02, vig: .35, grain: .28, sw: 'linear-gradient(135deg,#eee,#222)' },
+  { id: 'fade', name: 'Soft Fade', c: .85, b: 1.1, s: .8, tint: { blend: 'soft-light', stops: [[0, 'rgba(255,200,200,.45)'], [1, 'rgba(255,220,180,.35)']] }, sw: 'linear-gradient(135deg,#FFE3E3,#E8D3C0)' },
+  { id: 'pop', name: 'Pop', s: 1.8, c: 1.15, sw: 'linear-gradient(135deg,#DA291C,#FFC72C)' },
+  { id: 'fries', name: 'Fries Red', c: 1.1, s: 1.2, tint: { blend: 'soft-light', stops: [[0, 'rgba(218,41,28,.85)'], [1, 'rgba(255,199,44,.7)']] }, vig: .22, sw: 'linear-gradient(135deg,#DA291C,#FFC72C)' }
+];
+const cssOf = f => { const p = []; if (f.gray) p.push(`grayscale(${f.gray})`); if (f.sep) p.push(`sepia(${f.sep})`); if (f.s != null && f.s !== 1) p.push(`saturate(${f.s})`); if (f.b != null && f.b !== 1) p.push(`brightness(${f.b})`); if (f.c != null && f.c !== 1) p.push(`contrast(${f.c})`); return p.join(' ') || 'none'; };
+const FILTER_OK = (() => { try { const a = document.createElement('canvas'); a.width = a.height = 2; const x = a.getContext('2d'); x.fillStyle = '#f00'; x.fillRect(0, 0, 2, 2); const b = document.createElement('canvas'); b.width = b.height = 2; const y = b.getContext('2d'); y.filter = 'grayscale(1)'; y.drawImage(a, 0, 0); const d = y.getImageData(0, 0, 1, 1).data; return Math.abs(d[0] - d[1]) < 8; } catch (e) { return false; } })();
+let _grain = null; const grainCv = () => { if (_grain) return _grain; const g = document.createElement('canvas'); g.width = g.height = 200; const x = g.getContext('2d'), id = x.createImageData(200, 200); for (let i = 0; i < id.data.length; i += 4) { const v = Math.random() * 255; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; } x.putImageData(id, 0, 0); return (_grain = g); };
+function pixelFilter(tc, w, h, f) {
+  const id = tc.getImageData(0, 0, w, h), d = id.data, g = 1 - (f.gray || 0), sp = 1 - (f.sep || 0), s = f.s == null ? 1 : f.s, b = f.b == null ? 1 : f.b, ct = f.c == null ? 1 : f.c;
+  const mul = (A, B) => { const o = []; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) o[i * 3 + j] = A[i * 3] * B[j] + A[i * 3 + 1] * B[3 + j] + A[i * 3 + 2] * B[6 + j]; return o; };
+  const gm = [.2126 + .7874 * g, .7152 - .7152 * g, .0722 - .0722 * g, .2126 - .2126 * g, .7152 + .2848 * g, .0722 - .0722 * g, .2126 - .2126 * g, .7152 - .7152 * g, .0722 + .9278 * g];
+  const sm = [.393 + .607 * sp, .769 - .769 * sp, .189 - .189 * sp, .349 - .349 * sp, .686 + .314 * sp, .168 - .168 * sp, .272 - .272 * sp, .534 - .534 * sp, .131 + .869 * sp];
+  const vm = [.213 + .787 * s, .715 - .715 * s, .072 - .072 * s, .213 - .213 * s, .715 + .285 * s, .072 - .072 * s, .213 - .213 * s, .715 - .715 * s, .072 + .928 * s];
+  const M = mul(vm, mul(sm, gm)), cl = v => v < 0 ? 0 : v > 1 ? 1 : v;
+  for (let i = 0; i < d.length; i += 4) { const r = d[i] / 255, gg = d[i + 1] / 255, bb = d[i + 2] / 255;
+    d[i] = cl((cl(cl(M[0] * r + M[1] * gg + M[2] * bb) * b) - .5) * ct + .5) * 255; d[i + 1] = cl((cl(cl(M[3] * r + M[4] * gg + M[5] * bb) * b) - .5) * ct + .5) * 255; d[i + 2] = cl((cl(cl(M[6] * r + M[7] * gg + M[8] * bb) * b) - .5) * ct + .5) * 255; }
+  tc.putImageData(id, 0, 0);
+}
+function effects(tc, w, h, f) {
+  if (f.tint) { tc.save(); tc.globalCompositeOperation = f.tint.blend; const g = tc.createLinearGradient(0, 0, 0, h); f.tint.stops.forEach(([o, col]) => g.addColorStop(o, col)); tc.fillStyle = g; tc.fillRect(0, 0, w, h); tc.restore(); }
+  if (f.vig) { const g = tc.createRadialGradient(w / 2, h / 2, Math.min(w, h) * .25, w / 2, h / 2, Math.max(w, h) * .75); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(0,0,0,${f.vig})`); tc.fillStyle = g; tc.fillRect(0, 0, w, h); }
+  if (f.grain) { tc.save(); tc.globalAlpha = f.grain; tc.globalCompositeOperation = 'overlay'; tc.fillStyle = tc.createPattern(grainCv(), 'repeat'); tc.fillRect(0, 0, w, h); tc.restore(); }
+}
+function drawPhoto(c, slot, shot, flt, k) {
+  const pw = Math.max(2, Math.round(slot.w * k)), ph = Math.max(2, Math.round(slot.h * k)), t = document.createElement('canvas'); t.width = pw; t.height = ph; const tc = t.getContext('2d');
+  const raw = shot.raw, a = pw / ph, z = shot.zoom || 1; let sw, sh; if (raw.width / raw.height > a) { sh = raw.height / z; sw = sh * a; } else { sw = raw.width / z; sh = sw / a; }
+  const sx = (raw.width - sw) / 2, sy = (raw.height - sh) / 2;
+  if (FILTER_OK) { tc.filter = cssOf(flt); tc.drawImage(raw, sx, sy, sw, sh, 0, 0, pw, ph); tc.filter = 'none'; } else { tc.drawImage(raw, sx, sy, sw, sh, 0, 0, pw, ph); pixelFilter(tc, pw, ph, flt); }
+  effects(tc, pw, ph, flt); c.save(); rr(c, slot.x, slot.y, slot.w, slot.h, slot.r || 0); c.clip(); c.drawImage(t, slot.x, slot.y, slot.w, slot.h); c.restore();
+}
+function render(c, f, k, st) {
+  c.save(); c.scale(k, k); f.bg(c);
+  f.slots.forEach((s, i) => { if (i === st.live) { c.save(); c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000'; rr(c, s.x, s.y, s.w, s.h, s.r || 0); c.fill(); c.restore(); }
+    else if (st.shots[i]) drawPhoto(c, s, st.shots[i], st.filter, k); else { c.fillStyle = '#d9d2c3'; rr(c, s.x, s.y, s.w, s.h, s.r || 0); c.fill(); } });
+  f.fg(c, st.caption); c.restore();
+}
+
+/* ---------- state ---------- */
+const S = { frame: FRAMES[0], filter: FILTERS[0], caption: '', shots: [], zoom: 1, facing: 'user', mirror: true, timer: 0, flash: false, mode: 'live', stream: null, track: null, torchOK: false, busy: false, sent: false };
+let guest = null, fontsReady = false;
+
+async function loadFonts() { try { await Promise.all(['900 100px "Londrina Solid"', '400 100px "Londrina Solid"', '800 40px "Nunito Sans"', '600 40px "Nunito Sans"', '700 100px Caveat', '600 40px "Cormorant Garamond"'].map(f => document.fonts.load(f))); } catch (e) {} fontsReady = true; }
+
+/* ---------- camera ---------- */
+function showNoCam(msg) { $('nocamMsg').textContent = msg; $('nocam').hidden = false; }
+async function startCam() {
+  stopCam(); $('nocam').hidden = true;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { showNoCam('This browser cannot open the camera here. You can still use your phone camera app or pick a photo.'); return; }
+  try {
+    S.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: S.facing, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
+    S.track = S.stream.getVideoTracks()[0]; const caps = S.track.getCapabilities ? S.track.getCapabilities() : {}; S.torchOK = !!caps.torch;
+    const v = $('vid'); v.srcObject = S.stream; await v.play().catch(() => {}); applyVideoLook();
+  } catch (e) { showNoCam(e && e.name === 'NotAllowedError' ? 'Camera permission was blocked. Allow the camera in your browser settings, then try again.' : 'We could not open the camera. You can use your phone camera app or pick a photo.'); }
+}
+function stopCam() { if (S.stream) S.stream.getTracks().forEach(t => t.stop()); S.stream = null; S.track = null; }
+function applyVideoLook() {
+  const v = $('vid'), f = S.filter, mir = S.mirror && S.facing === 'user';
+  v.style.transform = `scaleX(${mir ? -1 : 1}) scale(${S.zoom})`; v.style.filter = cssOf(f);
+  const t = $('tintO'), vg = $('vigO'), gr = $('grainO');
+  t.style.cssText = f.tint ? `mix-blend-mode:${f.tint.blend};background:linear-gradient(to bottom,${f.tint.stops.map(([o, c]) => `${c} ${o * 100}%`).join(',')})` : '';
+  vg.style.cssText = f.vig ? `background:radial-gradient(ellipse at center,rgba(0,0,0,0) 45%,rgba(0,0,0,${f.vig}) 100%)` : '';
+  gr.style.cssText = f.grain ? `mix-blend-mode:overlay;opacity:${Math.min(1, f.grain * 2.2)};background-image:url(${grainCv().toDataURL()})` : '';
+}
+
+/* ---------- layout + drawing ---------- */
+function liveIndex() { return S.mode === 'live' ? Math.min(S.shots.length, S.frame.shots - 1) : null; }
+function layout() {
+  const f = S.frame, st = $('stage'); st.style.setProperty('--ar', f.w / f.h);
+  const s = f.slots[liveIndex() == null ? 0 : liveIndex()], sb2 = $('slotbox'), W = st.clientWidth || 300, k = W / f.w;
+  sb2.style.left = s.x / f.w * 100 + '%'; sb2.style.top = s.y / f.h * 100 + '%'; sb2.style.width = s.w / f.w * 100 + '%'; sb2.style.height = s.h / f.h * 100 + '%'; sb2.style.borderRadius = (s.r || 0) * k + 'px';
+  sb2.style.display = S.mode === 'live' ? 'block' : 'none'; draw();
+}
+function draw() {
+  const f = S.frame, st = $('stage'), cv = $('frameCv'), dpr = Math.min(window.devicePixelRatio || 1, 2), W = Math.min(1100, Math.round((st.clientWidth || 300) * dpr)), H = Math.round(W * f.h / f.w);
+  if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; } const c = cv.getContext('2d'); c.clearRect(0, 0, W, H);
+  render(c, f, W / f.w, { live: liveIndex(), shots: S.shots, filter: S.filter, caption: S.caption || ' ' });
+}
+function thumbs() {
+  const ph = document.createElement('canvas'); ph.width = ph.height = 240; const px = ph.getContext('2d'), g = px.createLinearGradient(0, 0, 240, 240); g.addColorStop(0, '#f6c28b'); g.addColorStop(1, '#e8758a'); px.fillStyle = g; px.fillRect(0, 0, 240, 240); px.fillStyle = 'rgba(255,255,255,.55)'; px.beginPath(); px.arc(120, 100, 44, 0, TAU); px.fill(); px.fillRect(70, 150, 100, 90);
+  const box = $('frames'); box.textContent = '';
+  FRAMES.forEach(f => { const cv = document.createElement('canvas'), k = 150 / f.h; cv.width = Math.round(f.w * k); cv.height = 150; render(cv.getContext('2d'), f, k, { live: null, shots: [{ raw: ph }, { raw: ph }, { raw: ph }], filter: FILTERS[0], caption: S.caption || 'You' });
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.setAttribute('aria-pressed', f === S.frame); b.appendChild(cv); b.append(f.name); b.addEventListener('click', () => chooseFrame(f)); box.appendChild(b); });
+  const fb = $('filters'); fb.textContent = '';
+  FILTERS.forEach(f => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.setAttribute('aria-pressed', f === S.filter); const i = document.createElement('i'); i.style.background = f.sw; b.appendChild(i); b.append(f.name); b.addEventListener('click', () => chooseFilter(f)); fb.appendChild(b); });
+}
+function markChips() { [...$('frames').children].forEach((b, i) => b.setAttribute('aria-pressed', FRAMES[i] === S.frame)); [...$('filters').children].forEach((b, i) => b.setAttribute('aria-pressed', FILTERS[i] === S.filter)); }
+function chooseFrame(f) {
+  if (f === S.frame) return; const old = S.frame; S.frame = f; S.sent = false;
+  if (S.mode === 'review') { if (f.shots <= S.shots.length) S.shots = S.shots.slice(0, f.shots); else { S.shots = []; goLive(); return; } }
+  else if (S.shots.length && f.shots !== old.shots) S.shots = [];
+  markChips(); layout();
+}
+function chooseFilter(f) { S.filter = f; markChips(); applyVideoLook(); draw(); }
+
+/* ---------- capture ---------- */
+async function setTorch(on) { try { await S.track.applyConstraints({ advanced: [{ torch: on }] }); } catch (e) {} }
+async function countdown(n) { const box = $('count'), num = $('countN'); box.hidden = false; for (let i = n; i > 0; i--) { num.textContent = i; num.style.animation = 'none'; void num.offsetWidth; num.style.animation = ''; await sleep(1000); } box.hidden = true; }
+function rawFrom(src, w, h, mirror) { const k = Math.min(1, 2400 / Math.max(w, h)), cv = document.createElement('canvas'); cv.width = Math.round(w * k); cv.height = Math.round(h * k); const c = cv.getContext('2d'); if (mirror) { c.translate(cv.width, 0); c.scale(-1, 1); } c.drawImage(src, 0, 0, cv.width, cv.height); return cv; }
+async function snap() {
+  const v = $('vid'); if (!v.videoWidth) throw new Error('no video');
+  if (S.flash) { if (S.torchOK) { await setTorch(true); await sleep(300); } else if (S.facing === 'user') { const fl = $('flash'); fl.style.background = '#fff'; fl.classList.remove('go'); void fl.offsetWidth; fl.classList.add('go'); await sleep(140); } }
+  const raw = rawFrom(v, v.videoWidth, v.videoHeight, S.mirror && S.facing === 'user'); if (S.flash && S.torchOK) setTorch(false);
+  if (navigator.vibrate) navigator.vibrate(30); const fl2 = $('flash'); fl2.classList.remove('go'); void fl2.offsetWidth; fl2.classList.add('go');
+  S.shots.push({ raw, zoom: S.zoom });
+}
+async function shoot() {
+  if (S.busy || S.mode !== 'live' || !S.stream) return; S.busy = true; $('shutter').disabled = true; $('liveMsg').textContent = ''; S.sent = false;
+  try {
+    const strip = S.frame.shots > 1;
+    while (S.shots.length < S.frame.shots) {
+      const wait = S.shots.length === 0 ? (S.timer || (strip ? 3 : 0)) : 3; if (wait) await countdown(wait);
+      await snap(); layout(); if (S.shots.length < S.frame.shots) await sleep(700);
+    }
+    enterReview();
+  } catch (e) { $('liveMsg').className = 'msg err'; $('liveMsg').textContent = 'Could not take the picture. Please try again.'; S.shots = []; layout(); }
+  S.busy = false; $('shutter').disabled = false;
+}
+async function fromFiles(files) {
+  files = [...files].filter(f => f.type.startsWith('image/')); if (!files.length) return; const need = S.frame.shots;
+  if (files.length < need) { $('liveMsg').className = 'msg err'; $('liveMsg').textContent = `This frame needs ${need} photos. Pick ${need} at once, or choose a single-photo frame.`; return; }
+  S.shots = []; for (const f of files.slice(0, need)) { const bmp = await createImageBitmap(f); S.shots.push({ raw: rawFrom(bmp, bmp.width, bmp.height, false), zoom: 1 }); }
+  S.sent = false; enterReview();
+}
+function enterReview() { S.mode = 'review'; $('live').hidden = true; $('review').hidden = false; $('revMsg').textContent = ''; $('send').disabled = false; $('send').textContent = 'Send to the wall'; layout(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+function goLive() { S.mode = 'live'; S.shots = []; S.sent = false; $('review').hidden = true; $('live').hidden = false; $('liveMsg').textContent = ''; markChips(); layout(); }
+
+/* ---------- export / send ---------- */
+async function exportBlob() {
+  await loadFonts(); const f = S.frame, k = Math.min(1.25, 2000 / Math.max(f.w, f.h)), cv = document.createElement('canvas'); cv.width = Math.round(f.w * k); cv.height = Math.round(f.h * k);
+  render(cv.getContext('2d'), f, k, { live: null, shots: S.shots, filter: S.filter, caption: S.caption || ' ' }); return new Promise(r => cv.toBlob(r, 'image/jpeg', .88));
+}
+const fname = () => `year-end-party-${(guest.nickname || 'guest').replace(/[^\w]+/g, '_')}-${Date.now().toString(36)}.jpg`;
+async function download() { const b = await exportBlob(), url = URL.createObjectURL(b), a = document.createElement('a'); a.href = url; a.download = fname(); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 5000); $('revMsg').className = 'msg ok'; $('revMsg').textContent = 'Saved to your device.'; }
+async function share() { const b = await exportBlob(), file = new File([b], fname(), { type: 'image/jpeg' }); try { await navigator.share({ files: [file], title: "McDonald's Year End Party" }); } catch (e) {} }
+async function send() {
+  if (S.sent) return; const btn = $('send'), m = $('revMsg'); btn.disabled = true; m.className = 'msg'; m.textContent = 'Sending your photo...';
+  const blob = await exportBlob(), path = uid() + Date.now().toString(36) + '.jpg';
+  const up = await sb.storage.from(BUCKET).upload(path, blob, { contentType: 'image/jpeg' });
+  if (up.error) { m.className = 'msg err'; m.textContent = 'Upload failed: ' + up.error.message; btn.disabled = false; return; }
+  const r = await sb.rpc('add_wall_photo', { p_nickname: guest.nickname, p_path: path, p_frame: S.frame.id });
+  if (r.error) { m.className = 'msg err'; m.textContent = r.error.message; btn.disabled = false; return; }
+  S.sent = true; btn.textContent = 'Sent!'; m.className = 'msg ok'; m.textContent = r.data.status === 'pending' ? 'Sent! The organizers will approve it, then it shows on the wall.' : 'Sent! Look at the big wall to see your photo.';
+}
+async function showMine() {
+  $('mineM').hidden = false; const g = $('mineG'); g.textContent = ''; $('mineInfo').textContent = 'Loading...'; const r = await sb.rpc('my_wall_photos', { p_nickname: guest.nickname });
+  if (r.error) { $('mineInfo').textContent = r.error.message; return; } const list = r.data || []; $('mineInfo').textContent = list.length ? `You sent ${list.length} of 12 photos.` : 'You have not sent any photos yet.';
+  const lab = { approved: 'On the wall', pending: 'Waiting for approval', hidden: 'Hidden' };
+  list.forEach(p => { const fg = document.createElement('figure'), im = document.createElement('img'), cp = document.createElement('figcaption'); im.src = sb.storage.from(BUCKET).getPublicUrl(p.path).data.publicUrl; im.alt = 'My photo'; cp.textContent = lab[p.status] || p.status; fg.append(im, cp); g.appendChild(fg); });
+}
+
+/* ---------- wiring ---------- */
+$('shutter').addEventListener('click', shoot);
+$('flip').addEventListener('click', () => { S.facing = S.facing === 'user' ? 'environment' : 'user'; startCam(); });
+$('timerB').addEventListener('click', () => { S.timer = ({ 0: 3, 3: 5, 5: 10, 10: 0 })[S.timer]; $('timerB').textContent = 'Timer: ' + (S.timer ? S.timer + 's' : 'Off'); });
+$('flashB').addEventListener('click', () => { S.flash = !S.flash; $('flashB').textContent = 'Flash: ' + (S.flash ? 'On' : 'Off'); });
+$('zoom').addEventListener('input', e => { S.zoom = +e.target.value; $('zoomV').textContent = S.zoom.toFixed(1).replace('.0', '') + 'x'; applyVideoLook(); });
+$('galBtn').addEventListener('click', () => $('gal').click()); $('galBtn2').addEventListener('click', () => $('gal').click());
+$('phoneCam').addEventListener('click', () => $('phone').click());
+$('gal').addEventListener('change', e => { fromFiles(e.target.files); e.target.value = ''; }); $('phone').addEventListener('change', e => { fromFiles(e.target.files); e.target.value = ''; });
+$('retryCam').addEventListener('click', startCam);
+$('retake').addEventListener('click', goLive); $('dl').addEventListener('click', download); $('send').addEventListener('click', send);
+$('share').addEventListener('click', share); if (navigator.canShare && navigator.share) $('share').hidden = false;
+$('cap').addEventListener('input', e => { S.caption = e.target.value; draw(); clearTimeout(window._ct); window._ct = setTimeout(thumbs, 400); });
+$('mineBtn').addEventListener('click', showMine); $('mineClose').addEventListener('click', () => { $('mineM').hidden = true; });
+$('back').addEventListener('click', () => { stopCam(); location.href = 'index.html'; }); $('gateBack').addEventListener('click', () => { location.href = 'index.html'; });
+new ResizeObserver(() => layout()).observe($('stage')); addEventListener('pagehide', stopCam);
+document.addEventListener('visibilitychange', () => { if (document.hidden) stopCam(); else if (S.mode === 'live' && $('app').hidden === false) startCam(); });
+
+(async () => {
+  const nick = LS.get('fest_nick'); if (!nick) { $('gate').hidden = false; return; }
+  const r = await sb.rpc('login_guest', { p_nickname: nick }); if (r.error) { $('gate').hidden = false; return; }
+  guest = r.data.guest; S.caption = guest.stage_name || guest.nickname; $('cap').value = S.caption;
+  $('app').hidden = false; await loadFonts(); thumbs(); layout(); startCam();
+})();
+</script>
+</body>
+</html>
