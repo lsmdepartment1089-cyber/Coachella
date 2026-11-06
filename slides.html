@@ -289,7 +289,7 @@ body.idle-out{cursor:none}
   <div class="pvstrip" id="pvStrip"></div>
 </div>
 
-<div id="out" hidden>
+<div id="out">
   <div id="ofit"></div>
   <div id="ohint0">Waiting for the presenter...</div>
   <button class="btn s y" id="ofs" type="button">Full screen (F)</button>
@@ -793,7 +793,7 @@ const clampI = (i, n) => Math.max(0, Math.min(i, n - 1));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 /* the window that runs on the LED screen */
-let odeck = null, oi = 0, ost = null, oAuto = null, oBlack = false, oIdle = null;
+let odeck = null, oi = 0, ost = null, oAuto = null, oBlack = false, oIdle = null, oReady = null;
 function oFit() { if (!ost) return; const w = innerWidth, hh = innerHeight, s = Math.min(w / 1920, hh / 1080), f = $('ofit'); f.style.width = 1920 * s + 'px'; f.style.height = 1080 * s + 'px'; f.style.left = (w - 1920 * s) / 2 + 'px'; f.style.top = (hh - 1080 * s) / 2 + 'px'; ost.root.style.transform = `scale(${s})`; }
 function oShow(i, animate) {
   if (!odeck) return; oi = clampI(i, odeck.slides.length); const sl = odeck.slides[oi]; ost.setBg(bgOf(sl)); ost.show(sl, { animate, transition: odeck.transition });
@@ -805,12 +805,13 @@ function oMain() {
   if (!CH) { $('ohint0').textContent = 'This browser cannot link the windows. Please use Chrome or Edge.'; return; }
   CH.onmessage = e => {
     const m = e.data || {};
-    if (m.t === 'deck') { deck = m.deck; odeck = m.deck; const r = $('ofit'); r.textContent = ''; const root = document.createElement('div'); r.appendChild(root); ost = makeStage(root, false); oFit(); $('ohint0').hidden = true; oShow(m.i || 0, false); oBlack = !!m.black; $('oblack').hidden = !oBlack; }
+    if (m.t === 'deck') { clearInterval(oReady); oReady = null; deck = m.deck; odeck = m.deck; const r = $('ofit'); r.textContent = ''; const root = document.createElement('div'); r.appendChild(root); ost = makeStage(root, false); oFit(); $('ohint0').hidden = true; oShow(m.i || 0, false); oBlack = !!m.black; $('oblack').hidden = !oBlack; }
     else if (m.t === 'go') oShow(m.i, true);
     else if (m.t === 'black') { oBlack = !!m.on; $('oblack').hidden = !oBlack; }
     else if (m.t === 'close') window.close();
   };
   CH.postMessage({ t: 'ready' });
+  oReady = setInterval(() => { if (!odeck) CH.postMessage({ t: 'ready' }); }, 500);
   addEventListener('resize', oFit);
   document.addEventListener('fullscreenchange', () => { oFit(); $('ofs').hidden = !!document.fullscreenElement; });
   addEventListener('message', e => { if (e.data && e.data.t === 'fs') document.documentElement.requestFullscreen().catch(() => {}); });
