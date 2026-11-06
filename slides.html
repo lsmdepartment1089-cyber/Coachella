@@ -167,10 +167,45 @@ label.l{display:block;font-weight:800;font-size:.8rem;margin-bottom:3px}
 #pdots{position:absolute;left:0;right:0;bottom:0;height:5px;background:rgba(255,255,255,.15);z-index:2}
 #pdots i{display:block;height:100%;background:#FFC72C;transition:width .5s}
 #pblack{position:absolute;inset:0;background:#000;z-index:4}
+.is-out #gate,.is-out #app,.is-out .modal,.is-out #present,.is-out #pview{display:none!important}
+.is-out body{background:#000}
+#out{position:fixed;inset:0;background:#000;display:none;overflow:hidden}
+.is-out #out{display:block}
+#ofit{position:absolute}
+#ofit .stage{position:absolute;left:0;top:0}
+#ohint0{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font:400 2.4rem var(--display);letter-spacing:.06em}
+#ofs{position:absolute;right:14px;top:14px;z-index:5}
+#oblack{position:absolute;inset:0;background:#000;z-index:4}
+body.idle-out{cursor:none}
+#pview{position:fixed;inset:0;z-index:100;background:#1c1a17;color:var(--cream);display:flex;flex-direction:column}
+.pvbar{display:flex;align-items:center;gap:12px;padding:8px 14px;background:var(--red);border-bottom:3px solid var(--dark)}
+.pvbar h2{font:400 1.7rem var(--display);color:var(--yellow);text-shadow:2px 2px 0 var(--dark)}
+.pvinfo{font-weight:800;font-size:.85rem;color:#fff}
+.pvbar .sp{flex:1}
+.pvtime{font:400 1.8rem var(--display);color:#fff;font-variant-numeric:tabular-nums}
+.pvmain{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px;padding:14px;overflow:auto}
+.pvlabel{font:800 .78rem var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--yellow);margin:2px 0 6px}
+.pvbox{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:#000;border:3px solid var(--yellow);border-radius:8px}
+.pvbox.small{border-color:#6b6256;margin-bottom:14px}
+.pvbox.end::after{content:"End of show";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.7);font:400 2rem var(--display);color:var(--yellow);letter-spacing:.08em}
+.pvbox .stage{position:absolute;left:0;top:0}
+.pvctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+.pvctl .btn{font-size:1.3rem;padding:10px 22px}.pvctl .btn.s{font-size:.9rem;padding:5px 12px}
+.pvcount{font:400 1.8rem var(--display);min-width:90px;text-align:center}
+.pvnotes{background:#2a2723;border:2px solid #6b6256;border-radius:10px;padding:12px;min-height:150px;max-height:36vh;overflow:auto;font-size:1.15rem;line-height:1.45;white-space:pre-wrap}
+.pvhint{font-size:.8rem;opacity:.75;margin-top:12px}
+.pvstrip{display:flex;gap:8px;overflow-x:auto;padding:10px 14px;background:#12100e;border-top:3px solid var(--dark)}
+.pvth{position:relative;flex:none;width:156px;cursor:pointer;border:3px solid #6b6256;border-radius:6px;overflow:hidden}
+.pvth.on{border-color:var(--yellow);box-shadow:0 0 0 3px rgba(255,199,44,.4)}
+.pvth .box{position:relative;width:150px;height:84.4px;overflow:hidden}
+.pvth .stage{transform:scale(.078125)}
+.pvth em{position:absolute;left:3px;top:2px;z-index:2;background:var(--dark);color:var(--yellow);font:800 .68rem var(--body);font-style:normal;border-radius:5px;padding:0 5px}
+@media(max-width:900px){.pvmain{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.stage *{animation-duration:.01s!important}}
 </style>
 </head>
 <body>
+<script>if(location.hash.indexOf('#output')===0)document.documentElement.classList.add('is-out');</script>
 
 <div id="gate">
   <form class="card" id="gateForm">
@@ -192,8 +227,9 @@ label.l{display:block;font-weight:800;font-size:.8rem;margin-bottom:3px}
     <button class="btn s w" id="setBtn" type="button">Settings</button>
     <span class="sp"></span>
     <span id="saveSt" role="status"></span>
+    <button class="btn s w" id="presHere" type="button" title="Full screen on this computer only">Full screen here</button>
     <button class="btn s w" id="presFrom" type="button">Present from here</button>
-    <button class="btn y" id="presAll" type="button">Present</button>
+    <button class="btn y" id="presAll" type="button" title="Show on the LED screen, controls stay on this screen">Present</button>
     <button class="btn s d" id="lock" type="button">Lock</button>
   </div>
   <div class="body">
@@ -222,6 +258,10 @@ label.l{display:block;font-weight:800;font-size:.8rem;margin-bottom:3px}
     <label class="l" for="sAuto">Auto-advance (seconds, 0 = off)</label>
     <input type="number" id="sAuto" min="0" max="120" value="0">
     <p class="hint">With auto-advance on, the show moves by itself and loops back to the start.</p>
+    <label class="l" for="sScreen">Show the presentation on</label>
+    <select id="sScreen"><option value="">Automatic (the other screen)</option></select>
+    <button class="btn s w" id="detectB" type="button">Detect screens</button>
+    <p class="hint" id="detMsg">Connect the LED with HDMI and set Windows to "Extend these displays". Use Chrome or Edge.</p>
   </div>
   <input type="file" id="imgIn" accept="image/*" hidden>
 </div>
@@ -229,6 +269,31 @@ label.l{display:block;font-weight:800;font-size:.8rem;margin-bottom:3px}
 <div class="modal" id="layoutModal" hidden>
   <div class="mbox"><h3>Choose a starting design</h3><div class="lgrid" id="lgrid"></div>
     <div class="row"><button class="btn s w" id="lmClose" type="button">Cancel</button></div></div>
+</div>
+
+<div id="pview" hidden>
+  <div class="pvbar"><h2>Presenter view</h2><span id="pvInfo" class="pvinfo"></span><span class="sp"></span><span class="pvtime" id="pvTime" title="Time since the show started">00:00</span><button class="btn s d" id="pvEnd" type="button">End show</button></div>
+  <div class="pvmain">
+    <div class="pvcur">
+      <div class="pvlabel">Now showing on the LED</div>
+      <div class="pvbox" id="pvCurBox"></div>
+      <div class="pvctl"><button class="btn w" id="pvPrev" type="button">Previous</button><span id="pvCount" class="pvcount"></span><button class="btn y" id="pvNext" type="button">Next</button>
+        <button class="btn s w" id="pvBlack" type="button">Black screen (B)</button><button class="btn s w" id="pvReopen" type="button">Reopen show window</button></div>
+    </div>
+    <div class="pvside">
+      <div class="pvlabel">Next slide</div><div class="pvbox small" id="pvNextBox"></div>
+      <div class="pvlabel">Speaker notes (only you see these)</div><div class="pvnotes" id="pvNotes"></div>
+      <p class="pvhint">You can switch to other tabs and apps. The LED keeps showing the slide. Use these buttons, or the arrow keys while this page is in front.</p>
+    </div>
+  </div>
+  <div class="pvstrip" id="pvStrip"></div>
+</div>
+
+<div id="out" hidden>
+  <div id="ofit"></div>
+  <div id="ohint0">Waiting for the presenter...</div>
+  <button class="btn s y" id="ofs" type="button">Full screen (F)</button>
+  <div id="oblack" hidden></div>
 </div>
 
 <div id="present" hidden>
@@ -638,6 +703,8 @@ function buildProps() {
   slide().els.slice().reverse().forEach(x => { const row = h('div', { class: 'lay' + (x.id === selId ? ' on' : ''), role: 'button', tabindex: '0' }, h('span', {}, labelOf(x)));
     row.addEventListener('click', () => selectEl(x.id)); row.addEventListener('keydown', ev => { if (ev.key === 'Enter') selectEl(x.id); }); p.append(row); });
   if (!slide().els.length) p.append(h('p', { class: 'hint' }, 'This slide is empty. Use + Text, + Image, + Shape above.'));
+  const nt = h('textarea', { id: 'p_notes', 'aria-label': 'Speaker notes', placeholder: 'Only you see this in Presenter view' }); nt.value = s.notes || ''; nt.addEventListener('input', () => { s.notes = nt.value; commitSoon(); });
+  p.append(h('div', { class: 'sec' }), field('Speaker notes (not shown on the LED)', nt));
   const arm = (b, label, go) => b.addEventListener('click', () => { if (b.dataset.a) { go(); return; } b.dataset.a = '1'; b.textContent = 'Tap again to confirm'; setTimeout(() => { delete b.dataset.a; b.textContent = label; }, 3000); });
   const del = h('button', { class: 'btn s', type: 'button' }, 'Delete slide'); arm(del, 'Delete slide', removeSlide);
   p.append(h('div', { class: 'sec' }), h('h3', {}, 'This slide'), h('div', { class: 'row' }, h('button', { class: 'btn s w', type: 'button', onclick: () => moveSlide(-1) }, 'Move up'), h('button', { class: 'btn s w', type: 'button', onclick: () => moveSlide(1) }, 'Move down'), h('button', { class: 'btn s y', type: 'button', onclick: dupSlide }, 'Duplicate slide'), del));
@@ -660,7 +727,7 @@ $('sAuto').addEventListener('input', () => { deck.autoplay = Math.max(0, Math.mi
 
 /* ---------- keyboard (editor) ---------- */
 document.addEventListener('keydown', ev => {
-  if (presenting || $('app').hidden) return; const t = ev.target;
+  if (presenting || SH || $('app').hidden) return; const t = ev.target;
   if (t && (['INPUT', 'TEXTAREA', 'SELECT'].includes(t.tagName) || t.isContentEditable)) return;
   const mod = ev.ctrlKey || ev.metaKey, k = ev.key;
   if (mod && k.toLowerCase() === 'z') { ev.preventDefault(); ev.shiftKey ? redo() : undo(); return; }
@@ -686,15 +753,16 @@ function pShow(i, animate) {
   clearTimeout(autoT); if (deck.autoplay > 0) autoT = setTimeout(() => pGo(1, true), deck.autoplay * 1000);
 }
 function pGo(d, loop) { const j = pi + d; if (j >= deck.slides.length) { if (loop) pShow(0, true); return; } if (j < 0) return; pShow(j, true); }
-function present(from) {
+function presentLocal(from) {
   finishEdit(true); flushHist(); if (dirty) save();
   presenting = true; $('present').hidden = false; const f = $('pfit'); f.textContent = ''; const root = document.createElement('div'); f.appendChild(root); pst = makeStage(root, false);
   $('pblack').hidden = true; fitP(); pShow(from, true);
   const el = $('present'); if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
 }
 function exitP() { presenting = false; clearTimeout(autoT); $('present').hidden = true; if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); selectSlide(pi, false); }
-$('presAll').addEventListener('click', () => present(0));
-$('presFrom').addEventListener('click', () => present(sel));
+$('presAll').addEventListener('click', () => startShow(0));
+$('presFrom').addEventListener('click', () => startShow(sel));
+$('presHere').addEventListener('click', () => presentLocal(sel));
 $('pNext').addEventListener('click', e => { e.stopPropagation(); pGo(1, false); });
 $('pPrev').addEventListener('click', e => { e.stopPropagation(); pGo(-1, false); });
 $('pExit').addEventListener('click', e => { e.stopPropagation(); exitP(); });
@@ -715,8 +783,133 @@ document.addEventListener('keydown', e => {
   else if (k === 'Escape') exitP();
 });
 
+/* ---------- LED show: output window + presenter view ---------- */
+const OUTPUT = location.hash.indexOf('#output') === 0;
+const CH = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('fest-slides') : null;
+const LEDKEY = 'fest_led_label';
+const LSget = k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
+const LSset = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+const clampI = (i, n) => Math.max(0, Math.min(i, n - 1));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* the window that runs on the LED screen */
+let odeck = null, oi = 0, ost = null, oAuto = null, oBlack = false, oIdle = null;
+function oFit() { if (!ost) return; const w = innerWidth, hh = innerHeight, s = Math.min(w / 1920, hh / 1080), f = $('ofit'); f.style.width = 1920 * s + 'px'; f.style.height = 1080 * s + 'px'; f.style.left = (w - 1920 * s) / 2 + 'px'; f.style.top = (hh - 1080 * s) / 2 + 'px'; ost.root.style.transform = `scale(${s})`; }
+function oShow(i, animate) {
+  if (!odeck) return; oi = clampI(i, odeck.slides.length); const sl = odeck.slides[oi]; ost.setBg(bgOf(sl)); ost.show(sl, { animate, transition: odeck.transition });
+  clearTimeout(oAuto); if (odeck.autoplay > 0) oAuto = setTimeout(() => { const j = oi + 1 >= odeck.slides.length ? 0 : oi + 1; oShow(j, true); CH.postMessage({ t: 'at', i: j }); }, odeck.autoplay * 1000);
+}
+function oFull() { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else document.documentElement.requestFullscreen().catch(() => {}); }
+function oMain() {
+  document.title = 'LED show';
+  if (!CH) { $('ohint0').textContent = 'This browser cannot link the windows. Please use Chrome or Edge.'; return; }
+  CH.onmessage = e => {
+    const m = e.data || {};
+    if (m.t === 'deck') { deck = m.deck; odeck = m.deck; const r = $('ofit'); r.textContent = ''; const root = document.createElement('div'); r.appendChild(root); ost = makeStage(root, false); oFit(); $('ohint0').hidden = true; oShow(m.i || 0, false); oBlack = !!m.black; $('oblack').hidden = !oBlack; }
+    else if (m.t === 'go') oShow(m.i, true);
+    else if (m.t === 'black') { oBlack = !!m.on; $('oblack').hidden = !oBlack; }
+    else if (m.t === 'close') window.close();
+  };
+  CH.postMessage({ t: 'ready' });
+  addEventListener('resize', oFit);
+  document.addEventListener('fullscreenchange', () => { oFit(); $('ofs').hidden = !!document.fullscreenElement; });
+  addEventListener('message', e => { if (e.data && e.data.t === 'fs') document.documentElement.requestFullscreen().catch(() => {}); });
+  addEventListener('beforeunload', () => { CH.postMessage({ t: 'closed' }); });
+  $('ofs').addEventListener('click', oFull);
+  document.addEventListener('mousemove', () => { document.body.classList.remove('idle-out'); clearTimeout(oIdle); oIdle = setTimeout(() => document.body.classList.add('idle-out'), 2500); });
+  document.addEventListener('keydown', e => {
+    const k = e.key; if (k === 'f' || k === 'F') { oFull(); return; } if (!odeck) return; const n = odeck.slides.length;
+    if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(k)) { e.preventDefault(); if (oi < n - 1) { oShow(oi + 1, true); CH.postMessage({ t: 'at', i: oi }); } }
+    else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(k)) { e.preventDefault(); if (oi > 0) { oShow(oi - 1, true); CH.postMessage({ t: 'at', i: oi }); } }
+    else if (k === 'b' || k === 'B') { oBlack = !oBlack; $('oblack').hidden = !oBlack; CH.postMessage({ t: 'blackat', on: oBlack }); }
+  });
+}
+
+/* the controls on your own screen (Presenter view) */
+let SH = null;
+const sameScreen = (a, b) => a && b && a.left === b.left && a.top === b.top && a.width === b.width;
+function pickScreen(d) {
+  const all = d.screens; if (all.length < 2) return null; const want = LSget(LEDKEY);
+  if (want) { const f = all.find(x => x.label === want); if (f) return f; }
+  const others = all.filter(x => !sameScreen(x, d.currentScreen)); return others.find(x => !x.isPrimary) || others[0] || null;
+}
+function fitBoxes() { if (!SH) return; [[SH.curBox, SH.cur], [SH.nxtBox, SH.nxt]].forEach(([b, st]) => { const sc = b.clientWidth / 1920; if (sc > 0) st.root.style.transform = `scale(${sc})`; }); }
+function setInfo(t) { $('pvInfo').textContent = t; }
+function openWin() { return window.open(location.pathname + location.search + '#output', 'festshow', 'popup=yes,width=1280,height=720,left=40,top=40'); }
+async function placeWin(w) {
+  if (!window.getScreenDetails) return { msg: 'This browser cannot find your screens. Drag the show window to the LED screen, then click Full screen in it. (Chrome or Edge can do this automatically.)' };
+  try {
+    const d = await window.getScreenDetails(), sc = pickScreen(d);
+    if (!sc) return { single: true };
+    w.moveTo(sc.availLeft != null ? sc.availLeft : sc.left, sc.availTop != null ? sc.availTop : sc.top); w.resizeTo(sc.availWidth || sc.width, sc.availHeight || sc.height);
+    await sleep(500); try { w.postMessage({ t: 'fs' }, { targetOrigin: location.origin, delegate: 'fullscreen' }); } catch (e) {}
+    return { msg: 'LED screen: ' + (sc.label || 'the other screen') + '. If it is not full screen yet, click Full screen in that window.' };
+  } catch (e) { return { msg: 'Screen access was blocked. Click the lock icon in the address bar, allow "Window management", or drag the show window to the LED screen yourself.' }; }
+}
+function buildPview() {
+  const mkStage = (box, still) => { box.textContent = ''; const r = document.createElement('div'); box.appendChild(r); return makeStage(r, still); };
+  SH.curBox = $('pvCurBox'); SH.nxtBox = $('pvNextBox'); SH.cur = mkStage(SH.curBox, false); SH.nxt = mkStage(SH.nxtBox, true);
+  const strip = $('pvStrip'); strip.textContent = ''; SH.ths = [];
+  deck.slides.forEach((sl, i) => { const box = h('div', { class: 'box' }), r = document.createElement('div'); box.appendChild(r); const st = makeStage(r, true); st.setBg(bgOf(sl)); st.show(sl);
+    const th = h('div', { class: 'pvth', role: 'button', tabindex: '0', 'aria-label': 'Go to slide ' + (i + 1) }, h('em', {}, String(i + 1)), box); th.addEventListener('click', () => goShow(i, true)); th.addEventListener('keydown', e => { if (e.key === 'Enter') goShow(i, true); }); strip.appendChild(th); SH.ths.push(th); });
+}
+function goShow(i, send) {
+  if (!SH) return; i = clampI(i, deck.slides.length); SH.i = i; const sl = deck.slides[i], nx = deck.slides[i + 1];
+  SH.cur.setBg(bgOf(sl)); SH.cur.show(sl, { animate: true, transition: deck.transition });
+  const nn = nx || sl; SH.nxt.setBg(bgOf(nn)); SH.nxt.show(nn); SH.nxtBox.classList.toggle('end', !nx);
+  $('pvNotes').textContent = sl.notes || 'No notes for this slide.'; $('pvCount').textContent = (i + 1) + ' / ' + deck.slides.length;
+  SH.ths.forEach((t, k) => t.classList.toggle('on', k === i)); SH.ths[i].scrollIntoView({ block: 'nearest', inline: 'center' }); fitBoxes();
+  if (send && CH) CH.postMessage({ t: 'go', i });
+}
+function setBlack(on, send) { if (!SH) return; SH.black = on; $('pvBlack').textContent = on ? 'Show the slide again (B)' : 'Black screen (B)'; $('pvBlack').className = 'btn s ' + (on ? 'y' : 'w'); if (send && CH) CH.postMessage({ t: 'black', on }); }
+async function startShow(from) {
+  if (SH) return; finishEdit(true); flushHist(); if (dirty) save();
+  if (!CH) { presentLocal(from); return; }
+  const w = openWin();   /* opened right away so the pop-up blocker allows it */
+  if (!w) { $('saveSt').textContent = 'The show window was blocked. Allow pop-ups for this site, then press Present again.'; return; }
+  SH = { win: w, i: clampI(from, deck.slides.length), black: false, t0: Date.now() }; $('pview').hidden = false; buildPview(); setBlack(false, false); goShow(SH.i, false);
+  SH.timer = setInterval(() => { const sec = Math.floor((Date.now() - SH.t0) / 1000); $('pvTime').textContent = String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0'); }, 1000);
+  SH.chk = setInterval(() => { if (SH && SH.win.closed) endShow(); }, 1000); addEventListener('resize', fitBoxes);
+  setInfo('Opening the LED window...'); const r = await placeWin(w);
+  if (!SH) return; if (r.single) { const i = SH.i; endShow(true); $('saveSt').textContent = 'Only one screen found, so the show is full screen here. Connect the LED as an extended display to use two screens.'; presentLocal(i); return; }
+  setInfo(r.msg);
+}
+function endShow(keepWin) {
+  if (!SH) return; clearInterval(SH.timer); clearInterval(SH.chk); removeEventListener('resize', fitBoxes);
+  try { CH.postMessage({ t: 'close' }); } catch (e) {} try { if (SH.win && !SH.win.closed) SH.win.close(); } catch (e) {}
+  const i = SH.i; SH = null; $('pview').hidden = true; selectSlide(i, false);
+}
+if (CH && !OUTPUT) CH.addEventListener('message', e => {
+  const m = e.data || {}; if (!SH) return;
+  if (m.t === 'ready') CH.postMessage({ t: 'deck', deck, i: SH.i, black: SH.black });
+  else if (m.t === 'at') goShow(m.i, false);
+  else if (m.t === 'blackat') setBlack(!!m.on, false);
+  else if (m.t === 'closed') { setTimeout(() => { if (SH && SH.win.closed) endShow(); }, 400); }
+});
+$('pvNext').addEventListener('click', () => goShow(SH.i + 1, true));
+$('pvPrev').addEventListener('click', () => goShow(SH.i - 1, true));
+$('pvBlack').addEventListener('click', () => setBlack(!SH.black, true));
+$('pvEnd').addEventListener('click', () => endShow());
+$('pvReopen').addEventListener('click', async () => { if (!SH) return; if (SH.win && !SH.win.closed) { SH.win.focus(); } else { const w = openWin(); if (!w) { setInfo('The show window was blocked. Allow pop-ups for this site.'); return; } SH.win = w; } const r = await placeWin(SH.win); setInfo(r.msg || 'Show window opened.'); });
+document.addEventListener('keydown', e => {
+  if (!SH) return; const k = e.key;
+  if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(k)) { e.preventDefault(); goShow(SH.i + 1, true); }
+  else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(k)) { e.preventDefault(); goShow(SH.i - 1, true); }
+  else if (k === 'Home') goShow(0, true); else if (k === 'End') goShow(deck.slides.length - 1, true);
+  else if (k === 'b' || k === 'B' || k === '.') setBlack(!SH.black, true);
+});
+/* settings: choose which screen is the LED */
+$('detectB').addEventListener('click', async () => {
+  const m = $('detMsg'); if (!window.getScreenDetails) { m.textContent = 'This browser cannot detect screens. Use Chrome or Edge, or drag the show window to the LED yourself.'; return; }
+  try { const d = await window.getScreenDetails(), s2 = $('sScreen'); s2.textContent = ''; s2.appendChild(h('option', { value: '' }, 'Automatic (the other screen)'));
+    d.screens.forEach((x, i) => { const nm = x.label || ('Screen ' + (i + 1)); s2.appendChild(h('option', { value: x.label || '' }, nm + (x.isPrimary ? ' (main)' : '') + '  ' + x.width + 'x' + x.height)); });
+    s2.value = LSget(LEDKEY); m.textContent = d.screens.length + ' screen' + (d.screens.length > 1 ? 's' : '') + ' found.'; }
+  catch (e) { m.textContent = 'Permission was blocked. Click the lock icon in the address bar, allow "Window management", and try again.'; }
+});
+$('sScreen').addEventListener('change', () => LSset(LEDKEY, $('sScreen').value));
+
 /* auto sign-in when coming from the organizer desk */
-(async () => { const sp = SS.get('fest_admin_pw'); if (sp) { const err = await enter(sp); if (err) { SS.del('fest_admin_pw'); $('gateMsg').textContent = ''; } } })();
+if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if (sp) { const err = await enter(sp); if (err) { SS.del('fest_admin_pw'); $('gateMsg').textContent = ''; } } })();
 </script>
 </body>
 </html>
