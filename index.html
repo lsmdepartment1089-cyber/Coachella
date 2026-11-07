@@ -608,22 +608,23 @@ function showGuest(g) {
   guest = g; LS.set('fest_nick', g.nickname);
   document.body.classList.add('in');
   $('who').textContent = g.nickname;
+
   $('rsvp').value = g.rsvp === 'pending' ? 'going' : g.rsvp;
-  $('status').textContent = g.rsvp === 'pending' ? 'Save your RSVP below so we can count you in.' : 'RSVP saved.';
-  $('realName').value = g.real_name || ''; $('stageName').value = g.stage_name || ''; $('email').value = g.email || '';
+  $('rsvp').disabled = true;
+  $('saveBtn').disabled = true;
+  $('status').textContent = 'RSVP registration is now closed.';
+  
+  $('realName').value = g.real_name || '';
+  $('stageName').value = g.stage_name || '';
+  $('email').value = g.email || '';
+
   talent = g.talent_status === 'yes' ? 'yes' : g.talent_status === 'no' ? 'no' : null;
   saved = g.talent_files || []; pending = [];
-  renderTalent(); renderPass(); scrollTo({ top: 0 });
+
+  renderTalent();
+  renderPass();
+  scrollTo({ top: 0 });
 }
-async function login(nick, quiet) {
-  const btn = $('loginBtn'); btn.disabled = true; $('loginMsg').textContent = '';
-  const { data, error } = await sb.rpc('login_guest', { p_nickname: nick });
-  btn.disabled = false;
-  if (error) { if (!quiet) $('loginMsg').textContent = error.message; return; }
-  showGuest(data.guest);
-}
-$('loginForm').addEventListener('submit', e => { e.preventDefault(); login($('nick').value, false); });
-$('logout').addEventListener('click', () => { LS.del('fest_nick'); guest = null; document.body.classList.remove('in'); $('nick').value = ''; scrollTo({ top: 0 }); });
 
 /* ---------- RSVP ---------- */
 $('rsvpForm').addEventListener('submit', async e => {
