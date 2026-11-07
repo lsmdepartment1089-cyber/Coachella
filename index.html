@@ -637,16 +637,29 @@ $('rsvpForm').addEventListener('submit', async e => {
 
 /* ---------- raffle reveal ---------- */
 let busy = false;
+
 function renderPass() {
   const has = guest.raffle_number != null;
+
   $('num').textContent = has ? guest.raffle_number : '?';
-  $('getBtn').hidden = has; $('rerollBtn').hidden = !has || !!guest.rerolled;
+
+  // Raffle registration is closed
+  $('getBtn').hidden = true;
+  $('rerollBtn').hidden = true;
+
   $('mailBtn').disabled = !has;
-  $('mailHint').textContent = has ? 'We will email you a card with your nickname, raffle number and all the party details.' : 'Get your raffle number first, then come back here to send yourself a copy.';
-  $('rText').textContent = has ? 'Your raffle number is locked in. Keep it handy for the draw.' : 'Ready to find out your raffle number?';
-  $('rNote').textContent = !has ? 'You get one number, plus one re-roll if you want a different one.'
-    : guest.rerolled ? 'You used your one re-roll. This number is final.'
-    : 'Not feeling it? You can roll once more. It is your only chance, and the new number replaces this one.';
+
+  $('mailHint').textContent = has
+    ? 'We will email you a card with your nickname, raffle number and all the party details.'
+    : 'Raffle registration is now closed.';
+
+  $('rText').textContent = has
+    ? 'Your raffle number is locked in. Keep it handy for the draw.'
+    : 'Raffle registration is now closed.';
+
+  $('rNote').textContent = has
+    ? 'Your previously assigned raffle number remains valid. Good luck at the draw!'
+    : 'Thank you for registering. Raffle number drawing is no longer available.';
 }
 function confetti() {
   if (reduce) return; const box = $('confetti'); box.textContent = '';
