@@ -604,6 +604,7 @@ function tick() {
 tick(); setInterval(tick, 1000);
 
 /* ---------- login ---------- */
+
 function showGuest(g) {
   guest = g; LS.set('fest_nick', g.nickname);
   document.body.classList.add('in');
@@ -625,7 +626,15 @@ function showGuest(g) {
   renderPass();
   scrollTo({ top: 0 });
 }
-
+async function login(nick, quiet) {
+  const btn = $('loginBtn'); btn.disabled = true; $('loginMsg').textContent = '';
+  const { data, error } = await sb.rpc('login_guest', { p_nickname: nick });
+  btn.disabled = false;
+  if (error) { if (!quiet) $('loginMsg').textContent = error.message; return; }
+  showGuest(data.guest);
+}
+$('loginForm').addEventListener('submit', e => { e.preventDefault(); login($('nick').value, false); });
+$('logout').addEventListener('click', () => { LS.del('fest_nick'); guest = null; document.body.classList.remove('in'); $('nick').value = ''; scrollTo({ top: 0 }); });
 /* ---------- RSVP ---------- */
 $('rsvpForm').addEventListener('submit', async e => {
   e.preventDefault(); const b = $('saveBtn'); b.disabled = true; $('saveMsg').textContent = '';
