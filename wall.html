@@ -92,11 +92,12 @@ body.presenting.idle{cursor:none}
     <p class="ws">Coachella: Beyond the Arches</p><h1>Photo Wall</h1><p class="wp" id="party"></p>
   </header>
   <div class="count" id="count"></div>
+  <button class="btn y" id="ofs" type="button" hidden style="position:fixed;z-index:50;top:14px;left:14px">Full screen</button>
   <div id="board"></div>
   <p class="hintbar">Open your invitation, tap Photo Wall, then Take a picture!</p>
   <div class="ctl" id="ctl">
     <button class="btn s y" id="manageB" type="button">Manage photos (M)</button>
-    <button class="btn s w" id="presentB" type="button">Present full screen (F)</button>
+    <button class="btn s w" id="presentB" type="button">Send to LED (F)</button>
     <button class="btn s d" id="backB" type="button">Back to organizer desk</button>
   </div>
   <aside id="manage" hidden>
@@ -160,18 +161,19 @@ function put(s, p) {
   const im = new Image(); im.alt = 'Photo by ' + p.nickname; im.src = pub(p.path); s.el.appendChild(im);
 }
 const shown = () => new Set(slots.filter(s => s.p).map(s => s.p.id));
-function fillInitial() { const ap = approved(); ap.forEach(p => seen.add(p.id)); slots.forEach((s, i) => put(s, ap[i] || null)); first = false; }
+function fillInitial() { const ap = approved(); ap.forEach(p => seen.add(p.id)); slots.forEach((s, i) => put(s, ap[i] || null)); first = false; syncLED(); }
 function cleanBoard() {
   const ids = new Set(approved().map(p => p.id));
   slots.forEach(s => { if (s.p && !ids.has(s.p.id)) put(s, null); });
   const sh = shown(), rest = approved().filter(p => !sh.has(p.id));
   slots.forEach(s => { if (!s.p && rest.length) put(s, rest.shift()); });
+  syncLED();
 }
 function swapOne() {
   if (!slots.length || spotBusy) return; const sh = shown(), rest = approved().filter(p => !sh.has(p.id)); if (!rest.length) return;
-  put(slots[Math.floor(Math.random() * slots.length)], rest[Math.floor(Math.random() * rest.length)]);
+  put(slots[Math.floor(Math.random() * slots.length)], rest[Math.floor(Math.random() * rest.length)]); syncLED();
 }
-addEventListener('resize', () => { if (!$('wall').hidden) { const keep = slots.map(s => s.p); layoutBoard(); slots.forEach((s, i) => put(s, keep[i] || null)); } });
+addEventListener('resize', () => { if (!$('wall').hidden) { const keep = slots.map(s => s.p); layoutBoard(); slots.forEach((s, i) => put(s, keep[i] || null)); syncLED(); } });
 
 /* ---------- spotlight for new photos ---------- */
 function confetti() {
@@ -184,9 +186,9 @@ function confetti() {
 async function runQueue() {
   if (spotBusy || !queue.length) return; spotBusy = true; const p = queue.shift(), im = $('spImg');
   await new Promise(res => { im.onload = res; im.onerror = res; im.src = pub(p.path); setTimeout(res, 2500); });
-  $('spName').textContent = 'by ' + p.nickname; const sp = $('spot'); sp.hidden = false; sp.querySelectorAll('.snew,#spImg,#spName').forEach(el => { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; }); confetti();
-  await sleep(7000); sp.hidden = true;
-  const empty = slots.find(s => !s.p), target = empty || slots[Math.floor(Math.random() * slots.length)]; if (target) put(target, p);
+  activeSpot = p; $('spName').textContent = 'by ' + p.nickname; const sp = $('spot'); sp.hidden = false; syncLED(); sp.querySelectorAll('.snew,#spImg,#spName').forEach(el => { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; }); confetti();
+  await sleep(7000); sp.hidden = true; activeSpot = null; syncLED();
+  const empty = slots.find(s => !s.p), target = empty || slots[Math.floor(Math.random() * slots.length)]; if (target) put(target, p); syncLED();
   spotBusy = false; runQueue();
 }
 
@@ -199,14 +201,96 @@ function renderManage() {
 $('manageB').addEventListener('click', () => { $('manage').hidden = !$('manage').hidden; renderManage(); }); $('mClose').addEventListener('click', () => { $('manage').hidden = true; });
 $('mod').addEventListener('change', async () => { const r = await sb.rpc('admin_wall_set_mode', { p_password: pw, p_mode: $('mod').checked ? 'on' : 'off' }); $('mMsg').style.color = r.error ? '#B0170E' : '#1B7A3D'; $('mMsg').textContent = r.error ? r.error.message : ($('mod').checked ? 'New photos now wait for your approval.' : 'New photos appear right away.'); });
 
-/* ---------- presenting ---------- */
-function togglePresent() { if (document.fullscreenElement || document.body.classList.contains('presenting')) { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); document.body.classList.remove('presenting'); return; } const el = document.documentElement; (el.requestFullscreen ? el.requestFullscreen() : Promise.reject()).catch(() => document.body.classList.add('presenting')); }
-document.addEventListener('fullscreenchange', () => { document.body.classList.toggle('presenting', !!document.fullscreenElement); setTimeout(() => addEventListener, 0); });
-$('presentB').addEventListener('click', togglePresent);
-let idleT; document.addEventListener('mousemove', () => { document.body.classList.remove('idle'); clearTimeout(idleT); idleT = setTimeout(() => document.body.classList.add('idle'), 3000); });
-document.addEventListener('keydown', e => { if ($('wall').hidden || e.target.tagName === 'INPUT') return; const k = e.key.toLowerCase(); if (k === 'f') togglePresent(); else if (k === 'm') { $('manage').hidden = !$('manage').hidden; renderManage(); } else if (k === 'escape') { $('manage').hidden = true; if (document.body.classList.contains('presenting') && !document.fullscreenElement) document.body.classList.remove('presenting'); } });
+/* ---------- LED output / presenter ---------- */
+const OUTPUT = location.hash.indexOf('#output') === 0;
+const CH = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('fest-photowall') : null;
+let ledWin = null, activeSpot = null, ledHasState = false, ledReadyTimer = null;
 
-(async () => { const sp = SS.get('fest_admin_pw'); if (sp) { const err = await enter(sp); if (!err) return; SS.del('fest_admin_pw'); } $('gate').hidden = false; })();
+function syncLED() {
+  if (!CH || OUTPUT) return;
+  const cols = parseInt($('board').style.gridTemplateColumns.match(/repeat\((\d+)/)?.[1] || '0', 10);
+  const rows = parseInt($('board').style.gridTemplateRows.match(/repeat\((\d+)/)?.[1] || '0', 10);
+  const payload = {
+    t: 'wall', party: C.partyName, count: approved().length, cols, rows,
+    slots: slots.map(s => ({ url: s.p ? pub(s.p.path) : null, nickname: s.p ? s.p.nickname : '', rot: s.el.style.getPropertyValue('--rot') || '0deg' })),
+    spot: activeSpot ? { url: pub(activeSpot.path), nickname: activeSpot.nickname } : null
+  };
+  CH.postMessage(payload);
+}
+function pickLedScreen(details) {
+  const all = details.screens || [];
+  if (all.length < 2) return null;
+  const others = all.filter(x => !(x.left === details.currentScreen.left && x.top === details.currentScreen.top && x.width === details.currentScreen.width));
+  return others.find(x => !x.isPrimary) || others[0] || null;
+}
+function openLED() {
+  if (ledWin && !ledWin.closed) { ledWin.focus(); syncLED(); return; }
+  if (!CH) { alert('This browser cannot connect the organizer and LED windows. Please use Chrome or Edge.'); return; }
+  ledWin = window.open(location.pathname + location.search + '#output', 'festphotowall', 'popup=yes,width=1280,height=720,left=40,top=40');
+  if (!ledWin) { alert('The LED window was blocked. Please allow pop-ups for this site, then click Send to LED again.'); return; }
+  syncLED();
+  if (window.getScreenDetails) {
+    window.getScreenDetails().then(details => {
+      const screen = pickLedScreen(details);
+      if (!screen || !ledWin || ledWin.closed) return;
+      try {
+        ledWin.moveTo(screen.availLeft ?? screen.left, screen.availTop ?? screen.top);
+        ledWin.resizeTo(screen.availWidth || screen.width, screen.availHeight || screen.height);
+      } catch (e) {}
+    }).catch(() => {});
+  }
+}
+function outputInit() {
+  document.title = 'Photo Wall — LED Display';
+  $('gate').hidden = true; $('wall').hidden = false;
+  $('ctl').hidden = true; $('manage').hidden = true; $('ofs').hidden = false;
+  document.body.classList.add('presenting');
+  if (!CH) { $('party').textContent = 'Please use Chrome or Edge to connect the LED display'; return; }
+  const receive = e => {
+    const m = e.data || {};
+    if (m.t !== 'wall') return;
+    ledHasState = true;
+    $('party').textContent = m.party || '';
+    $('count').textContent = (m.count || 0) + ' photos';
+    const b = $('board'); b.style.gridTemplateColumns = `repeat(${m.cols || 6},1fr)`; b.style.gridTemplateRows = `repeat(${m.rows || 2},1fr)`; b.textContent = '';
+    (m.slots || []).forEach(slot => {
+      const el = document.createElement('div'); el.className = 'slot' + (slot.url ? '' : ' empty'); el.style.setProperty('--rot', slot.rot || '0deg');
+      if (slot.url) { const im = new Image(); im.alt = 'Photo by ' + (slot.nickname || 'guest'); im.src = slot.url; el.appendChild(im); }
+      else el.textContent = 'Your photo here';
+      b.appendChild(el);
+    });
+    const sp = $('spot');
+    if (m.spot) { $('spImg').src = m.spot.url; $('spName').textContent = 'by ' + m.spot.nickname; sp.hidden = false; }
+    else sp.hidden = true;
+  };
+  CH.addEventListener('message', receive);
+  const announce = () => { if (!ledHasState) CH.postMessage({ t: 'ready' }); };
+  announce(); ledReadyTimer = setInterval(announce, 500);
+  $('ofs').addEventListener('click', () => { document.documentElement.requestFullscreen?.().catch(() => {}); });
+  document.addEventListener('fullscreenchange', () => { $('ofs').hidden = !!document.fullscreenElement; });
+  addEventListener('beforeunload', () => { if (ledReadyTimer) clearInterval(ledReadyTimer); CH.postMessage({ t: 'closed' }); });
+}
+if (CH && !OUTPUT) CH.addEventListener('message', e => {
+  const m = e.data || {};
+  if (m.t === 'ready') syncLED();
+  else if (m.t === 'closed') ledWin = null;
+});
+$('presentB').addEventListener('click', openLED);
+let idleT; document.addEventListener('mousemove', () => { document.body.classList.remove('idle'); clearTimeout(idleT); idleT = setTimeout(() => document.body.classList.add('idle'), 3000); });
+document.addEventListener('keydown', e => {
+  if ($('wall').hidden || e.target.tagName === 'INPUT') return;
+  const k = e.key.toLowerCase();
+  if (k === 'f') { if (OUTPUT) { document.documentElement.requestFullscreen?.().catch(() => {}); } else openLED(); }
+  else if (!OUTPUT && k === 'm') { $('manage').hidden = !$('manage').hidden; renderManage(); }
+  else if (k === 'escape' && !OUTPUT) $('manage').hidden = true;
+});
+
+(async () => {
+  if (OUTPUT) { outputInit(); return; }
+  const sp = SS.get('fest_admin_pw');
+  if (sp) { const err = await enter(sp); if (!err) return; SS.del('fest_admin_pw'); }
+  $('gate').hidden = false;
+})();
 </script>
 </body>
 </html>
