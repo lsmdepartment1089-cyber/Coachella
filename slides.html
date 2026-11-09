@@ -7,7 +7,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Nunito+Sans:wght@400;600;800&family=Anton&family=Bebas+Neue&family=Oswald:wght@400;700&family=Poppins:wght@400;600;800&family=Playfair+Display:wght@400;800&family=DM+Serif+Display&family=Fredoka:wght@400;700&family=Rubik:wght@400;800&family=Bangers&family=Lobster&family=Pacifico&family=Permanent+Marker&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Cormorant+Garamond:wght@500;600&family=Nunito+Sans:wght@400;600;800&family=Anton&family=Bebas+Neue&family=Oswald:wght@400;700&family=Poppins:wght@400;600;800&family=Playfair+Display:wght@400;800&family=DM+Serif+Display&family=Fredoka:wght@400;700&family=Rubik:wght@400;800&family=Bangers&family=Lobster&family=Pacifico&family=Permanent+Marker&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <style>
@@ -548,6 +548,49 @@ Object.assign(TPL, {
   raffle: f => col([item(300, y => [icon('ticket', { x: 810, y, w: 300, anim: 'zoom', loop: 'wiggle' })]), item(220, y => [disp({ y, text: f.head, size: 230, anim: 'bounce', loop: 'glow' })]), f.sub && item(80, y => [tx({ y, text: f.sub, font: SERIF, size: 62, color: '#FFF4D6' })])], 26),
   photowall: f => col([item(280, y => [icon('camera', { x: 820, y, w: 280, anim: 'zoom', loop: 'pulse' })]), item(220, y => [disp({ y, text: f.head, size: 230, anim: 'bounce' })]), f.sub && item(estH(f.sub, 56, 1400, 1.25, .52), y => [tx({ x: 260, y, w: 1400, text: f.sub, size: 56, lh: 1.25 })])], 26)
 });
+
+/* ---------- Invitation (elegant cream card) ---------- */
+const INV_NAME = n => fsz((n || '').length, [[12, 150], [17, 116], [24, 86], [999, 66]]);
+const kt = (key, o) => Object.assign(tx(o), { key });
+Object.assign(TPL, {
+  invite: f => {
+    const CX = 960, DK = '#27251F', RD = '#DA291C', GD = '#FFC72C';
+    const S = INV_NAME(f.name), nh = estH(f.name || ' ', S, 1040, .95, .48);
+    const wh = Math.max(estH(f.when, 50, 470, 1.1, .5), estH(f.where, 50, 470, 1.1, .5), 55), dh = estH(f.dress, 50, 940, 1.1, .5);
+    const sp = n => item(n, () => []);
+    const body = col([
+      item(100, y => [arch({ x: CX - 75, y, w: 150, h: 100, anim: 'drop' })]),
+      sp(6),
+      item(34, y => [kt('kicker', { x: 480, y, w: 960, text: f.kicker, size: 26, up: true, ls: 14, color: RD, lh: 1.1, sh: 'none', anim: 'fade' })]),
+      item(nh, y => [kt('name', { font: DISP, x: 440, y, w: 1040, text: f.name, size: S, color: RD, b: true, up: false, lh: .95, ls: 1, sh: 'none', anim: 'zoom' })]),
+      item(48, y => [kt('lead', { x: 480, y, w: 960, text: f.lead, font: SERIF, size: 40, color: DK, b: false, lh: 1.15, sh: 'none', anim: 'fade' })]),
+      sp(4),
+      item(109, y => badge(f.event, CX, y, 64).map((e, k) => Object.assign(e, k === 1 ? { key: 'event' } : {}, { anim: 'zoom' }))),
+      item(40, y => [kt('theme', { x: 480, y, w: 960, text: f.theme, font: SERIF, size: 36, color: RD, b: true, up: true, ls: 8, lh: 1.1, sh: 'none', anim: 'fade' })]),
+      sp(8),
+      item(20, y => [
+        shp({ x: CX - 230, y: y + 8, w: 180, h: 4, fill: GD, anim: 'left' }),
+        shp({ x: CX - 11, y, w: 22, h: 22, shape: 'circle', fill: RD, bw: 3, bc: DK, anim: 'zoom' }),
+        shp({ x: CX + 50, y: y + 8, w: 180, h: 4, fill: GD, anim: 'right' })]),
+      sp(8),
+      item(30 + 10 + wh, y => [
+        kt('whenL', { x: 450, y, w: 500, text: 'Date & Time', size: 24, up: true, ls: 10, color: RD, lh: 1.1, sh: 'none', anim: 'fade' }),
+        kt('when', { x: 450, y: y + 40, w: 500, text: f.when, font: SERIF, size: 50, color: DK, lh: 1.1, sh: 'none', anim: 'rise' }),
+        shp({ x: CX - 2, y: y + 4, w: 4, h: 40 + wh - 8, fill: GD, anim: 'fade' }),
+        kt('whereL', { x: 970, y, w: 500, text: 'Venue', size: 24, up: true, ls: 10, color: RD, lh: 1.1, sh: 'none', anim: 'fade' }),
+        kt('where', { x: 970, y: y + 40, w: 500, text: f.where, font: SERIF, size: 50, color: DK, lh: 1.1, sh: 'none', anim: 'rise' })]),
+      sp(10),
+      item(30 + 10 + dh, y => [
+        kt('dressL', { x: 480, y, w: 960, text: 'Dress Code', size: 24, up: true, ls: 10, color: RD, lh: 1.1, sh: 'none', anim: 'fade' }),
+        kt('dress', { x: 480, y: y + 40, w: 960, text: f.dress, font: SERIF, size: 50, color: DK, lh: 1.1, sh: 'none', anim: 'rise' })])
+    ], 9);
+    /* card and frame first so they sit behind everything */
+    return [
+      shp({ x: 380, y: 40, w: 1160, h: 1000, shape: 'rect', rad: 22, fill: '#FFF4D6', bw: 6, bc: DK, sh: 'hard', anim: 'zoom' }),
+      shp({ x: 408, y: 68, w: 1104, h: 944, shape: 'rect', rad: 10, fill: 'transparent', bw: 3, bc: RD, anim: 'fade' }),
+      ...body];
+  }
+});
 Object.assign(LAYOUTS, {
   welcome: { name: 'Welcome', info: 'Big welcome with sparkles', bg: 'sunset', d: { head: 'Welcome!', sub: C.partyName, line: C.when + ' · ' + C.where } },
   rules: { name: 'Game rules', info: 'Numbered list of rules', bg: 'arches', d: { head: 'How to play', items: '1 | First rule\n2 | Second rule\n3 | Third rule' } },
@@ -560,35 +603,8 @@ Object.assign(LAYOUTS, {
   question: { name: 'Question (timer)', info: 'Question with a countdown ring', bg: 'stage', d: { num: 'Question 1', q: 'Type your question here', sec: 30 } },
   choices: { name: 'Multiple choice (timer)', info: 'A, B, C, D options appear on click, with a timer', bg: 'stage', d: { q: 'Type your question here', a: 'Option A', b: 'Option B', c: 'Option C', d: 'Option D', sec: 30 } },
   answer: { name: 'Answer reveal', info: 'Press Next to reveal the answer', bg: 'party', d: { head: 'The answer is', ans: 'The answer', note: '' } },
+  invite: { name: 'Invitation', info: 'Elegant card with participant name, event details and dress code', bg: 'night', d: { kicker: 'Special Invitation', name: 'Participant Name', lead: 'You are warmly invited to celebrate with us at the', event: 'Year End Party', theme: 'Coachella: Beyond the Arches', when: C.when || 'Date and time', where: C.where || 'Venue', dress: 'Festival Chic · Touches of Red & Gold' } },
   scoreboard: { name: 'Scoreboard', info: 'Four teams and their scores', bg: 'stage', d: { title: 'Scoreboard', t1: 'Team Red', s1: '0', t2: 'Team Yellow', s2: '0', t3: 'Team Orange', s3: '0', t4: 'Team Cream', s4: '0' } }
-});
-
-/* ---------- Invitation (elegant) ---------- */
-Object.assign(TPL, {
-  invitation: f => {
-    const G = '#FFC72C', CR = '#FFF4D6', S = fsz((f.title || '').length, [[12, 190], [20, 150], [34, 112], [999, 84]]);
-    const lab = (t, x, y, w, d) => tx({ x, y, w, text: t, size: 26, up: true, ls: 10, color: G, b: true, sh: 'none', lh: 1, anim: 'fade', delay: d });
-    const val = (t, x, y, w, c, d) => tx({ x, y, w, text: t, font: SERIF, b: false, size: 46, color: c || CR, sh: 'none', lh: 1.2, anim: 'fade', delay: d });
-    const cols = [{ l: 'Date & Time', v: f.when, x: 120 }, { l: 'Venue', v: f.where, x: 700 }, { l: 'Dress Code', v: f.dress, x: 1280, c: G, n: f.dressnote }];
-    const vh = Math.max(...cols.map(c => estH(c.v, 46, 520, 1.2, .46) + (c.n ? 50 : 0))), rowH = 30 + 18 + vh;
-    const frame = [shp({ x: 70, y: 60, w: 1780, h: 960, fill: 'transparent', bw: 3, bc: G, op: .9, anim: 'fade' }), shp({ x: 94, y: 84, w: 1732, h: 912, fill: 'transparent', bw: 1, bc: G, op: .5, anim: 'fade' })];
-    return [...frame, ...col([
-      item(87, y => [arch({ x: 895, y, w: 130, h: 87, sh: 'none', anim: 'zoom' })]),
-      f.kicker && item(40, y => [tx({ y, text: f.kicker, size: 34, up: true, ls: 18, color: '#FFE9A8', b: false, sh: 'none', lh: 1, anim: 'fade', delay: .2 })]),
-      item(estH(f.title, S, 1700, .95, .48), y => [disp({ y, text: f.title, size: S, ls: 6, color: '#FFFFFF', anim: 'rise', delay: .3 })]),
-      f.nick && item(76, y => [tx({ y, text: f.nick, font: SERIF, i: true, b: false, size: 68, color: G, sh: 'none', lh: 1.1, anim: 'fade', delay: .5 })]),
-      item(44, y => [shp({ x: 560, y: y + 20, w: 340, h: 3, fill: G, op: .75, anim: 'fade', delay: .6 }), icon('star', { x: 938, y, w: 44, color: G, anim: 'zoom', delay: .6 }), shp({ x: 1020, y: y + 20, w: 340, h: 3, fill: G, op: .75, anim: 'fade', delay: .6 })]),
-      item(rowH, y => {
-        const o = [];
-        cols.forEach((c, k) => { const d = .7 + k * .15; o.push(lab(c.l, c.x, y, 520, d), val(c.v, c.x, y + 48, 520, c.c, d)); if (c.n) o.push(tx({ x: c.x, y: y + 48 + estH(c.v, 46, 520, 1.2, .46) + 6, w: 520, text: c.n, size: 30, color: '#FFE9A8', b: false, sh: 'none', lh: 1.2, anim: 'fade', delay: d })); });
-        o.push(shp({ x: 640, y: y + 6, w: 2, h: rowH - 12, fill: G, op: .45, anim: 'fade', delay: .8 }), shp({ x: 1220, y: y + 6, w: 2, h: rowH - 12, fill: G, op: .45, anim: 'fade', delay: .8 }));
-        return o; }),
-      f.rsvp && item(46, y => [tx({ y, text: f.rsvp, font: SERIF, i: true, b: false, size: 40, color: CR, sh: 'none', lh: 1.1, anim: 'fade', delay: 1.1 })])
-    ], 28)];
-  }
-});
-Object.assign(LAYOUTS, {
-  invitation: { name: 'Invitation', info: 'Elegant invite: event name, nickname, details and dress code', bg: 'stage', d: { kicker: "You're cordially invited to", title: 'Year End Party', nick: 'Coachella: Beyond the Arches', when: C.when, where: C.where, dress: 'Coachella Chic', dressnote: 'Boho · Festival · Earth tones', rsvp: 'Kindly confirm your attendance with the committee' } }
 });
 function newSlide(type, bg, over) { return { id: uid(), type, bg: bg || LAYOUTS[type].bg || 'default', els: TPL[type](Object.assign({}, LAYOUTS[type].d, over || {})) }; }
 function defaultDeck() {
@@ -898,6 +914,20 @@ function buildProps() {
   const tsel = h('select', { 'aria-label': 'Slide change effect' }); tsel.appendChild(h('option', { value: '' }, 'Default (' + (TRANS[deck.transition] || 'Fade') + ')')); Object.entries(TRANS).forEach(([k, v]) => tsel.appendChild(h('option', { value: k }, v))); tsel.value = s.tr || '';
   tsel.addEventListener('change', () => { if (tsel.value) s.tr = tsel.value; else delete s.tr; commit(); });
   p.append(field('How this slide appears', tsel));
+  if (s.type === 'invite') {
+    p.append(h('div', { class: 'sec' }), h('h3', {}, 'Invitation details'));
+    const byKey = k => s.els.find(x => x.key === k);
+    const inv = (label, key, multi, onSet) => { const el = byKey(key); if (!el) return;
+      const i = multi ? h('textarea', { 'aria-label': label, style: 'min-height:56px' }) : h('input', { type: 'text', 'aria-label': label });
+      i.value = el.text || ''; i.addEventListener('input', () => { el.text = i.value; if (onSet) onSet(el); renderMain(false); commitSoon(); }); p.append(field(label, i)); };
+    inv('Participant name', 'name', false, el => { el.size = INV_NAME(el.text); });
+    inv('Event name', 'event', false, el => { const b = s.els[s.els.indexOf(el) - 1]; if (b && b.t === 'shape') { b.w = Math.round(String(el.text).length * 64 * .5 + 110); b.x = Math.round(960 - b.w / 2); el.w = b.w; el.x = b.x; } });
+    inv('Theme line', 'theme', false);
+    inv('Date & time', 'when', true);
+    inv('Venue', 'where', true);
+    inv('Dress code', 'dress', true);
+    p.append(h('p', { class: 'hint' }, 'You can also double-click any text on the card to type directly. Use Duplicate slide to make one invitation for each participant.'));
+  }
   if (e) {
     p.append(h('h3', { class: '' }, { text: 'Text', shape: 'Shape', img: 'Picture', arch: 'Golden arch', cd: 'Countdown' }[e.t]));
     if (e.t === 'text') { const ta = h('textarea', { id: 'p_text', 'aria-label': 'Text' }); ta.value = e.text; ta.addEventListener('input', () => { e.text = ta.value; renderMain(false); commitSoon(); }); p.append(field('Text', ta)); }
