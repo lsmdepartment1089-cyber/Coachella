@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Photo Booth | McDonald's Year End Party</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Cormorant+Garamond:wght@500;600&family=Nunito+Sans:wght@400;600;800&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.js"></script>
+<script src="config.js"></script>
+<style id="pageStyle">@page{size:4in 6in;margin:0}</style>
+<style>
+:root{--red:#DA291C;--yellow:#FFC72C;--dark:#27251F;--cream:#FFF4D6;--orange:#FF8A1F;--display:'Londrina Solid','Arial Narrow',sans-serif;--body:'Nunito Sans',system-ui,sans-serif;--pw:4in;--ph:6in}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font-family:var(--body);color:var(--dark);background:linear-gradient(180deg,#FFF4D6,#FFE7A8);overflow:hidden;color-scheme:light;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--dark);outline-offset:2px}
+[hidden]{display:none!important}
+@keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+@keyframes flash{from{opacity:.95}to{opacity:0}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn{cursor:pointer;border:3px solid var(--dark);border-radius:14px;padding:10px 18px;font-family:var(--display);font-size:1.2rem;letter-spacing:.04em;background:var(--red);color:#fff;box-shadow:3px 3px 0 var(--dark);transition:transform .18s cubic-bezier(.3,1.5,.5,1),box-shadow .18s}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--dark)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--dark)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn.y{background:var(--yellow);color:var(--dark)}.btn.w{background:#fff;color:var(--dark)}.btn.d{background:var(--dark);color:var(--yellow)}
+.btn.s{font-size:.95rem;padding:6px 12px;box-shadow:2px 2px 0 var(--dark)}
+.btn.big{width:100%;font-size:2.4rem;padding:16px}
+#gate{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#DA291C,#FF8A1F);padding:20px}
+.card{background:var(--cream);border:3px solid var(--dark);border-radius:20px;padding:22px;box-shadow:8px 8px 0 var(--dark);width:min(100%,400px)}
+.card h1{font:400 2rem var(--display);color:var(--red);margin-bottom:6px}
+.card input{width:100%;padding:9px 11px;border:3px solid var(--dark);border-radius:10px;margin:8px 0 12px}
+.msg{font-weight:800;font-size:.9rem;min-height:1.2em;margin-top:6px;color:#B0170E}.msg.ok{color:#1B7A3D}
+#app{display:grid;grid-template-rows:auto 1fr;height:100%}
+.bar{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--red);border-bottom:3px solid var(--dark)}
+.bar h1{font:400 2rem var(--display);color:var(--yellow);text-shadow:2px 2px 0 var(--dark);line-height:1}
+.bar .sp{flex:1}.bar .st{font-weight:800;color:#fff;font-size:.85rem}
+main{min-height:0;position:relative}
+.homegrid{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:14px;padding:12px;height:100%}
+.pickcol{display:flex;flex-direction:column;min-height:0}
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding:2px 0 8px}
+.chip{cursor:pointer;border:3px solid var(--dark);border-radius:999px;background:#fff;padding:4px 12px;font-weight:800;font-size:.85rem;transition:background .15s}
+.chip[aria-pressed=true]{background:var(--yellow);box-shadow:2px 2px 0 var(--dark)}
+.tgrid{overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;padding:6px 6px 20px;align-content:start}
+.tc{cursor:pointer;border:3px solid var(--dark);border-radius:12px;background:#fff;padding:6px;text-align:center;font-weight:800;font-size:.72rem;transition:transform .15s,box-shadow .15s}
+.tc:hover{transform:translateY(-3px)}
+.tc[aria-pressed=true]{background:var(--yellow);box-shadow:0 0 0 4px rgba(255,199,44,.6),4px 4px 0 var(--dark)}
+.tc canvas{display:block;margin:0 auto 4px;height:150px;width:auto;max-width:100%;border-radius:4px}
+.optcol{overflow:auto;background:#fff;border:3px solid var(--dark);border-radius:16px;padding:12px;box-shadow:5px 5px 0 var(--dark)}
+.optcol h2{font:400 1.5rem var(--display);color:var(--red)}
+.optcol label.l{display:block;font-weight:800;font-size:.8rem;margin:10px 0 4px}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;cursor:pointer;border:3px solid var(--dark);border-radius:12px;background:#fff;padding:8px 4px;font:400 1.2rem var(--display)}
+.seg button[aria-pressed=true]{background:var(--yellow);box-shadow:3px 3px 0 var(--dark)}
+.chk{display:flex;gap:8px;align-items:center;font-weight:800;margin:12px 0;cursor:pointer}
+.chk input{width:20px;height:20px;accent-color:var(--red)}
+#selName{font-weight:800;font-size:.85rem;margin:2px 0 6px}
+#selPrev{display:block;margin:0 auto 6px;height:200px;width:auto;max-width:100%;border:3px solid var(--dark);border-radius:6px;background:#eee}
+#shoot,#result{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;height:100%;padding:8px}
+.stage{position:relative;--ar:.666;aspect-ratio:var(--ar);width:min(96vw,calc((100vh - 150px) * var(--ar)));background:#e8dcc0;border-radius:10px;overflow:hidden;box-shadow:0 12px 30px rgba(39,37,31,.4);border:3px solid var(--dark)}
+.slotbox{position:absolute;overflow:hidden;background:#111}
+.slotbox video{width:100%;height:100%;object-fit:cover;display:block}
+.ov{position:absolute;inset:0;pointer-events:none}
+#frameCv,#resCv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.count{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:400 min(40vw,260px) var(--display);color:#fff;text-shadow:0 8px 0 var(--dark),0 0 40px rgba(0,0,0,.5);background:rgba(0,0,0,.2);z-index:5}
+.count span{animation:pop .5s both}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:6}
+.flash.go{animation:flash .6s ease-out}
+.row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center}
+.shotinfo{font:400 1.6rem var(--display);color:var(--red)}
+.status{font:400 1.8rem var(--display);color:var(--dark);min-height:2.2rem;text-align:center}
+.modal{position:fixed;inset:0;z-index:40;background:rgba(39,37,31,.75);display:flex;align-items:center;justify-content:center;padding:16px}
+.mbox{background:var(--cream);border:3px solid var(--dark);border-radius:20px;box-shadow:8px 8px 0 var(--dark);padding:18px;width:min(100%,720px);max-height:92vh;overflow:auto}
+.mbox h2{font:400 1.9rem var(--display);color:var(--red);margin-bottom:8px}
+.mbox h3{font:400 1.3rem var(--display);margin:14px 0 4px}
+.mbox ol{padding-left:22px;font-size:.92rem;line-height:1.5}
+.mbox li{margin-bottom:5px}
+.mbox input[type=text],.mbox input[type=number],.mbox select{width:100%;padding:8px 10px;border:3px solid var(--dark);border-radius:10px;margin:4px 0 8px;background:#fff}
+.mbox code{background:#fff;border:2px solid var(--dark);border-radius:6px;padding:1px 6px;font-size:.85rem}
+.note{background:#fff;border:3px solid var(--dark);border-radius:12px;padding:8px 12px;font-size:.88rem;margin:8px 0}
+#printRoot{display:none}
+@media print{
+  html,body{height:auto;overflow:visible;background:#fff}
+  body>*:not(#printRoot){display:none!important}
+  #printRoot{display:block!important}
+  .pp{width:var(--pw);height:var(--ph);page-break-after:always;break-after:page;overflow:hidden}
+  .pp:last-child{page-break-after:auto;break-after:auto}
+  .pp img{width:100%;height:100%;display:block;object-fit:fill}
+}
+@media(max-width:900px){.homegrid{grid-template-columns:1fr;grid-template-rows:1fr auto;overflow:auto}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important}}
+</style>
+</head>
+<body>
+
+<div id="gate" hidden>
+  <form class="card" id="gateForm">
+    <h1>Photo Booth</h1>
+    <p style="font-size:.92rem">Organizers only. Use the organizer password.</p>
+    <input type="password" id="pw" autocomplete="current-password" required aria-label="Organizer password">
+    <button class="btn" id="gateBtn" type="submit" style="width:100%">Open the booth</button>
+    <div class="msg" id="gateMsg" role="status"></div>
+    <button class="btn s w" id="gateBack" type="button" style="margin-top:8px">Back to organizer desk</button>
+  </form>
+</div>
+
+<div id="app" hidden>
+  <header class="bar">
+    <h1>Photo Booth</h1><span class="sp"></span>
+    <span class="st" id="prStat"></span><span class="st" id="stats"></span>
+    <button class="btn s w" id="fsBtn" type="button">Full screen</button>
+    <button class="btn s y" id="setBtn" type="button">Settings and printer</button>
+  </header>
+  <main>
+    <section id="home" class="homegrid">
+      <div class="pickcol">
+        <div class="chips" id="layChips"></div>
+        <div class="chips" id="thChips"></div>
+        <div class="tgrid" id="tgrid"></div>
+      </div>
+      <aside class="optcol">
+        <h2>Your photo</h2>
+        <div id="selName"></div>
+        <canvas id="selPrev"></canvas>
+        <label class="l">Countdown</label>
+        <div class="seg" id="timerSeg"><button type="button" data-v="3">3 seconds</button><button type="button" data-v="5">5 seconds</button></div>
+        <label class="l">Prints</label>
+        <div class="seg" id="copySeg"><button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button><button type="button" data-v="4">4</button></div>
+        <label class="l">Filter</label>
+        <div class="chips" id="fltChips"></div>
+        <label class="chk"><input type="checkbox" id="autoPrint"> Print right after the photo</label>
+        <button class="btn big" id="startBtn" type="button">START</button>
+        <div class="msg" id="homeMsg" role="status"></div>
+      </aside>
+    </section>
+    <section id="shoot" hidden>
+      <div class="shotinfo" id="shotInfo">Get ready!</div>
+      <div class="stage" id="stage">
+        <div class="slotbox" id="slotbox"><video id="vid" playsinline muted autoplay></video></div>
+        <canvas id="frameCv"></canvas>
+        <div class="count" id="count" hidden><span id="countN">3</span></div>
+        <div class="flash" id="flash"></div>
+      </div>
+      <div class="row"><button class="btn d" id="cancelBtn" type="button">Cancel</button></div>
+    </section>
+    <section id="result" hidden>
+      <div class="status" id="resStatus" role="status"></div>
+      <div class="stage" id="resStage"><canvas id="resCv"></canvas></div>
+      <div class="row">
+        <button class="btn" id="printBtn" type="button">Print</button>
+        <button class="btn y" id="againBtn" type="button">Retake</button>
+        <button class="btn w" id="saveBtn" type="button">Save JPG</button>
+        <button class="btn d" id="newBtn" type="button">Next guest</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modal" id="setM" hidden>
+  <div class="mbox">
+    <h2>Settings and printer</h2>
+    <h3>Printer connection</h3>
+    <div class="note">A browser alone cannot see the printers on a computer. The free <b>QZ Tray</b> helper (qz.io/download) fixes that: install it on this computer, keep it running, then press <b>Find printers</b>. The booth lists every printer, you pick one, and photos print at 4x6 in with no pop-up. The first time, QZ asks to allow this website: tick Remember and press Allow.</div>
+    <div class="row" style="justify-content:flex-start;margin:8px 0"><button class="btn y" id="prFind" type="button">Find printers</button><select id="prSel" aria-label="Printer" style="flex:1;min-width:200px;margin:0"></select></div>
+    <div class="msg" id="prMsg" role="status"></div>
+    <h3>No helper? Use the launcher instead</h3>
+    <ol>
+      <li>Plug in the photo printer and install its driver.</li>
+      <li>Make it the default printer. Windows: <i>Settings, Bluetooth and devices, Printers and scanners</i>, pick the printer, <i>Set as default</i>.</li>
+      <li>Set its paper size to <b>4 x 6 in</b> (also called 10 x 15 cm or 4R), borderless if it offers it: <i>Printing preferences</i>.</li>
+      <li>Press <b>Download launcher</b> below and double-click the file. It opens this booth full screen and prints silently.</li>
+      <li>Press <b>Test print</b> and check the sheet. The border should touch all four edges.</li>
+    </ol>
+    <div class="row" style="justify-content:flex-start;margin:10px 0">
+      <button class="btn y" id="batBtn" type="button">Download launcher (Windows)</button>
+      <button class="btn" id="testBtn" type="button">Test print</button>
+      <button class="btn w" id="macBtn" type="button">Show Mac command</button>
+    </div>
+    <div class="note" id="macNote" hidden></div>
+    <div class="note">Without the launcher the booth still works: the normal print window opens each time, and you choose the printer and 4x6 paper in it.</div>
+    <h3>Booth options</h3>
+    <label class="l" for="capIn">Words printed on the photo</label>
+    <input type="text" id="capIn" maxlength="28">
+    <label class="l" for="camSel">Camera</label>
+    <select id="camSel"></select>
+    <label class="chk"><input type="checkbox" id="mirrorChk"> Mirror the photo (like a mirror, matches the screen)</label>
+    <label class="chk"><input type="checkbox" id="saveChk"> Also save every photo to this computer</label>
+    <label class="l" for="retIn">Go back to the start screen after (seconds)</label>
+    <input type="number" id="retIn" min="3" max="60">
+    <label class="chk"><input type="checkbox" id="demoChk"> Demo camera (no real camera, for testing)</label>
+    <div class="row" style="justify-content:space-between;margin-top:12px">
+      <button class="btn s d" id="exitBtn" type="button">Back to organizer desk</button>
+      <button class="btn y" id="setClose" type="button">Done</button>
+    </div>
+  </div>
+</div>
+
+<div id="printRoot" aria-hidden="true"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const C = window.CONFIG;
+const sb = supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY);
+const SS = { get: k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { sessionStorage.setItem(k, v); } catch (e) {} } };
+const LSget = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } };
+const LSset = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const TAU = Math.PI * 2;
+const R = '#DA291C', Y = '#FFC72C', K = '#27251F', CR = '#FFF4D6', O = '#FF8A1F';
+const FD = '"Londrina Solid"', FB = '"Nunito Sans"', FS = '"Cormorant Garamond"', FH = 'Caveat';
+const partyDate = (C.when || '').split('|')[0].trim();
+
+/* ---------- drawing helpers (design units) ---------- */
+function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function fit(c, text, font, size, maxW, wt) { let s = size; c.font = `${wt || ''} ${s}px ${font}`; while (c.measureText(text).width > maxW && s > 18) { s -= 4; c.font = `${wt || ''} ${s}px ${font}`; } return s; }
+function words(c, text, x, y, o) { c.save(); c.textAlign = o.align || 'center'; c.textBaseline = 'middle'; const s = fit(c, text, o.font, o.size, o.maxW || 99999, o.weight); c.fillStyle = o.color;
+  if (o.shadow) { c.shadowColor = o.shadow[0]; c.shadowOffsetX = o.shadow[1]; c.shadowOffsetY = o.shadow[2]; c.shadowBlur = o.shadow[3] || 0; } c.fillText(text, x, y); c.restore(); return s; }
+function tracked(c, text, cx, y, size, sp, color, font, wt) { c.save(); c.font = `${wt || 800} ${size}px ${font || FB}`; c.fillStyle = color; c.textBaseline = 'middle'; c.textAlign = 'left';
+  let w = 0; for (const ch of text) w += c.measureText(ch).width + sp; w -= sp; let x = cx - w / 2; for (const ch of text) { c.fillText(ch, x, y); x += c.measureText(ch).width + sp; } c.restore(); }
+function arch(c, x, y, w, h) { c.beginPath(); c.moveTo(x, y + h); c.lineTo(x, y + h * .5); c.bezierCurveTo(x, y - h * .2, x + w * .45, y - h * .2, x + w * .5, y + h * .5); c.bezierCurveTo(x + w * .55, y - h * .2, x + w, y - h * .2, x + w, y + h * .5); c.lineTo(x + w, y + h); c.stroke(); }
+function archPattern(c, w, h, a) { c.save(); c.strokeStyle = `rgba(255,199,44,${a})`; c.lineWidth = 12; c.lineCap = 'round'; c.lineJoin = 'round'; for (let y = 0; y < h + 120; y += 150) for (let x = ((y / 150) % 2) * 65 - 60; x < w + 130; x += 130) arch(c, x, y, 70, 46); c.restore(); }
+function wheel(c, cx, cy, r, al) { c.save(); c.globalAlpha = al || 1; c.strokeStyle = CR; c.lineWidth = r * .025; c.beginPath(); c.arc(cx, cy, r, 0, TAU); c.stroke(); c.beginPath(); c.arc(cx, cy, r * .84, 0, TAU); c.globalAlpha = (al || 1) * .6; c.stroke(); c.globalAlpha = al || 1;
+  for (let i = 0; i < 20; i++) { const a = i * TAU / 20, x = cx + r * Math.cos(a), y = cy + r * Math.sin(a); c.strokeStyle = CR; c.lineWidth = r * .025; c.beginPath(); c.moveTo(cx, cy); c.lineTo(x, y); c.stroke(); c.fillStyle = i % 2 ? Y : R; c.beginPath(); c.arc(x, y, r * .055, 0, TAU); c.fill(); c.strokeStyle = K; c.lineWidth = r * .012; c.stroke(); }
+  c.strokeStyle = CR; c.lineWidth = r * .025; c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx - r * .5, cy + r * 1.2); c.moveTo(cx, cy); c.lineTo(cx + r * .5, cy + r * 1.2); c.stroke(); c.restore(); }
+function mountains(c, w, y0, hg) { const layer = (col, pts) => { c.fillStyle = col; c.beginPath(); c.moveTo(0, y0 + hg); pts.forEach(([px, py]) => c.lineTo(px * w, y0 + py * hg)); c.lineTo(w, y0 + hg); c.closePath(); c.fill(); };
+  layer('#A8301F', [[0, .45], [.12, .2], [.28, .5], [.42, .1], [.6, .45], [.78, .15], [1, .4]]); layer('#6B1F16', [[0, .7], [.2, .45], [.38, .7], [.55, .4], [.75, .7], [1, .5]]); layer('#27251F', [[0, .9], [.3, .78], [.55, .9], [.8, .76], [1, .88]]); }
+const paper = (c, w, h) => { const g = c.createLinearGradient(0, 0, w, h); g.addColorStop(0, '#FFFDF8'); g.addColorStop(1, '#F3EDE0'); c.fillStyle = g; c.fillRect(0, 0, w, h); };
+const slotEdge = (c, s, col, wd) => { c.save(); c.strokeStyle = col; c.lineWidth = wd; rr(c, s.x, s.y, s.w, s.h, s.r || 0); c.stroke(); c.restore(); };
+const instax = (w, h, slot, capY, subY) => ({ bg: c => paper(c, w, h), fg: (c, cap) => { slotEdge(c, slot, 'rgba(0,0,0,.2)', 6); words(c, cap, w / 2, capY, { font: FH, size: 150, color: '#2b2623', maxW: w - 200, weight: 700 }); tracked(c, 'BEYOND THE ARCHES', w / 2, subY, 34, 12, '#8a7f70'); } });
+
+
+/* ---------- filters ---------- */
+const FILTERS = [
+  { id: 'orig', name: 'Original', sw: 'linear-gradient(135deg,#ddd,#999)' },
+  { id: 'golden', name: 'Golden Hour', s: 1.3, sep: .25, c: 1.05, b: 1.05, tint: { blend: 'soft-light', stops: [[0, 'rgba(255,170,40,.7)'], [1, 'rgba(255,120,40,.5)']] }, vig: .2, sw: 'linear-gradient(135deg,#FFC72C,#FF8A1F)' },
+  { id: 'sunset', name: 'Desert Sunset', s: 1.4, c: 1.08, tint: { blend: 'soft-light', stops: [[0, 'rgba(255,120,60,.8)'], [1, 'rgba(230,50,140,.7)']] }, vig: .25, sw: 'linear-gradient(135deg,#FF8A1F,#E6328C)' },
+  { id: 'neon', name: 'Neon Night', s: 1.5, c: 1.2, b: .95, tint: { blend: 'soft-light', stops: [[0, 'rgba(120,60,255,.8)'], [1, 'rgba(255,40,180,.7)']] }, vig: .3, sw: 'linear-gradient(135deg,#7B3CFF,#FF28B4)' },
+  { id: 'v70', name: 'Vintage 70s', sep: .5, c: .92, b: 1.08, s: 1.2, tint: { blend: 'soft-light', stops: [[0, 'rgba(255,190,90,.6)'], [1, 'rgba(200,110,60,.5)']] }, vig: .35, grain: .22, sw: 'linear-gradient(135deg,#C9A06A,#8E5A35)' },
+  { id: 'bw', name: 'B&W Film', gray: 1, c: 1.2, b: 1.02, vig: .35, grain: .28, sw: 'linear-gradient(135deg,#eee,#222)' },
+  { id: 'fade', name: 'Soft Fade', c: .85, b: 1.1, s: .8, tint: { blend: 'soft-light', stops: [[0, 'rgba(255,200,200,.45)'], [1, 'rgba(255,220,180,.35)']] }, sw: 'linear-gradient(135deg,#FFE3E3,#E8D3C0)' },
+  { id: 'pop', name: 'Pop', s: 1.8, c: 1.15, sw: 'linear-gradient(135deg,#DA291C,#FFC72C)' },
+  { id: 'fries', name: 'Fries Red', c: 1.1, s: 1.2, tint: { blend: 'soft-light', stops: [[0, 'rgba(218,41,28,.85)'], [1, 'rgba(255,199,44,.7)']] }, vig: .22, sw: 'linear-gradient(135deg,#DA291C,#FFC72C)' }
+];
+const cssOf = f => { const p = []; if (f.gray) p.push(`grayscale(${f.gray})`); if (f.sep) p.push(`sepia(${f.sep})`); if (f.s != null && f.s !== 1) p.push(`saturate(${f.s})`); if (f.b != null && f.b !== 1) p.push(`brightness(${f.b})`); if (f.c != null && f.c !== 1) p.push(`contrast(${f.c})`); return p.join(' ') || 'none'; };
+const FILTER_OK = (() => { try { const a = document.createElement('canvas'); a.width = a.height = 2; const x = a.getContext('2d'); x.fillStyle = '#f00'; x.fillRect(0, 0, 2, 2); const b = document.createElement('canvas'); b.width = b.height = 2; const y = b.getContext('2d'); y.filter = 'grayscale(1)'; y.drawImage(a, 0, 0); const d = y.getImageData(0, 0, 1, 1).data; return Math.abs(d[0] - d[1]) < 8; } catch (e) { return false; } })();
+let _grain = null; const grainCv = () => { if (_grain) return _grain; const g = document.createElement('canvas'); g.width = g.height = 200; const x = g.getContext('2d'), id = x.createImageData(200, 200); for (let i = 0; i < id.data.length; i += 4) { const v = Math.random() * 255; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; } x.putImageData(id, 0, 0); return (_grain = g); };
+function pixelFilter(tc, w, h, f) {
+  const id = tc.getImageData(0, 0, w, h), d = id.data, g = 1 - (f.gray || 0), sp = 1 - (f.sep || 0), s = f.s == null ? 1 : f.s, b = f.b == null ? 1 : f.b, ct = f.c == null ? 1 : f.c;
+  const mul = (A, B) => { const o = []; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) o[i * 3 + j] = A[i * 3] * B[j] + A[i * 3 + 1] * B[3 + j] + A[i * 3 + 2] * B[6 + j]; return o; };
+  const gm = [.2126 + .7874 * g, .7152 - .7152 * g, .0722 - .0722 * g, .2126 - .2126 * g, .7152 + .2848 * g, .0722 - .0722 * g, .2126 - .2126 * g, .7152 - .7152 * g, .0722 + .9278 * g];
+  const sm = [.393 + .607 * sp, .769 - .769 * sp, .189 - .189 * sp, .349 - .349 * sp, .686 + .314 * sp, .168 - .168 * sp, .272 - .272 * sp, .534 - .534 * sp, .131 + .869 * sp];
+  const vm = [.213 + .787 * s, .715 - .715 * s, .072 - .072 * s, .213 - .213 * s, .715 + .285 * s, .072 - .072 * s, .213 - .213 * s, .715 - .715 * s, .072 + .928 * s];
+  const M = mul(vm, mul(sm, gm)), cl = v => v < 0 ? 0 : v > 1 ? 1 : v;
+  for (let i = 0; i < d.length; i += 4) { const r = d[i] / 255, gg = d[i + 1] / 255, bb = d[i + 2] / 255;
+    d[i] = cl((cl(cl(M[0] * r + M[1] * gg + M[2] * bb) * b) - .5) * ct + .5) * 255; d[i + 1] = cl((cl(cl(M[3] * r + M[4] * gg + M[5] * bb) * b) - .5) * ct + .5) * 255; d[i + 2] = cl((cl(cl(M[6] * r + M[7] * gg + M[8] * bb) * b) - .5) * ct + .5) * 255; }
+  tc.putImageData(id, 0, 0);
+}
+function effects(tc, w, h, f) {
+  if (f.tint) { tc.save(); tc.globalCompositeOperation = f.tint.blend; const g = tc.createLinearGradient(0, 0, 0, h); f.tint.stops.forEach(([o, col]) => g.addColorStop(o, col)); tc.fillStyle = g; tc.fillRect(0, 0, w, h); tc.restore(); }
+  if (f.vig) { const g = tc.createRadialGradient(w / 2, h / 2, Math.min(w, h) * .25, w / 2, h / 2, Math.max(w, h) * .75); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(0,0,0,${f.vig})`); tc.fillStyle = g; tc.fillRect(0, 0, w, h); }
+  if (f.grain) { tc.save(); tc.globalAlpha = f.grain; tc.globalCompositeOperation = 'overlay'; tc.fillStyle = tc.createPattern(grainCv(), 'repeat'); tc.fillRect(0, 0, w, h); tc.restore(); }
+}
+function drawPhoto(c, slot, shot, flt, k) {
+  const pw = Math.max(2, Math.round(slot.w * k)), ph = Math.max(2, Math.round(slot.h * k)), t = document.createElement('canvas'); t.width = pw; t.height = ph; const tc = t.getContext('2d');
+  const raw = shot.raw, a = pw / ph, z = shot.zoom || 1; let sw, sh; if (raw.width / raw.height > a) { sh = raw.height / z; sw = sh * a; } else { sw = raw.width / z; sh = sw / a; }
+  const sx = (raw.width - sw) / 2, sy = (raw.height - sh) / 2;
+  if (FILTER_OK) { tc.filter = cssOf(flt); tc.drawImage(raw, sx, sy, sw, sh, 0, 0, pw, ph); tc.filter = 'none'; } else { tc.drawImage(raw, sx, sy, sw, sh, 0, 0, pw, ph); pixelFilter(tc, pw, ph, flt); }
+  effects(tc, pw, ph, flt); c.save(); rr(c, slot.x, slot.y, slot.w, slot.h, slot.r || 0); c.clip(); c.drawImage(t, slot.x, slot.y, slot.w, slot.h); c.restore();
+}
+
+
+/* ---------- extra decoration ---------- */
+function rng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function starsDeco(c, w, h, n, seed, col) { const r = rng(seed); c.save(); c.fillStyle = col || '#fff'; for (let i = 0; i < n; i++) { c.globalAlpha = .4 + r() * .6; c.beginPath(); c.arc(r() * w, r() * h * .72, 1.5 + r() * 3.5, 0, TAU); c.fill(); } c.restore(); }
+function confettiDeco(c, w, h, n, seed) { const r = rng(seed), cols = [Y, R, O, CR, '#fff']; for (let i = 0; i < n; i++) { c.save(); c.translate(r() * w, r() * h); c.rotate(r() * 6.3); c.fillStyle = cols[i % 5]; c.globalAlpha = .88; c.fillRect(-9, -14, 18, 28 * (.6 + r() * .8)); c.restore(); } }
+function stripesDeco(c, w, h, a, b, sw, ang) { c.save(); c.translate(w / 2, h / 2); c.rotate(ang || 0); const d = Math.hypot(w, h); for (let x = -d; x < d; x += sw * 2) { c.fillStyle = a; c.fillRect(x, -d, sw, d * 2); c.fillStyle = b; c.fillRect(x + sw, -d, sw, d * 2); } c.restore(); }
+function cloudsDeco(c, w, h, seed) { const r = rng(seed); c.save(); c.fillStyle = 'rgba(255,255,255,.85)'; for (let i = 0; i < 5; i++) { const x = r() * w, y = h * (.08 + r() * .35), s = 90 + r() * 120; [[0, 0, 1], [s * .6, -s * .12, .8], [-s * .6, s * .05, .7], [s * 1.1, s * .08, .6]].forEach(([dx, dy, k]) => { c.beginPath(); c.ellipse(x + dx, y + dy, s * .55 * k, s * .32 * k, 0, 0, TAU); c.fill(); }); } c.restore(); }
+function sunGlow(c, x, y, rad) { const g = c.createRadialGradient(x, y, 10, x, y, rad); g.addColorStop(0, 'rgba(255,246,200,.95)'); g.addColorStop(1, 'rgba(255,211,77,0)'); c.fillStyle = g; c.fillRect(x - rad, y - rad, rad * 2, rad * 2); }
+function beamDeco(c, x, w, h, col) { const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, col); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.beginPath(); c.moveTo(x - 40, 0); c.lineTo(x + 40, 0); c.lineTo(x + w * .35, h); c.lineTo(x - w * .35, h); c.closePath(); c.fill(); }
+function neonGrid(c, w, h) { const hz = h * .64; c.save(); c.lineWidth = 3; c.shadowBlur = 12; c.shadowColor = '#FF3DAE'; c.strokeStyle = '#FF3DAE'; for (let i = 0; i < 9; i++) { const y = hz + Math.pow(i / 8, 2) * (h - hz); c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); }
+  c.shadowColor = '#38E8FF'; c.strokeStyle = '#38E8FF'; for (let i = -10; i <= 10; i++) { c.beginPath(); c.moveTo(w / 2 + i * 20, hz); c.lineTo(w / 2 + i * w * .11, h); c.stroke(); } c.restore(); }
+function arcs70(c, w, h, u) { const cols = [R, O, Y, '#6B3A1E']; cols.forEach((col, i) => { c.fillStyle = col; c.beginPath(); c.arc(w, h, u * (.62 - i * .1), Math.PI, Math.PI * 1.5); c.lineTo(w, h); c.closePath(); c.fill(); }); }
+
+/* ---------- themes ---------- */
+const TH = {
+  sunset: { name: 'Coachella Sunset', ink: '#fff', ink2: CR, acc: R, shadow: K, frame: K, fw: 12, bg: (c, w, h) => { const u = Math.min(w, h), g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, R); g.addColorStop(.35, '#F25C1F'); g.addColorStop(.62, '#FF9E1B'); g.addColorStop(1, Y); c.fillStyle = g; c.fillRect(0, 0, w, h); sunGlow(c, w / 2, h * .82, u * .7); wheel(c, w * .84, h - u * .1, u * .11, .9); mountains(c, w, h - u * .17, u * .17); } },
+  arches: { name: 'Golden Arches', ink: CR, ink2: '#FFE9A8', acc: Y, shadow: K, frame: CR, fw: 14, bg: (c, w, h) => { const g = c.createLinearGradient(0, 0, w, h); g.addColorStop(0, R); g.addColorStop(1, '#A8150E'); c.fillStyle = g; c.fillRect(0, 0, w, h); archPattern(c, w, h, .26); } },
+  night: { name: 'Ferris Wheel Night', ink: '#fff', ink2: '#FFE9A8', acc: Y, shadow: K, frame: Y, fw: 12, bg: (c, w, h) => { const u = Math.min(w, h), g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#07071E'); g.addColorStop(.6, '#1E0F33'); g.addColorStop(1, '#5A1B2A'); c.fillStyle = g; c.fillRect(0, 0, w, h); starsDeco(c, w, h, 90, 7, '#fff'); const mg = c.createRadialGradient(w * .18, h * .12, 5, w * .18, h * .12, u * .1); mg.addColorStop(0, '#fff'); mg.addColorStop(1, 'rgba(232,236,255,0)'); c.fillStyle = mg; c.fillRect(0, 0, w, h * .3); c.save(); c.shadowColor = '#FFE3A8'; c.shadowBlur = 20; wheel(c, w * .82, h - u * .09, u * .11, .95); c.restore(); mountains(c, w, h - u * .15, u * .15); } },
+  fries: { name: 'Fries Stripes', ink: '#fff', ink2: CR, acc: Y, shadow: K, frame: CR, fw: 14, bg: (c, w, h) => { stripesDeco(c, w, h, R, '#C41F14', 70, .35); } },
+  stage: { name: 'Stage Lights', ink: '#fff', ink2: '#FFE9A8', acc: Y, shadow: '#000', frame: Y, fw: 12, bg: (c, w, h) => { const g = c.createRadialGradient(w / 2, h * 1.1, 20, w / 2, h * 1.1, h * 1.1); g.addColorStop(0, '#7A0D08'); g.addColorStop(.6, '#1c0f14'); g.addColorStop(1, '#0b0608'); c.fillStyle = g; c.fillRect(0, 0, w, h); beamDeco(c, w * .2, w, h, 'rgba(255,244,214,.5)'); beamDeco(c, w * .5, w, h, 'rgba(255,199,44,.45)'); beamDeco(c, w * .8, w, h, 'rgba(255,90,70,.45)'); } },
+  party: { name: 'Confetti Party', ink: '#fff', ink2: CR, acc: Y, shadow: K, frame: K, fw: 12, bg: (c, w, h) => { const g = c.createLinearGradient(0, 0, w, h); g.addColorStop(0, '#7A0D08'); g.addColorStop(.5, R); g.addColorStop(1, O); c.fillStyle = g; c.fillRect(0, 0, w, h); confettiDeco(c, w, h, 90, 11); } },
+  retro: { name: 'Retro 70s', ink: '#6B3A1E', ink2: '#8a5a3a', acc: R, shadow: '#FFE9A8', frame: '#6B3A1E', fw: 12, bg: (c, w, h) => { c.fillStyle = '#FFF1D0'; c.fillRect(0, 0, w, h); arcs70(c, w, h, Math.min(w, h)); } },
+  neon: { name: 'Neon Festival', ink: '#fff', ink2: '#38E8FF', acc: '#FF3DAE', shadow: '#FF3DAE', frame: '#38E8FF', fw: 10, bg: (c, w, h) => { const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#12062E'); g.addColorStop(1, '#3A0B52'); c.fillStyle = g; c.fillRect(0, 0, w, h); starsDeco(c, w, h, 50, 3, '#FF9BE0'); neonGrid(c, w, h); } },
+  cream: { name: 'Cream Classic', ink: K, ink2: '#6B3A1E', acc: R, shadow: Y, frame: R, fw: 12, bg: (c, w, h) => { c.fillStyle = '#FFF4D6'; c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(218,41,28,.07)'; for (let y = 25; y < h; y += 50) for (let x = ((y / 50) % 2) * 25; x < w; x += 50) { c.beginPath(); c.arc(x, y, 5, 0, TAU); c.fill(); } c.strokeStyle = R; c.lineWidth = 14; rr(c, 26, 26, w - 52, h - 52, 30); c.stroke(); c.lineWidth = 4; rr(c, 50, 50, w - 100, h - 100, 20); c.stroke(); } },
+  gold: { name: 'Black and Gold', ink: Y, ink2: '#E8C766', acc: Y, shadow: '#000', frame: Y, fw: 10, bg: (c, w, h) => { c.fillStyle = '#111'; c.fillRect(0, 0, w, h); archPattern(c, w, h, .16); } },
+  desert: { name: 'Desert Rose', ink: '#fff', ink2: CR, acc: O, shadow: '#7A2A6B', frame: CR, fw: 12, bg: (c, w, h) => { const u = Math.min(w, h), g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#FF9E80'); g.addColorStop(.55, '#FF5E7E'); g.addColorStop(1, '#7A2A6B'); c.fillStyle = g; c.fillRect(0, 0, w, h); sunGlow(c, w * .5, h * .78, u * .6); c.fillStyle = '#5B1F52'; c.beginPath(); c.moveTo(0, h); c.lineTo(0, h - u * .12); c.quadraticCurveTo(w * .25, h - u * .22, w * .5, h - u * .1); c.quadraticCurveTo(w * .75, h - u * .02, w, h - u * .14); c.lineTo(w, h); c.fill(); } },
+  sky: { name: 'Blue Sky Day', ink: '#fff', ink2: '#FFF4D6', acc: R, shadow: '#1D5FA0', frame: '#fff', fw: 12, bg: (c, w, h) => { const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#3C8DD6'); g.addColorStop(.6, '#9FD6F2'); g.addColorStop(1, '#DDF1FA'); c.fillStyle = g; c.fillRect(0, 0, w, h); sunGlow(c, w * .85, h * .1, Math.min(w, h) * .5); cloudsDeco(c, w, h, 5); } }
+};
+
+/* ---------- more themes ---------- */
+function flowersDeco(c, w, h, n, seed) { const r = rng(seed), cols = ['#E6328C', '#FFC72C', '#FF8A1F', '#fff', '#B77BFF']; for (let i = 0; i < n; i++) { const s = 26 + r() * 40; c.save(); c.translate(r() * w, r() * h); c.rotate(r() * 6); c.globalAlpha = .85; c.fillStyle = cols[i % 5]; for (let p = 0; p < 5; p++) { c.rotate(TAU / 5); c.beginPath(); c.ellipse(0, -s * .55, s * .32, s * .55, 0, 0, TAU); c.fill(); } c.fillStyle = '#FFE066'; c.beginPath(); c.arc(0, 0, s * .22, 0, TAU); c.fill(); c.restore(); } }
+function sparkleDeco(c, w, h, n, seed, col) { const r = rng(seed); c.save(); c.fillStyle = col; for (let i = 0; i < n; i++) { const x = r() * w, y = r() * h, s = 8 + r() * 26; c.globalAlpha = .35 + r() * .65; c.beginPath(); c.moveTo(x, y - s); c.quadraticCurveTo(x, y, x + s, y); c.quadraticCurveTo(x, y, x, y + s); c.quadraticCurveTo(x, y, x - s, y); c.quadraticCurveTo(x, y, x, y - s); c.fill(); } c.restore(); }
+Object.assign(TH, {
+  bloom: { name: 'Flower Crown', ink: '#7A1F3D', ink2: '#A8504E', acc: '#E6328C', shadow: '#fff', frame: '#fff', fw: 12, bg: (c, w, h) => { const g = c.createLinearGradient(0, 0, w, h); g.addColorStop(0, '#FFE3EC'); g.addColorStop(1, '#FFD9A8'); c.fillStyle = g; c.fillRect(0, 0, w, h); flowersDeco(c, w, h, 46, 21); } },
+  disco: { name: 'Disco Glitter', ink: '#fff', ink2: '#F9D1FF', acc: '#FF3DAE', shadow: '#7B3CFF', frame: '#F9D1FF', fw: 10, bg: (c, w, h) => { const g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#1A0B2E'); g.addColorStop(1, '#5B2A86'); c.fillStyle = g; c.fillRect(0, 0, w, h); sparkleDeco(c, w, h, 70, 4, '#F9D1FF'); sparkleDeco(c, w, h, 30, 9, Y); } },
+  oasis: { name: 'Palm Oasis', ink: '#fff', ink2: CR, acc: Y, shadow: '#0A4F4E', frame: CR, fw: 12, bg: (c, w, h) => { const u = Math.min(w, h), g = c.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#0E7C7B'); g.addColorStop(.6, '#17BEBB'); g.addColorStop(1, '#FFE9A8'); c.fillStyle = g; c.fillRect(0, 0, w, h); sunGlow(c, w * .2, h * .12, u * .45); c.fillStyle = '#F2C879'; c.beginPath(); c.moveTo(0, h); c.lineTo(0, h - u * .1); c.quadraticCurveTo(w * .3, h - u * .2, w * .6, h - u * .08); c.quadraticCurveTo(w * .85, h - u * .02, w, h - u * .12); c.lineTo(w, h); c.fill(); } },
+  yearend: { name: 'Year End Gold', ink: Y, ink2: '#E8C766', acc: Y, shadow: '#000', frame: Y, fw: 10, bg: (c, w, h) => { c.fillStyle = '#0D0B08'; c.fillRect(0, 0, w, h); c.save(); c.globalAlpha = .08; c.fillStyle = Y; c.textAlign = 'center'; c.font = `900 ${Math.min(w, h) * .55}px ${FD}`; c.fillText('2026', w / 2, h * .62); c.restore(); confettiDeco(c, w, h, 70, 33); } },
+  tiedye: { name: 'Tie-Dye Boho', ink: '#fff', ink2: CR, acc: Y, shadow: K, frame: CR, fw: 12, bg: (c, w, h) => { const cols = ['#7B3CFF', '#E6328C', R, O, Y, '#38E8FF'], m = Math.hypot(w, h); for (let i = 12; i > 0; i--) { c.fillStyle = cols[i % 6]; c.beginPath(); c.arc(w / 2, h / 2, m * i / 12 * .62, 0, TAU); c.fill(); } } },
+  burger: { name: 'Fries and Sun', ink: K, ink2: '#6B1F16', acc: R, shadow: '#fff', frame: R, fw: 12, bg: (c, w, h) => { c.fillStyle = Y; c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(218,41,28,.9)'; for (let y = 30; y < h; y += 60) for (let x = ((y / 60) % 2) * 30; x < w; x += 60) { c.beginPath(); c.arc(x, y, 9, 0, TAU); c.fill(); } } },
+  checker: { name: 'Checker Pop', ink: K, ink2: '#6B1F16', acc: R, shadow: '#fff', frame: K, fw: 12, bg: (c, w, h) => { c.fillStyle = CR; c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(218,41,28,.22)'; for (let y = 0; y < h; y += 80) for (let x = ((y / 80) % 2) * 80; x < w; x += 160) c.fillRect(x, y, 80, 80); } }
+});
+const NEWT = ['bloom', 'disco', 'oasis', 'yearend', 'tiedye', 'burger', 'checker'];
+
+/* ---------- layouts (300 dpi: 4x6 in = 1200 x 1800) ---------- */
+const bigTitle = (c, T, cx, y, size, maxW) => words(c, 'COACHELLA', cx, y, { font: FD, size, color: T.ink, weight: 900, maxW, shadow: [T.shadow, 0, Math.round(size * .05), 0] });
+const subTitle = (c, T, cx, y, size, sp) => tracked(c, 'BEYOND THE ARCHES', cx, y, size, sp, T.ink2);
+const capTxt = (c, T, text, cx, y, size, maxW, col) => words(c, text, cx, y, { font: FH, size, color: col || T.ink, weight: 700, maxW, shadow: col ? null : [T.shadow, 0, Math.round(size * .03), 0] });
+const smallTxt = (c, T, text, cx, y, size, maxW, col) => words(c, text, cx, y, { font: FB, size, color: col || T.ink2, weight: 800, maxW });
+const edge = (c, T, s) => slotEdge(c, s, T.frame, T.fw);
+const footer = (c, T, cx, capY, capS, w, cap) => { capTxt(c, T, cap, cx, capY, capS, w); smallTxt(c, T, C.partyName, cx, capY + capS * .72, Math.round(capS * .34), w); smallTxt(c, T, partyDate, cx, capY + capS * 1.1, Math.round(capS * .28), w); };
+const mk = (id, label, w, h, shots, slots, map, fg, pre) => ({ id, label, w, h, shots, slots, map: map || slots.map((_, i) => i), fg, pre });
+const S = (x, y, w, h, r) => ({ x, y, w, h, r: r == null ? 18 : r });
+const LAY = {
+  single: mk('single', '1 photo', 1200, 1800, 1, [S(90, 300, 1020, 1100)], null, (c, T, cap) => { bigTitle(c, T, 600, 150, 190, 1000); subTitle(c, T, 600, 262, 38, 16); edge(c, T, S(90, 300, 1020, 1100)); footer(c, T, 600, 1530, 150, 1000, cap); }),
+  polaroid: mk('polaroid', 'Polaroid', 1200, 1800, 1, [S(120, 200, 960, 960, 6)], null, (c, T, cap) => { bigTitle(c, T, 600, 75, 100, 1000); slotEdge(c, S(120, 200, 960, 960, 6), 'rgba(0,0,0,.2)', 6); capTxt(c, T, cap, 600, 1330, 150, 900, '#2b2623'); smallTxt(c, T, C.partyName + '  |  ' + partyDate, 600, 1450, 36, 900, '#8a7f70'); subTitle(c, T, 600, 1650, 36, 14); },
+    (c, T) => { c.save(); c.shadowColor = 'rgba(0,0,0,.45)'; c.shadowBlur = 40; c.shadowOffsetY = 20; c.fillStyle = '#FFFDF8'; rr(c, 70, 150, 1060, 1400, 14); c.fill(); c.restore(); }),
+  two: mk('two', '2 photos', 1200, 1800, 2, [S(90, 260, 1020, 600), S(90, 900, 1020, 600)], null, (c, T, cap) => { bigTitle(c, T, 600, 115, 130, 1000); subTitle(c, T, 600, 200, 34, 14); edge(c, T, S(90, 260, 1020, 600)); edge(c, T, S(90, 900, 1020, 600)); footer(c, T, 600, 1595, 110, 1000, cap); }),
+  three: mk('three', '3 photos', 1200, 1800, 3, [S(90, 230, 1020, 420), S(90, 690, 1020, 420), S(90, 1150, 1020, 420)], null, (c, T, cap) => { bigTitle(c, T, 600, 105, 115, 1000); subTitle(c, T, 600, 178, 30, 12);[230, 690, 1150].forEach(y => edge(c, T, S(90, y, 1020, 420))); footer(c, T, 600, 1655, 92, 1000, cap); }),
+  quad: mk('quad', '4 photos', 1200, 1800, 4, [S(80, 250, 500, 660), S(620, 250, 500, 660), S(80, 950, 500, 660), S(620, 950, 500, 660)], null, (c, T, cap) => { bigTitle(c, T, 600, 105, 125, 1000); subTitle(c, T, 600, 185, 32, 12); [[80, 250], [620, 250], [80, 950], [620, 950]].forEach(([x, y]) => edge(c, T, S(x, y, 500, 660))); footer(c, T, 600, 1690, 86, 1000, cap); }),
+  strip3: mk('strip3', 'Strips x2 (3)', 1200, 1800, 3, [0, 600].flatMap(o => [150, 630, 1110].map(y => S(o + 50, y, 500, 440, 10))), [0, 1, 2, 0, 1, 2], (c, T, cap) => { [0, 600].forEach(o => { [150, 630, 1110].forEach(y => edge(c, T, S(o + 50, y, 500, 440, 10))); words(c, 'BEYOND THE ARCHES', o + 300, 75, { font: FD, size: 62, color: T.ink, weight: 900, maxW: 520, shadow: [T.shadow, 0, 4, 0] }); capTxt(c, T, cap, o + 300, 1650, 100, 520); smallTxt(c, T, C.partyName, o + 300, 1725, 30, 540); smallTxt(c, T, partyDate, o + 300, 1768, 26, 540); }); c.save(); c.setLineDash([14, 14]); c.strokeStyle = 'rgba(0,0,0,.35)'; c.lineWidth = 3; c.beginPath(); c.moveTo(600, 0); c.lineTo(600, 1800); c.stroke(); c.restore(); }),
+  strip4: mk('strip4', 'Strips x2 (4)', 1200, 1800, 4, [0, 600].flatMap(o => [130, 500, 870, 1240].map(y => S(o + 50, y, 500, 330, 10))), [0, 1, 2, 3, 0, 1, 2, 3], (c, T, cap) => { [0, 600].forEach(o => { [130, 500, 870, 1240].forEach(y => edge(c, T, S(o + 50, y, 500, 330, 10))); words(c, 'BEYOND THE ARCHES', o + 300, 65, { font: FD, size: 58, color: T.ink, weight: 900, maxW: 520, shadow: [T.shadow, 0, 4, 0] }); capTxt(c, T, cap, o + 300, 1655, 96, 520); smallTxt(c, T, C.partyName, o + 300, 1728, 30, 540); smallTxt(c, T, partyDate, o + 300, 1770, 26, 540); }); c.save(); c.setLineDash([14, 14]); c.strokeStyle = 'rgba(0,0,0,.35)'; c.lineWidth = 3; c.beginPath(); c.moveTo(600, 0); c.lineTo(600, 1800); c.stroke(); c.restore(); }),
+  wide1: mk('wide1', 'Landscape', 1800, 1200, 1, [S(60, 60, 1180, 1080, 20)], null, (c, T, cap) => { edge(c, T, S(60, 60, 1180, 1080, 20)); bigTitle(c, T, 1510, 250, 170, 450); subTitle(c, T, 1510, 345, 28, 7); capTxt(c, T, cap, 1510, 640, 115, 450); smallTxt(c, T, C.partyName, 1510, 940, 34, 450); smallTxt(c, T, partyDate, 1510, 1000, 30, 450); }),
+  wide2: mk('wide2', 'Landscape x2', 1800, 1200, 2, [S(60, 190, 820, 800, 18), S(920, 190, 820, 800, 18)], null, (c, T, cap) => { bigTitle(c, T, 900, 90, 110, 1400); subTitle(c, T, 900, 160, 30, 14); edge(c, T, S(60, 190, 820, 800, 18)); edge(c, T, S(920, 190, 820, 800, 18)); capTxt(c, T, cap, 900, 1075, 100, 1400); smallTxt(c, T, C.partyName + '  |  ' + partyDate, 900, 1150, 38, 1400); }),
+  postcard: mk('postcard', 'Postcard', 1800, 1200, 1, [S(60, 60, 1100, 1080, 14)], null, (c, T, cap) => { edge(c, T, S(60, 60, 1100, 1080, 14)); c.save(); c.setLineDash([10, 8]); c.strokeStyle = T.ink2; c.lineWidth = 4; rr(c, 1570, 70, 170, 210, 6); c.stroke(); c.restore(); smallTxt(c, T, 'POSTAGE', 1655, 175, 26, 150); capTxt(c, T, 'Greetings from', 1450, 410, 92, 540); words(c, 'COACHELLA', 1450, 540, { font: FD, size: 150, color: T.ink, weight: 900, maxW: 540, shadow: [T.shadow, 0, 7, 0] }); subTitle(c, T, 1450, 640, 28, 8);
+    c.save(); c.strokeStyle = T.ink2; c.globalAlpha = .7; c.lineWidth = 3;[780, 870, 960].forEach(y => { c.beginPath(); c.moveTo(1240, y); c.lineTo(1740, y); c.stroke(); }); c.restore(); capTxt(c, T, cap, 1490, 760, 70, 480); smallTxt(c, T, C.partyName, 1490, 1060, 32, 480); smallTxt(c, T, partyDate, 1490, 1105, 28, 480); })
+};
+const LAYOUT_THEMES = { single: Object.keys(TH), polaroid: ['sunset', 'arches', 'night', 'party', 'cream', 'desert', 'sky', 'gold'], two: ['sunset', 'arches', 'night', 'stage', 'party', 'cream', 'neon', 'sky'], three: ['sunset', 'arches', 'night', 'fries', 'stage', 'party', 'retro', 'gold'], quad: ['sunset', 'arches', 'night', 'party', 'retro', 'neon', 'desert', 'cream'], strip3: ['sunset', 'arches', 'night', 'fries', 'stage', 'party', 'cream', 'gold'], strip4: ['sunset', 'arches', 'night', 'neon', 'retro', 'sky'], wide1: ['sunset', 'arches', 'night', 'stage', 'party', 'desert', 'sky', 'gold'], wide2: ['sunset', 'arches', 'night', 'party', 'cream', 'neon'], postcard: ['sunset', 'retro', 'cream', 'sky'] };
+Object.keys(LAYOUT_THEMES).forEach(k => NEWT.forEach(t => { if (!LAYOUT_THEMES[k].includes(t)) LAYOUT_THEMES[k].push(t); }));
+const TPLS = [];
+const visT = () => TPLS.filter(t => (B.filterF === 'all' || t.layout.id === B.filterF) && (B.themeF === 'all' || t.theme === TH[B.themeF])); Object.keys(LAY).forEach(l => LAYOUT_THEMES[l].forEach(t => TPLS.push({ id: l + '-' + t, layout: LAY[l], theme: TH[t], name: TH[t].name })));
+
+/* ---------- booth state + rendering ---------- */
+const B = { tpl: TPLS[0], filter: FILTERS[0], timer: +LSget('booth_timer', 3), copies: +LSget('booth_copies', 1), auto: LSget('booth_auto', '1') === '1', caption: LSget('booth_cap', C.partyName || 'Year End Party'), mirror: LSget('booth_mirror', '1') === '1', saveCopy: LSget('booth_save', '0') === '1', ret: +LSget('booth_ret', 12), demo: LSget('booth_demo', '0') === '1', deviceId: LSget('booth_cam', ''), shots: [], live: null, mode: 'home', stream: null, busy: false, cancel: false, final: null, filterF: 'all', themeF: 'all', retT: null };
+let fontsReady = false;
+async function loadFonts() { try { await Promise.all(['900 100px "Londrina Solid"', '400 100px "Londrina Solid"', '800 40px "Nunito Sans"', '700 100px Caveat'].map(f => document.fonts.load(f))); } catch (e) {} fontsReady = true; }
+function renderBooth(c, tpl, k, st) {
+  const L = tpl.layout, T = tpl.theme; c.save(); c.scale(k, k); T.bg(c, L.w, L.h); if (L.pre) L.pre(c, T);
+  L.slots.forEach((s, i) => { const si = L.map[i];
+    if (st.liveSlot === i) { c.save(); c.globalCompositeOperation = 'destination-out'; c.fillStyle = '#000'; rr(c, s.x, s.y, s.w, s.h, s.r || 0); c.fill(); c.restore(); }
+    else if (st.shots[si]) drawPhoto(c, s, st.shots[si], st.filter, k); else { c.fillStyle = 'rgba(255,255,255,.35)'; rr(c, s.x, s.y, s.w, s.h, s.r || 0); c.fill(); } });
+  L.fg(c, T, st.caption || ' '); c.restore();
+}
+const liveSlotIdx = () => B.live == null ? null : B.tpl.layout.map.indexOf(B.live);
+
+/* ---------- start screen ---------- */
+function phShot() { const ph = document.createElement('canvas'); ph.width = ph.height = 240; const px = ph.getContext('2d'), g = px.createLinearGradient(0, 0, 240, 240); g.addColorStop(0, '#f6c28b'); g.addColorStop(1, '#e8758a'); px.fillStyle = g; px.fillRect(0, 0, 240, 240); px.fillStyle = 'rgba(255,255,255,.6)'; px.beginPath(); px.arc(120, 100, 44, 0, TAU); px.fill(); px.fillRect(70, 150, 100, 90); return { raw: ph, zoom: 1 }; }
+let PH = null;
+function thumbOf(tpl, hpx) { PH = PH || phShot(); const L = tpl.layout, k = hpx / L.h, cv = document.createElement('canvas'); cv.width = Math.round(L.w * k); cv.height = hpx; renderBooth(cv.getContext('2d'), tpl, k, { liveSlot: null, shots: [PH, PH, PH, PH], filter: FILTERS[0], caption: B.caption }); return cv; }
+function buildHome() {
+  const lc = $('layChips'); lc.textContent = ''; const cats = [['all', 'All templates'], ...Object.keys(LAY).map(k => [k, LAY[k].label])];
+  cats.forEach(([k, lab]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = lab + (k === 'all' ? ' (' + TPLS.length + ')' : ''); b.setAttribute('aria-pressed', B.filterF === k); b.addEventListener('click', () => { B.filterF = k; buildHome(); }); lc.appendChild(b); });
+  const tcs = $('thChips'); tcs.textContent = ''; [['all', 'All themes'], ...Object.keys(TH).map(k => [k, TH[k].name])].forEach(([k, lab]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = lab; b.setAttribute('aria-pressed', B.themeF === k); b.addEventListener('click', () => { B.themeF = k; buildHome(); }); tcs.appendChild(b); });
+  const g = $('tgrid'); g.textContent = '';
+  visT().forEach(t => { const b = document.createElement('button'); b.type = 'button'; b.className = 'tc'; b.setAttribute('aria-pressed', t === B.tpl); b.appendChild(thumbOf(t, 150)); b.append(t.name + ' · ' + t.layout.label); b.addEventListener('click', () => { B.tpl = t; markSel(); }); g.appendChild(b); });
+  const fc = $('fltChips'); fc.textContent = ''; FILTERS.forEach(f => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = f.name; b.setAttribute('aria-pressed', f === B.filter); b.addEventListener('click', () => { B.filter = f; [...fc.children].forEach((x, i) => x.setAttribute('aria-pressed', FILTERS[i] === f)); }); fc.appendChild(b); });
+  markSel(); markOpts();
+}
+function markSel() { [...$('tgrid').children].forEach(b => b.setAttribute('aria-pressed', false)); const vis = visT(), i = vis.indexOf(B.tpl); if (i >= 0) $('tgrid').children[i].setAttribute('aria-pressed', true);
+  $('selName').textContent = B.tpl.name + ' · ' + B.tpl.layout.label + ' · ' + B.tpl.layout.shots + (B.tpl.layout.shots > 1 ? ' photos' : ' photo');
+  const cv = $('selPrev'), t = thumbOf(B.tpl, 300); cv.width = t.width; cv.height = t.height; cv.getContext('2d').drawImage(t, 0, 0); }
+function markOpts() { [...$('timerSeg').children].forEach(b => b.setAttribute('aria-pressed', +b.dataset.v === B.timer)); [...$('copySeg').children].forEach(b => b.setAttribute('aria-pressed', +b.dataset.v === B.copies)); $('autoPrint').checked = B.auto; }
+$('timerSeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; B.timer = +b.dataset.v; LSset('booth_timer', B.timer); markOpts(); });
+$('copySeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; B.copies = +b.dataset.v; LSset('booth_copies', B.copies); markOpts(); });
+$('autoPrint').addEventListener('change', e => { B.auto = e.target.checked; LSset('booth_auto', B.auto ? '1' : '0'); });
+
+/* ---------- camera ---------- */
+function demoStream() {
+  const cv = document.createElement('canvas'); cv.width = 1280; cv.height = 720; const c = cv.getContext('2d'); let t = 0;
+  (function f() { t += .03; const g = c.createLinearGradient(0, 0, 1280, 720); g.addColorStop(0, `hsl(${(t * 30) % 360},70%,62%)`); g.addColorStop(1, `hsl(${(t * 30 + 80) % 360},70%,45%)`); c.fillStyle = g; c.fillRect(0, 0, 1280, 720);
+    const dx = Math.sin(t) * 30; c.fillStyle = 'rgba(255,255,255,.9)'; c.beginPath(); c.arc(640 + dx, 290, 120, 0, TAU); c.fill(); c.fillRect(470 + dx, 420, 340, 300); c.fillStyle = '#27251F'; c.beginPath(); c.arc(600 + dx, 270, 12, 0, TAU); c.arc(680 + dx, 270, 12, 0, TAU); c.fill(); c.lineWidth = 8; c.strokeStyle = '#27251F'; c.beginPath(); c.arc(640 + dx, 310, 50, .2, Math.PI - .2); c.stroke();
+    c.font = '800 44px "Nunito Sans"'; c.textAlign = 'center'; c.fillStyle = '#fff'; c.fillText('DEMO CAMERA', 640, 80); requestAnimationFrame(f); })();
+  return cv.captureStream(30);
+}
+function stopCam() { if (B.stream) B.stream.getTracks().forEach(t => t.stop()); B.stream = null; }
+async function ensureCam() {
+  if (B.stream) return true;
+  try {
+    if (B.demo) B.stream = demoStream(); else B.stream = await navigator.mediaDevices.getUserMedia({ video: Object.assign({ width: { ideal: 1920 }, height: { ideal: 1080 } }, B.deviceId ? { deviceId: { exact: B.deviceId } } : { facingMode: 'user' }), audio: false });
+    const v = $('vid'); v.srcObject = B.stream; await v.play().catch(() => {}); v.style.transform = B.mirror ? 'scaleX(-1)' : 'none'; v.style.filter = cssOf(B.filter); return true;
+  } catch (e) { B.stream = null; $('homeMsg').className = 'msg'; $('homeMsg').textContent = 'The camera could not start. Open Settings and check the camera, or switch on the demo camera.'; toHome(); return false; }
+}
+async function fillCams() {
+  const sel = $('camSel'); sel.textContent = ''; const add = (v, t) => { const o = document.createElement('option'); o.value = v; o.textContent = t; sel.appendChild(o); }; add('', 'Automatic');
+  try { const ds = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput'); ds.forEach((d, i) => add(d.deviceId, d.label || 'Camera ' + (i + 1))); } catch (e) {} sel.value = B.deviceId;
+}
+
+/* ---------- screens ---------- */
+function setMode(m) { B.mode = m; $('home').hidden = m !== 'home'; $('shoot').hidden = m !== 'shoot'; $('result').hidden = m !== 'result'; clearTimeout(B.retT); }
+function toHome() { setMode('home'); B.live = null; B.shots = []; $('printRoot').textContent = ''; }
+function layoutStage() {
+  const L = B.tpl.layout, st = $('stage'); st.style.setProperty('--ar', L.w / L.h); const li = liveSlotIdx(), s = L.slots[li == null ? 0 : li], sbx = $('slotbox'), W = st.clientWidth || 300, k = W / L.w;
+  sbx.style.left = s.x / L.w * 100 + '%'; sbx.style.top = s.y / L.h * 100 + '%'; sbx.style.width = s.w / L.w * 100 + '%'; sbx.style.height = s.h / L.h * 100 + '%'; sbx.style.borderRadius = (s.r || 0) * k + 'px'; sbx.style.display = li == null ? 'none' : 'block';
+  const cv = $('frameCv'), dpr = Math.min(devicePixelRatio || 1, 2), CW = Math.min(1100, Math.round(W * dpr)), CH = Math.round(CW * L.h / L.w); if (cv.width !== CW || cv.height !== CH) { cv.width = CW; cv.height = CH; }
+  const c = cv.getContext('2d'); c.clearRect(0, 0, CW, CH); renderBooth(c, B.tpl, CW / L.w, { liveSlot: li, shots: B.shots, filter: B.filter, caption: B.caption });
+}
+function beep(f, d, type, v) { try { B.ac = B.ac || new (window.AudioContext || window.webkitAudioContext)(); if (B.ac.state === 'suspended') B.ac.resume(); const o = B.ac.createOscillator(), g = B.ac.createGain(), t = B.ac.currentTime; o.type = type || 'sine'; o.frequency.value = f; g.gain.setValueAtTime(v || .2, t); g.gain.exponentialRampToValueAtTime(.001, t + d); o.connect(g); g.connect(B.ac.destination); o.start(t); o.stop(t + d + .02); } catch (e) {} }
+async function countdown(n) { const box = $('count'), num = $('countN'); box.hidden = false; for (let i = n; i > 0; i--) { if (B.cancel) { box.hidden = true; return false; } num.textContent = i; num.style.animation = 'none'; void num.offsetWidth; num.style.animation = ''; beep(i === 1 ? 1000 : 660, .14, 'sine', .25); await sleep(1000); } box.hidden = true; return !B.cancel; }
+function rawFrom(src, w, h, mirror) { const k = Math.min(1, 2400 / Math.max(w, h)), cv = document.createElement('canvas'); cv.width = Math.round(w * k); cv.height = Math.round(h * k); const c = cv.getContext('2d'); if (mirror) { c.translate(cv.width, 0); c.scale(-1, 1); } c.drawImage(src, 0, 0, cv.width, cv.height); return cv; }
+async function snap() { const v = $('vid'); if (!v.videoWidth) throw new Error('no video'); const fl = $('flash'); fl.classList.remove('go'); void fl.offsetWidth; fl.classList.add('go'); beep(1500, .05, 'square', .12); B.shots.push({ raw: rawFrom(v, v.videoWidth, v.videoHeight, B.mirror), zoom: 1 }); }
+async function runSession() {
+  if (B.busy) return; B.busy = true; B.cancel = false; B.shots = []; B.live = 0; $('homeMsg').textContent = ''; setMode('shoot'); layoutStage();
+  if (!(await ensureCam())) { B.busy = false; return; } await sleep(700);
+  const n = B.tpl.layout.shots;
+  try {
+    for (let i = 0; i < n; i++) { B.live = i; layoutStage(); $('shotInfo').textContent = n > 1 ? `Photo ${i + 1} of ${n}` : 'Smile!'; if (!(await countdown(B.timer))) { B.busy = false; toHome(); return; } await snap(); B.live = i + 1 < n ? i + 1 : null; layoutStage(); if (i < n - 1) await sleep(1500); }
+    await finishSession();
+  } catch (e) { $('homeMsg').className = 'msg'; $('homeMsg').textContent = 'Something went wrong with the camera. Please try again.'; toHome(); }
+  B.busy = false;
+}
+$('startBtn').addEventListener('click', runSession);
+$('cancelBtn').addEventListener('click', () => { B.cancel = true; if (!B.busy) toHome(); });
+
+/* ---------- result + printing ---------- */
+function composeFinal(tpl, shots, filter, caption) { const L = tpl.layout, cv = document.createElement('canvas'); cv.width = L.w; cv.height = L.h; const c = cv.getContext('2d'); renderBooth(c, tpl, 1, { liveSlot: null, shots, filter, caption }); return cv; }
+function stats() { $('stats').textContent = 'Photos: ' + LSget('booth_photos', 0) + '   Prints: ' + LSget('booth_prints', 0); }
+async function finishSession() {
+  await loadFonts(); B.final = composeFinal(B.tpl, B.shots, B.filter, B.caption); LSset('booth_photos', +LSget('booth_photos', 0) + 1); stats();
+  setMode('result'); const L = B.tpl.layout, rs = $('resStage'); rs.style.setProperty('--ar', L.w / L.h); const cv = $('resCv'); cv.width = Math.min(1100, L.w); cv.height = Math.round(cv.width * L.h / L.w); cv.getContext('2d').drawImage(B.final, 0, 0, cv.width, cv.height);
+  $('resStatus').textContent = 'Great photo!'; $('printBtn').textContent = 'Print again'; if (B.saveCopy) saveJpg();
+  if (B.auto) await doPrint(B.copies, B.final, true); else { $('resStatus').textContent = 'Looks great! Press Print.'; $('printBtn').textContent = 'Print'; }
+}
+function setPage(land) { $('pageStyle').textContent = `@page{size:${land ? '6in 4in' : '4in 6in'};margin:0}`; document.documentElement.style.setProperty('--pw', land ? '6in' : '4in'); document.documentElement.style.setProperty('--ph', land ? '4in' : '6in'); }
+async function doPrint(copies, canvas, fromAuto) {
+  if (PR.on && PR.name) { try { if (B.mode === 'result') $('resStatus').textContent = 'Printing... ' + (copies > 1 ? copies + ' copies' : '1 copy'); await qzPrint(canvas, copies); LSset('booth_prints', +LSget('booth_prints', 0) + copies); stats(); if (B.mode === 'result') { $('resStatus').textContent = 'Sent to ' + PR.name + '! Your photo is on its way.'; startReturn(); } return; } catch (e) { PR.on = false; prStat(); if (B.mode === 'result') $('resStatus').textContent = 'Printer helper not reachable. Using the print window.'; } }
+  const L = B.tpl.layout, url = canvas.toDataURL('image/jpeg', .93), root = $('printRoot'); root.textContent = '';
+  for (let i = 0; i < copies; i++) { const pg = document.createElement('div'); pg.className = 'pp'; const im = new Image(); im.src = url; pg.appendChild(im); root.appendChild(pg); }
+  await Promise.all([...root.querySelectorAll('img')].map(i => i.decode().catch(() => {}))); setPage(canvas.width > canvas.height);
+  if (B.mode === 'result') $('resStatus').textContent = 'Printing... ' + (copies > 1 ? copies + ' copies' : '1 copy');
+  LSset('booth_prints', +LSget('booth_prints', 0) + copies); stats();
+  try { window.print(); } catch (e) { if (B.mode === 'result') $('resStatus').textContent = 'The print window could not open. Use Save JPG.'; return; }
+  if (B.mode === 'result') { $('resStatus').textContent = 'Sent to the printer! Your photo is on its way.'; if (fromAuto || true) startReturn(); }
+}
+function startReturn() { clearTimeout(B.retT); let n = B.ret; const tick = () => { if (B.mode !== 'result') return; if (n <= 0) { toHome(); return; } $('newBtn').textContent = 'Next guest (' + n + ')'; n--; B.retT = setTimeout(tick, 1000); }; tick(); }
+function saveJpg() { if (!B.final) return; B.final.toBlob(b => { const u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; a.download = 'photobooth-' + Date.now().toString(36) + '.jpg'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); }, 'image/jpeg', .93); }
+$('printBtn').addEventListener('click', () => { clearTimeout(B.retT); $('newBtn').textContent = 'Next guest'; if (B.final) doPrint(B.copies, B.final, false); });
+$('againBtn').addEventListener('click', () => { clearTimeout(B.retT); B.busy = false; runSession(); });
+$('saveBtn').addEventListener('click', () => { clearTimeout(B.retT); $('newBtn').textContent = 'Next guest'; saveJpg(); });
+$('newBtn').addEventListener('click', () => { $('newBtn').textContent = 'Next guest'; toHome(); });
+addEventListener('afterprint', () => { if (B.mode === 'result') $('resStatus').textContent = 'Sent to the printer! Your photo is on its way.'; });
+
+/* ---------- printer detection (QZ Tray) ---------- */
+const PR = { on: false, name: LSget('booth_printer', '') };
+function prStat() { $('prStat').textContent = PR.on && PR.name ? 'Printer: ' + PR.name : 'Printer: browser print'; }
+async function qzConnect() {
+  if (!window.qz) throw new Error('QZ script missing');
+  if (!qz.websocket.isActive()) { qz.security.setCertificatePromise(r => r()); qz.security.setSignaturePromise(() => r => r()); await qz.websocket.connect({ retries: 1, delay: 1 }); }
+}
+async function findPrinters() {
+  const m = $('prMsg'), sel = $('prSel'); m.className = 'msg'; m.textContent = 'Looking for QZ Tray...';
+  try {
+    await qzConnect(); const list = await qz.printers.find(), def = await qz.printers.getDefault().catch(() => '');
+    sel.textContent = ''; list.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n + (n === def ? ' (default)' : ''); sel.appendChild(o); });
+    PR.name = list.includes(PR.name) ? PR.name : (list.find(n => /4x6|photo|dnp|hiti|selphy|mitsubishi|kodak|citizen/i.test(n)) || def || list[0] || '');
+    sel.value = PR.name; PR.on = !!PR.name; LSset('booth_printer', PR.name); LSset('booth_qz', '1'); prStat();
+    m.className = 'msg ok'; m.textContent = list.length ? list.length + ' printer(s) found. Printing to: ' + PR.name : 'QZ Tray is running but found no printers.';
+  } catch (e) { PR.on = false; prStat(); m.textContent = 'Could not reach QZ Tray. Check it is installed and running. Until then the booth uses the browser print window.'; }
+}
+$('prFind').addEventListener('click', findPrinters);
+$('prSel').addEventListener('change', e => { PR.name = e.target.value; PR.on = !!PR.name; LSset('booth_printer', PR.name); prStat(); });
+async function qzPrint(canvas, copies) {
+  await qzConnect(); let cv = canvas;
+  if (canvas.width > canvas.height) { cv = document.createElement('canvas'); cv.width = canvas.height; cv.height = canvas.width; const x = cv.getContext('2d'); x.translate(cv.width, 0); x.rotate(Math.PI / 2); x.drawImage(canvas, 0, 0); }
+  const cfg = qz.configs.create(PR.name, { size: { width: 4, height: 6 }, units: 'in', margins: 0, scaleContent: true, copies, colorType: 'color', interpolation: 'bicubic', orientation: 'portrait' });
+  await qz.print(cfg, [{ type: 'pixel', format: 'image', flavor: 'base64', data: cv.toDataURL('image/jpeg', .95).split(',')[1] }]);
+}
+
+/* ---------- settings, test print, launcher ---------- */
+function testPage() {
+  const cv = document.createElement('canvas'); cv.width = 1200; cv.height = 1800; const c = cv.getContext('2d'); const g = c.createLinearGradient(0, 0, 1200, 1800); g.addColorStop(0, R); g.addColorStop(.5, O); g.addColorStop(1, Y); c.fillStyle = g; c.fillRect(0, 0, 1200, 1800);
+  c.strokeStyle = K; c.lineWidth = 16; c.strokeRect(8, 8, 1184, 1784); c.lineWidth = 3; for (let x = 0; x <= 1200; x += 75) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, x % 300 === 0 ? 70 : 40); c.stroke(); } for (let y = 0; y <= 1800; y += 75) { c.beginPath(); c.moveTo(0, y); c.lineTo(y % 300 === 0 ? 70 : 40, y); c.stroke(); }
+  c.fillStyle = '#fff'; c.textAlign = 'center'; c.font = '900 170px "Londrina Solid"'; c.fillText('4 x 6 TEST', 600, 520); c.font = '800 54px "Nunito Sans"'; c.fillText('The border should touch all four edges', 600, 640); c.fillText('Lines are every 0.25 inch', 600, 710);
+  wheel(c, 600, 1180, 260, 1); c.font = '800 46px "Nunito Sans"'; c.fillStyle = K; c.fillText("McDonald's Year End Party", 600, 1700); return cv;
+}
+async function makeBat() {
+  const url = location.href.split('#')[0].replace(/[?].*$/, ''), bat = ['@echo off', 'rem Opens the photo booth full screen and prints silently to the DEFAULT printer', 'set "URL=' + url + '"', 'set "PROFILE=%LOCALAPPDATA%\\FestPhotoBooth"', 'set "BROWSER=%ProgramFiles%\\Google\\Chrome\\Application\\chrome.exe"', 'if exist "%BROWSER%" goto run', 'set "BROWSER=%ProgramFiles(x86)%\\Google\\Chrome\\Application\\chrome.exe"', 'if exist "%BROWSER%" goto run', 'set "BROWSER=%ProgramFiles(x86)%\\Microsoft\\Edge\\Application\\msedge.exe"', 'if exist "%BROWSER%" goto run', 'set "BROWSER=%ProgramFiles%\\Microsoft\\Edge\\Application\\msedge.exe"', 'if exist "%BROWSER%" goto run', 'echo Chrome or Edge was not found on this computer.', 'pause', 'exit /b', ':run', 'start "" "%BROWSER%" --kiosk-printing --user-data-dir="%PROFILE%" --app="%URL%"', ''].join('\r\n');
+  const b = new Blob([bat], { type: 'application/octet-stream' }), u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; a.download = 'Start-Photo-Booth.bat'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000);
+}
+$('setBtn').addEventListener('click', async () => { $('capIn').value = B.caption; $('mirrorChk').checked = B.mirror; $('saveChk').checked = B.saveCopy; $('retIn').value = B.ret; $('demoChk').checked = B.demo; $('setM').hidden = false; await fillCams(); });
+$('setClose').addEventListener('click', () => { $('setM').hidden = true; buildHome(); });
+$('capIn').addEventListener('input', e => { B.caption = e.target.value; LSset('booth_cap', B.caption); });
+$('mirrorChk').addEventListener('change', e => { B.mirror = e.target.checked; LSset('booth_mirror', B.mirror ? '1' : '0'); const v = $('vid'); if (v) v.style.transform = B.mirror ? 'scaleX(-1)' : 'none'; });
+$('saveChk').addEventListener('change', e => { B.saveCopy = e.target.checked; LSset('booth_save', B.saveCopy ? '1' : '0'); });
+$('retIn').addEventListener('input', e => { B.ret = Math.max(3, Math.min(60, +e.target.value || 12)); LSset('booth_ret', B.ret); });
+$('demoChk').addEventListener('change', e => { B.demo = e.target.checked; LSset('booth_demo', B.demo ? '1' : '0'); stopCam(); });
+$('camSel').addEventListener('change', e => { B.deviceId = e.target.value; LSset('booth_cam', B.deviceId); stopCam(); });
+$('batBtn').addEventListener('click', makeBat);
+$('testBtn').addEventListener('click', async () => { await loadFonts(); $('setM').hidden = true; const cv = testPage(); B.mode = 'home'; await doPrint(1, cv, false); });
+$('macBtn').addEventListener('click', () => { const n = $('macNote'); n.hidden = !n.hidden; n.textContent = 'Mac: set the photo printer as default, then run this in Terminal: open -na "Google Chrome" --args --kiosk-printing --user-data-dir="$HOME/FestPhotoBooth" --app="' + location.href.split('#')[0] + '"'; });
+$('exitBtn').addEventListener('click', () => { stopCam(); location.href = 'index.html#admin'; });
+$('gateBack').addEventListener('click', () => { location.href = 'index.html#admin'; });
+$('fsBtn').addEventListener('click', () => { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else document.documentElement.requestFullscreen().catch(() => {}); });
+new ResizeObserver(() => { if (B.mode === 'shoot') layoutStage(); }).observe($('stage'));
+
+/* ---------- login + start ---------- */
+async function init() { await loadFonts(); stats(); prStat(); buildHome(); setMode('home'); if (LSget('booth_qz', '0') === '1') findPrinters(); }
+async function enter(pw) { const r = await sb.rpc('admin_list', { p_password: pw }); if (r.error) return r.error.message; SS.set('fest_admin_pw', pw); $('gate').hidden = true; $('app').hidden = false; await init(); return null; }
+$('gateForm').addEventListener('submit', async e => { e.preventDefault(); $('gateBtn').disabled = true; $('gateMsg').textContent = ''; const err = await enter($('pw').value); $('gateBtn').disabled = false; if (err) $('gateMsg').textContent = err; });
+
+(async () => { const sp = SS.get('fest_admin_pw'); if (sp) { const err = await enter(sp); if (!err) return; } $('gate').hidden = false; })();
+</script>
+</body>
+</html>
