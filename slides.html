@@ -7,7 +7,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Cormorant+Garamond:wght@500;600&family=Nunito+Sans:wght@400;600;800&family=Anton&family=Bebas+Neue&family=Oswald:wght@400;700&family=Poppins:wght@400;600;800&family=Playfair+Display:wght@400;800&family=DM+Serif+Display&family=Fredoka:wght@400;700&family=Rubik:wght@400;800&family=Bangers&family=Lobster&family=Pacifico&family=Permanent+Marker&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Nunito+Sans:wght@400;600;800&family=Anton&family=Bebas+Neue&family=Oswald:wght@400;700&family=Poppins:wght@400;600;800&family=Playfair+Display:wght@400;800&family=DM+Serif+Display&family=Fredoka:wght@400;700&family=Rubik:wght@400;800&family=Bangers&family=Lobster&family=Pacifico&family=Permanent+Marker&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <style>
@@ -561,6 +561,34 @@ Object.assign(LAYOUTS, {
   choices: { name: 'Multiple choice (timer)', info: 'A, B, C, D options appear on click, with a timer', bg: 'stage', d: { q: 'Type your question here', a: 'Option A', b: 'Option B', c: 'Option C', d: 'Option D', sec: 30 } },
   answer: { name: 'Answer reveal', info: 'Press Next to reveal the answer', bg: 'party', d: { head: 'The answer is', ans: 'The answer', note: '' } },
   scoreboard: { name: 'Scoreboard', info: 'Four teams and their scores', bg: 'stage', d: { title: 'Scoreboard', t1: 'Team Red', s1: '0', t2: 'Team Yellow', s2: '0', t3: 'Team Orange', s3: '0', t4: 'Team Cream', s4: '0' } }
+});
+
+/* ---------- Invitation (elegant) ---------- */
+Object.assign(TPL, {
+  invitation: f => {
+    const G = '#FFC72C', CR = '#FFF4D6', S = fsz((f.title || '').length, [[12, 190], [20, 150], [34, 112], [999, 84]]);
+    const lab = (t, x, y, w, d) => tx({ x, y, w, text: t, size: 26, up: true, ls: 10, color: G, b: true, sh: 'none', lh: 1, anim: 'fade', delay: d });
+    const val = (t, x, y, w, c, d) => tx({ x, y, w, text: t, font: SERIF, b: false, size: 46, color: c || CR, sh: 'none', lh: 1.2, anim: 'fade', delay: d });
+    const cols = [{ l: 'Date & Time', v: f.when, x: 120 }, { l: 'Venue', v: f.where, x: 700 }, { l: 'Dress Code', v: f.dress, x: 1280, c: G, n: f.dressnote }];
+    const vh = Math.max(...cols.map(c => estH(c.v, 46, 520, 1.2, .46) + (c.n ? 50 : 0))), rowH = 30 + 18 + vh;
+    const frame = [shp({ x: 70, y: 60, w: 1780, h: 960, fill: 'transparent', bw: 3, bc: G, op: .9, anim: 'fade' }), shp({ x: 94, y: 84, w: 1732, h: 912, fill: 'transparent', bw: 1, bc: G, op: .5, anim: 'fade' })];
+    return [...frame, ...col([
+      item(87, y => [arch({ x: 895, y, w: 130, h: 87, sh: 'none', anim: 'zoom' })]),
+      f.kicker && item(40, y => [tx({ y, text: f.kicker, size: 34, up: true, ls: 18, color: '#FFE9A8', b: false, sh: 'none', lh: 1, anim: 'fade', delay: .2 })]),
+      item(estH(f.title, S, 1700, .95, .48), y => [disp({ y, text: f.title, size: S, ls: 6, color: '#FFFFFF', anim: 'rise', delay: .3 })]),
+      f.nick && item(76, y => [tx({ y, text: f.nick, font: SERIF, i: true, b: false, size: 68, color: G, sh: 'none', lh: 1.1, anim: 'fade', delay: .5 })]),
+      item(44, y => [shp({ x: 560, y: y + 20, w: 340, h: 3, fill: G, op: .75, anim: 'fade', delay: .6 }), icon('star', { x: 938, y, w: 44, color: G, anim: 'zoom', delay: .6 }), shp({ x: 1020, y: y + 20, w: 340, h: 3, fill: G, op: .75, anim: 'fade', delay: .6 })]),
+      item(rowH, y => {
+        const o = [];
+        cols.forEach((c, k) => { const d = .7 + k * .15; o.push(lab(c.l, c.x, y, 520, d), val(c.v, c.x, y + 48, 520, c.c, d)); if (c.n) o.push(tx({ x: c.x, y: y + 48 + estH(c.v, 46, 520, 1.2, .46) + 6, w: 520, text: c.n, size: 30, color: '#FFE9A8', b: false, sh: 'none', lh: 1.2, anim: 'fade', delay: d })); });
+        o.push(shp({ x: 640, y: y + 6, w: 2, h: rowH - 12, fill: G, op: .45, anim: 'fade', delay: .8 }), shp({ x: 1220, y: y + 6, w: 2, h: rowH - 12, fill: G, op: .45, anim: 'fade', delay: .8 }));
+        return o; }),
+      f.rsvp && item(46, y => [tx({ y, text: f.rsvp, font: SERIF, i: true, b: false, size: 40, color: CR, sh: 'none', lh: 1.1, anim: 'fade', delay: 1.1 })])
+    ], 28)];
+  }
+});
+Object.assign(LAYOUTS, {
+  invitation: { name: 'Invitation', info: 'Elegant invite: event name, nickname, details and dress code', bg: 'stage', d: { kicker: "You're cordially invited to", title: 'Year End Party', nick: 'Coachella: Beyond the Arches', when: C.when, where: C.where, dress: 'Coachella Chic', dressnote: 'Boho · Festival · Earth tones', rsvp: 'Kindly confirm your attendance with the committee' } }
 });
 function newSlide(type, bg, over) { return { id: uid(), type, bg: bg || LAYOUTS[type].bg || 'default', els: TPL[type](Object.assign({}, LAYOUTS[type].d, over || {})) }; }
 function defaultDeck() {
