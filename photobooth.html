@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Cormorant+Garamond:wght@500;600&family=Nunito+Sans:wght@400;600;800&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="config.js"></script>
 <style id="pageStyle">@page{size:4in 6in;margin:0}</style>
 <style>
@@ -83,6 +84,12 @@ main{min-height:0;position:relative}
 .mbox input[type=text],.mbox input[type=number],.mbox select{width:100%;padding:8px 10px;border:3px solid var(--dark);border-radius:10px;margin:4px 0 8px;background:#fff}
 .mbox code{background:#fff;border:2px solid var(--dark);border-radius:6px;padding:1px 6px;font-size:.85rem}
 .note{background:#fff;border:3px solid var(--dark);border-radius:12px;padding:8px 12px;font-size:.88rem;margin:8px 0}
+#qrPanel{display:flex;align-items:center;gap:12px;background:#fff;border:3px solid var(--dark);border-radius:14px;padding:9px 14px;max-width:min(94vw,560px);box-shadow:3px 3px 0 var(--dark)}
+#qrCode{width:116px;height:116px;flex:0 0 116px;background:#fff;padding:4px;border:1px solid #ddd}
+#qrCode img,#qrCode canvas{width:106px!important;height:106px!important;display:block}
+#qrInfo{font-size:.86rem;font-weight:800;line-height:1.35}
+#qrCountdown{font:400 1.5rem var(--display);color:var(--red)}
+#result .stage{width:min(70vw,calc(48vh * var(--ar)));max-height:48vh;max-width:92vw}
 #printRoot{display:none}
 @media print{
   html,body{height:auto;overflow:visible;background:#fff}
@@ -151,6 +158,10 @@ main{min-height:0;position:relative}
     <section id="result" hidden>
       <div class="status" id="resStatus" role="status"></div>
       <div class="stage" id="resStage"><canvas id="resCv"></canvas></div>
+      <div id="qrPanel" hidden>
+        <div id="qrCode" aria-label="QR code for downloading the photo"></div>
+        <div id="qrInfo"><strong>SCAN TO SAVE YOUR PHOTO</strong><br>Open the link on your phone and download your picture.<div id="qrCountdown">10:00</div><span id="qrStatus">Preparing your temporary download...</span></div>
+      </div>
       <div class="row">
         <button class="btn" id="printBtn" type="button">Print</button>
         <button class="btn y" id="againBtn" type="button">Retake</button>
@@ -345,7 +356,7 @@ const TPLS = [];
 const visT = () => TPLS.filter(t => (B.filterF === 'all' || t.layout.id === B.filterF) && (B.themeF === 'all' || t.theme === TH[B.themeF])); Object.keys(LAY).forEach(l => LAYOUT_THEMES[l].forEach(t => TPLS.push({ id: l + '-' + t, layout: LAY[l], theme: TH[t], name: TH[t].name })));
 
 /* ---------- booth state + rendering ---------- */
-const B = { tpl: TPLS[0], filter: FILTERS[0], timer: +LSget('booth_timer', 3), copies: +LSget('booth_copies', 1), auto: LSget('booth_auto', '1') === '1', caption: LSget('booth_cap', C.partyName || 'Year End Party'), mirror: LSget('booth_mirror', '1') === '1', saveCopy: LSget('booth_save', '0') === '1', ret: +LSget('booth_ret', 12), demo: LSget('booth_demo', '0') === '1', deviceId: LSget('booth_cam', ''), shots: [], live: null, mode: 'home', stream: null, busy: false, cancel: false, final: null, filterF: 'all', themeF: 'all', retT: null };
+const B = { shareExpiresAt: 0,  tpl: TPLS[0], filter: FILTERS[0], timer: +LSget('booth_timer', 3), copies: +LSget('booth_copies', 1), auto: LSget('booth_auto', '1') === '1', caption: LSget('booth_cap', C.partyName || 'Year End Party'), mirror: LSget('booth_mirror', '1') === '1', saveCopy: LSget('booth_save', '0') === '1', ret: +LSget('booth_ret', 12), demo: LSget('booth_demo', '0') === '1', deviceId: LSget('booth_cam', ''), shots: [], live: null, mode: 'home', stream: null, busy: false, cancel: false, final: null, filterF: 'all', themeF: 'all', retT: null };
 let fontsReady = false;
 async function loadFonts() { try { await Promise.all(['900 100px "Londrina Solid"', '400 100px "Londrina Solid"', '800 40px "Nunito Sans"', '700 100px Caveat'].map(f => document.fonts.load(f))); } catch (e) {} fontsReady = true; }
 function renderBooth(c, tpl, k, st) {
@@ -401,7 +412,7 @@ async function fillCams() {
 
 /* ---------- screens ---------- */
 function setMode(m) { B.mode = m; $('home').hidden = m !== 'home'; $('shoot').hidden = m !== 'shoot'; $('result').hidden = m !== 'result'; clearTimeout(B.retT); }
-function toHome() { setMode('home'); B.live = null; B.shots = []; $('printRoot').textContent = ''; }
+function toHome() { setMode('home'); B.live = null; B.shots = []; B.shareExpiresAt = 0; $('qrPanel').hidden = true; $('qrCode').textContent=''; $('printRoot').textContent = ''; }
 function layoutStage() {
   const L = B.tpl.layout, st = $('stage'); st.style.setProperty('--ar', L.w / L.h); const li = liveSlotIdx(), s = L.slots[li == null ? 0 : li], sbx = $('slotbox'), W = st.clientWidth || 300, k = W / L.w;
   sbx.style.left = s.x / L.w * 100 + '%'; sbx.style.top = s.y / L.h * 100 + '%'; sbx.style.width = s.w / L.w * 100 + '%'; sbx.style.height = s.h / L.h * 100 + '%'; sbx.style.borderRadius = (s.r || 0) * k + 'px'; sbx.style.display = li == null ? 'none' : 'block';
@@ -428,10 +439,51 @@ $('cancelBtn').addEventListener('click', () => { B.cancel = true; if (!B.busy) t
 /* ---------- result + printing ---------- */
 function composeFinal(tpl, shots, filter, caption) { const L = tpl.layout, cv = document.createElement('canvas'); cv.width = L.w; cv.height = L.h; const c = cv.getContext('2d'); renderBooth(c, tpl, 1, { liveSlot: null, shots, filter, caption }); return cv; }
 function stats() { $('stats').textContent = 'Photos: ' + LSget('booth_photos', 0) + '   Prints: ' + LSget('booth_prints', 0); }
+
+/* ---------- temporary QR photo sharing (10 minutes) ---------- */
+const SHARE_TTL_MS = 10 * 60 * 1000;
+function photoFunctionUrl() { return C.SUPABASE_URL.replace(/\/$/, '') + '/functions/v1/photobooth-share'; }
+function setQrStatus(message, isError=false) { $('qrStatus').textContent = message; $('qrStatus').style.color = isError ? '#B0170E' : '#27251F'; }
+function formatQrTime(ms) { const sec=Math.max(0,Math.ceil(ms/1000)); return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0'); }
+function startShareExpiryCountdown() {
+  clearTimeout(B.retT);
+  const tick=()=>{
+    if(B.mode!=='result') return;
+    const left=(B.shareExpiresAt||Date.now())-Date.now();
+    if(left<=0){ $('qrCountdown').textContent='00:00'; $('qrPanel').hidden=true; toHome(); return; }
+    $('qrCountdown').textContent=formatQrTime(left);
+    $('newBtn').textContent='Next guest';
+    B.retT=setTimeout(tick,250);
+  };
+  tick();
+}
+async function createTemporaryPhotoLink(canvas) {
+  const panel=$('qrPanel'); panel.hidden=false; $('qrCode').textContent=''; $('qrCountdown').textContent='10:00'; setQrStatus('Uploading your photo securely...');
+  B.shareExpiresAt=Date.now()+SHARE_TTL_MS;
+  try {
+    const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Could not prepare photo.')),'image/jpeg',.92));
+    const response=await fetch(photoFunctionUrl(),{method:'POST',headers:{'apikey':C.SUPABASE_ANON_KEY,'Authorization':'Bearer '+C.SUPABASE_ANON_KEY,'Content-Type':'image/jpeg','x-action':'upload','x-site-origin':location.origin,'x-booth-password':SS.get('fest_admin_pw')||''},body:blob});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok||!data.ok) throw new Error(data.error||'Photo upload failed.');
+    B.shareExpiresAt=new Date(data.expiresAt).getTime();
+    if(!window.QRCode) throw new Error('QR generator did not load. Refresh the page and try again.');
+    new QRCode($('qrCode'),{text:data.shareUrl,width:106,height:106,colorDark:'#27251F',colorLight:'#FFFFFF',correctLevel:QRCode.CorrectLevel.M});
+    setQrStatus('Ready! Scan now. The download expires in 10 minutes.');
+    startShareExpiryCountdown();
+  } catch(err) {
+    console.error('Temporary photo share failed:',err);
+    setQrStatus(err.message||'QR sharing is unavailable. You can still print or save on this computer.',true);
+    $('qrCountdown').textContent='';
+    if(B.shareExpiresAt) startShareExpiryCountdown();
+  }
+}
+
 async function finishSession() {
   await loadFonts(); B.final = composeFinal(B.tpl, B.shots, B.filter, B.caption); LSset('booth_photos', +LSget('booth_photos', 0) + 1); stats();
   setMode('result'); const L = B.tpl.layout, rs = $('resStage'); rs.style.setProperty('--ar', L.w / L.h); const cv = $('resCv'); cv.width = Math.min(1100, L.w); cv.height = Math.round(cv.width * L.h / L.w); cv.getContext('2d').drawImage(B.final, 0, 0, cv.width, cv.height);
   $('resStatus').textContent = 'Great photo!'; $('printBtn').textContent = 'Print again'; if (B.saveCopy) saveJpg();
+  // Upload a temporary online copy in parallel with printing.
+  createTemporaryPhotoLink(B.final);
   if (B.auto) await doPrint(B.copies, B.final, true); else { $('resStatus').textContent = 'Looks great! Press Print.'; $('printBtn').textContent = 'Print'; }
 }
 function setPage(land) { $('pageStyle').textContent = `@page{size:${land ? '6in 4in' : '4in 6in'};margin:0}`; document.documentElement.style.setProperty('--pw', land ? '6in' : '4in'); document.documentElement.style.setProperty('--ph', land ? '4in' : '6in'); }
@@ -445,7 +497,7 @@ async function doPrint(copies, canvas, fromAuto) {
   try { window.print(); } catch (e) { if (B.mode === 'result') $('resStatus').textContent = 'The print window could not open. Use Save JPG.'; return; }
   if (B.mode === 'result') { $('resStatus').textContent = 'Sent to the printer! Your photo is on its way.'; if (fromAuto || true) startReturn(); }
 }
-function startReturn() { clearTimeout(B.retT); let n = B.ret; const tick = () => { if (B.mode !== 'result') return; if (n <= 0) { toHome(); return; } $('newBtn').textContent = 'Next guest (' + n + ')'; n--; B.retT = setTimeout(tick, 1000); }; tick(); }
+function startReturn() { if (B.shareExpiresAt) startShareExpiryCountdown(); }
 function saveJpg() { if (!B.final) return; B.final.toBlob(b => { const u = URL.createObjectURL(b), a = document.createElement('a'); a.href = u; a.download = 'photobooth-' + Date.now().toString(36) + '.jpg'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); }, 'image/jpeg', .93); }
 $('printBtn').addEventListener('click', () => { clearTimeout(B.retT); $('newBtn').textContent = 'Next guest'; if (B.final) doPrint(B.copies, B.final, false); });
 $('againBtn').addEventListener('click', () => { clearTimeout(B.retT); B.busy = false; runSession(); });
