@@ -69,7 +69,7 @@ button,input{font:inherit;color:inherit}
 .mi img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;background:#eee}
 .mi div{padding:3px 5px;display:flex;gap:4px;align-items:center;justify-content:space-between}
 body.presenting .ctl,body.presenting #manage{display:none!important}
-body.presenting.idle{cursor:none}
+body.presenting.idle{cursor:none}\nbody.led-output,body.led-output #wall{width:100vw;height:100vh;inset:0}\nbody.led-output #wall{position:fixed}\nbody.led-output .wh{padding-top:1.4vh}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important}}
 </style>
 </head>
@@ -226,7 +226,7 @@ function pickLedScreen(details) {
 function openLED() {
   if (ledWin && !ledWin.closed) { ledWin.focus(); syncLED(); return; }
   if (!CH) { alert('This browser cannot connect the organizer and LED windows. Please use Chrome or Edge.'); return; }
-  ledWin = window.open(location.pathname + location.search + '#output', 'festphotowall', 'popup=yes,width=1280,height=720,left=40,top=40');
+  ledWin = window.open(location.pathname + location.search + '#output', 'festphotowall', 'popup=yes,toolbar=no,location=no,menubar=no,status=no,scrollbars=no,resizable=yes,width=1280,height=720,left=40,top=40');
   if (!ledWin) { alert('The LED window was blocked. Please allow pop-ups for this site, then click Send to LED again.'); return; }
   syncLED();
   if (window.getScreenDetails) {
@@ -236,6 +236,7 @@ function openLED() {
       try {
         ledWin.moveTo(screen.availLeft ?? screen.left, screen.availTop ?? screen.top);
         ledWin.resizeTo(screen.availWidth || screen.width, screen.availHeight || screen.height);
+        ledWin.focus();
       } catch (e) {}
     }).catch(() => {});
   }
@@ -243,8 +244,22 @@ function openLED() {
 function outputInit() {
   document.title = 'Photo Wall — LED Display';
   $('gate').hidden = true; $('wall').hidden = false;
-  $('ctl').hidden = true; $('manage').hidden = true; $('ofs').hidden = false;
-  document.body.classList.add('presenting');
+  $('ctl').hidden = true; $('manage').hidden = true; $('ofs').hidden = true;
+  document.body.classList.add('presenting', 'led-output');
+  // Browsers may reject automatic Fullscreen API calls without a click in this window.
+  // Attempt it immediately; the Chrome kiosk setup described with this file removes browser/window chrome.
+  const autoFullscreen = () => {
+    if (document.fullscreenElement) return;
+    const request = document.documentElement.requestFullscreen;
+    if (!request) { $('ofs').hidden = false; return; }
+    Promise.resolve(request.call(document.documentElement)).then(() => {
+      $('ofs').hidden = true;
+    }).catch(() => {
+      // Keep a manual fallback for browsers that block automatic fullscreen.
+      $('ofs').hidden = false;
+    });
+  };
+  requestAnimationFrame(() => setTimeout(autoFullscreen, 120));
   if (!CH) { $('party').textContent = 'Please use Chrome or Edge to connect the LED display'; return; }
   const receive = e => {
     const m = e.data || {};
