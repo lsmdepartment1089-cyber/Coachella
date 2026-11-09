@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Your Coachella Photo</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:24px 14px;background:linear-gradient(180deg,#FFF4D6,#FFE7A8);font-family:Arial,sans-serif;color:#27251F;display:flex;justify-content:center;align-items:center}.card{width:min(100%,520px);background:#fff;border:3px solid #27251F;border-radius:20px;padding:22px;box-shadow:7px 7px 0 #27251F;text-align:center}.brand{font-weight:900;letter-spacing:2px;color:#DA291C;font-size:13px}.card h1{font-size:28px;margin:8px 0}.muted{color:#625d52;line-height:1.5}.photo{display:block;max-width:100%;max-height:62vh;margin:18px auto;border-radius:8px}.btn{display:inline-block;background:#DA291C;color:#fff;text-decoration:none;font-weight:900;padding:14px 22px;border:3px solid #27251F;border-radius:12px;box-shadow:3px 3px 0 #27251F}.status{font-weight:800;margin:18px 0}.timer{font-size:13px;color:#DA291C;font-weight:800;margin-top:12px}
+</style>
+</head>
+<body><main class="card"><div class="brand">COACHELLA · BEYOND THE ARCHES</div><h1>Your Photo Is Ready!</h1><p class="muted">Download your photobooth picture and save it to your phone.</p><div id="status" class="status">Loading your photo...</div><img id="photo" class="photo" alt="Your photobooth photo" hidden><a id="download" class="btn" href="#" hidden>DOWNLOAD PHOTO</a><div id="timer" class="timer"></div><p class="muted">This temporary download link is available for 10 minutes after your photo was taken.</p></main>
+<script src="config.js"></script><script>
+(async()=>{
+ const status=document.getElementById('status'),img=document.getElementById('photo'),btn=document.getElementById('download'),timer=document.getElementById('timer');
+ const token=new URLSearchParams(location.search).get('t');
+ if(!token){status.textContent='This photo link is incomplete.';return;}
+ try{
+  const C=window.CONFIG, url=C.SUPABASE_URL.replace(/\/$/,'')+'/functions/v1/photobooth-share';
+  const r=await fetch(url,{method:'POST',headers:{'apikey':C.SUPABASE_ANON_KEY,'Authorization':'Bearer '+C.SUPABASE_ANON_KEY,'Content-Type':'application/json','x-action':'resolve'},body:JSON.stringify({token})});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok||!d.ok) throw new Error(d.error||'This photo link has expired.');
+  img.src=d.signedUrl;img.hidden=false;btn.href=d.signedUrl;btn.hidden=false;status.textContent='Your photo is ready!';
+  let left=Math.max(0,Math.floor((new Date(d.expiresAt).getTime()-Date.now())/1000));
+  const tick=()=>{if(left<=0){timer.textContent='This download has expired.';btn.hidden=true;img.hidden=true;status.textContent='Sorry! This photo link has expired.';return;}timer.textContent='Link expires in '+Math.floor(left/60)+':'+String(left%60).padStart(2,'0');left--;setTimeout(tick,1000)};tick();
+ }catch(e){status.textContent=e.message||'Unable to load this photo.';}
+})();
+</script></body></html>
