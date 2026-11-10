@@ -49,3 +49,6 @@ function state(d){mode=d.mode||'home';$('heading').textContent=mode==='shoot'?(d
 if(channel){channel.onmessage=e=>{const d=e.data||{};lastSeen=Date.now();if(d.type==='state')state(d);if(d.type==='frame'&&d.blob){const url=URL.createObjectURL(d.blob);const im=$('preview');im.onload=()=>{if(lastFrame)URL.revokeObjectURL(lastFrame);lastFrame=url};im.src=url;}if(d.type==='offline')$('offline').textContent='Laptop booth disconnected';};channel.postMessage({type:'ready'});setInterval(()=>{if(Date.now()-lastSeen>3000)$('offline').textContent='Waiting for laptop photobooth connection…';},1000);}else{$('offline').textContent='Use Chrome or Edge for the HDMI guest display.';}
 document.addEventListener('keydown',e=>{if(e.key==='f'||e.key==='F')document.documentElement.requestFullscreen().catch(()=>{});});
 </script></body></html>
+<script src="mcdo-brand.js"></script>
+</body>
+</html>
