@@ -23,7 +23,7 @@ details{border-top:1px solid #ddd3c5;padding:10px 0}summary{font-weight:900;curs
 .certificate .ornament{position:absolute;inset:0;pointer-events:none;opacity:.15;background:radial-gradient(ellipse at 0 0,var(--secondary),transparent 45%),radial-gradient(ellipse at 100% 100%,var(--accent),transparent 45%)}
 .certificate .arches{position:absolute;inset:0;pointer-events:none;opacity:.12}.arches svg{height:100%;position:absolute;top:0;fill:none;stroke:var(--accent);stroke-width:24}.arches .left{left:-10%}.arches .right{right:-10%}
 .body{position:absolute;inset:6% 8% 5%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:.4%;z-index:1}
-.logo{width:13%;height:13%;object-fit:contain;display:none}
+.logo{width:48%;height:20%;max-width:100%;object-fit:contain;display:none}
 .arch-logo{width:13%;height:13%;display:block;fill:none;stroke:var(--secondary);stroke-width:13;stroke-linecap:round}
 .eyebrow{font-family:'Nunito Sans',sans-serif;font-size:clamp(10px,1.08vw,17px);font-weight:900;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
 h2{font-family:var(--title-font);font-size:clamp(30px,4.1vw,67px);line-height:1.04;margin:0;color:var(--accent);font-weight:700}
@@ -75,8 +75,8 @@ h2{font-family:var(--title-font);font-size:clamp(30px,4.1vw,67px);line-height:1.
 <div class="pair"><div><label for="pattern">Background detail</label><select id="pattern"><option value="arches">Golden arches</option><option value="dots">Confetti dots</option><option value="glow">Corner glow</option><option value="stripes">Festival stripes</option><option value="none">Clean / none</option></select></div>
 <div><label for="borderStyle">Border style</label><select id="borderStyle"><option value="double">Double frame</option><option value="thick">Bold frame</option><option value="corners">Corner accents</option><option value="none">No border</option></select></div></div>
 <details open><summary>Logo / icon</summary><label for="logoUpload">Replace arches with your image (PNG, JPG, SVG)</label><input type="file" id="logoUpload" accept="image/png,image/jpeg,image/webp,image/svg+xml">
-<div class="pair"><button class="btn alt" id="restoreLogo" type="button">Restore arches</button><div><label for="logoSize">Logo size</label><input type="range" id="logoSize" min="7" max="23" value="13"></div></div>
-<p class="hint">Use a high-resolution logo with transparent background for best results.</p></details>
+<div class="pair"><button class="btn alt" id="restoreLogo" type="button">Restore arches</button><div><label for="logoSize">Logo size</label><input type="range" id="logoSize" min="20" max="85" value="48"></div></div>
+<p class="hint">The uploaded logo defaults to 48% of the certificate width. Increase the slider up to 85%. If the image itself has wide transparent margins, crop those margins before uploading.</p></details>
 <details><summary>Colors and typography</summary>
 <div class="pair"><div><label for="accent">Accent</label><input type="color" id="accent" value="#a5221b"></div><div><label for="secondary">Gold / highlight</label><input type="color" id="secondary" value="#d8a740"></div><div><label for="paper">Paper color</label><input type="color" id="paper" value="#fffaf0"></div><div><label for="borderColor">Border color</label><input type="color" id="borderColor" value="#a5221b"></div></div>
 <label for="font">Heading and name font</label><select id="font"><option value="serif">Cormorant Garamond</option><option value="playfair">Playfair Display</option><option value="montserrat">Montserrat</option><option value="londrina">Londrina Solid</option></select>
@@ -155,9 +155,9 @@ $('citation').oninput=()=>{$('message').textContent=$('citation').value};
 $('name').addEventListener('input',()=>{$('recipient').value=$('name').textContent});
 $('message').addEventListener('input',()=>{$('citation').value=$('message').innerText});
 $('date').onchange=setDate;
-$('logoUpload').onchange=e=>{const f=e.target.files?.[0];if(!f)return;if(!/^image\/(png|jpeg|webp|svg\+xml)$/.test(f.type)||f.size>5*1024*1024){$('status').textContent='Choose a PNG, JPG, WebP, or SVG image under 5 MB.';return}const r=new FileReader();r.onload=()=>{const img=$('customLogo');img.src=r.result;img.style.display='block';$('archLogo').style.display='none';};r.readAsDataURL(f)};
+$('logoUpload').onchange=e=>{const f=e.target.files?.[0];if(!f)return;if(!/^image\/(png|jpeg|webp|svg\+xml)$/.test(f.type)||f.size>5*1024*1024){$('status').textContent='Choose a PNG, JPG, WebP, or SVG image under 5 MB.';return}const r=new FileReader();r.onload=()=>{const img=$('customLogo');img.src=r.result;img.style.display='block';img.style.width=$('logoSize').value+'%';img.style.height=Math.min(32,Number($('logoSize').value)*0.42)+'%';$('archLogo').style.display='none';};r.readAsDataURL(f)};
 $('restoreLogo').onclick=()=>{$('customLogo').style.display='none';$('customLogo').removeAttribute('src');$('archLogo').style.display='block';$('logoUpload').value=''};
-$('logoSize').oninput=()=>{$('customLogo').style.width=$('logoSize').value+'%';$('archLogo').style.width=$('logoSize').value+'%'};
+$('logoSize').oninput=()=>{$('customLogo').style.width=$('logoSize').value+'%';$('customLogo').style.height=Math.min(32,Number($('logoSize').value)*0.42)+'%';$('archLogo').style.width=$('logoSize').value+'%'};
 $('reset').onclick=()=>{location.reload()};
 function valid(){if(!$('name').textContent.trim()||$('name').textContent.trim()==='Recipient Name'){$('status').textContent='Please enter a recipient name before exporting.';return false}return true}
 $('print').onclick=()=>{if(valid())window.print()};
