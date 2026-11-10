@@ -14,7 +14,7 @@ function loadConfig() {
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const HEAD = "'Arial Black',Impact,Arial,sans-serif";
 
-function buildHtml(C, nickname, num) {
+function buildHtml(C, nickname, num, qrUrl) {
   const row = (label, val) => `<tr><td style="padding:10px 12px 10px 0;border-top:2px solid #F0D9A0;font:700 12px Arial,sans-serif;letter-spacing:1px;text-transform:uppercase;color:#DA291C;width:100px;vertical-align:top">${label}</td><td style="padding:10px 0;border-top:2px solid #F0D9A0;font:600 16px Georgia,serif;color:#27251F">${val}</td></tr>`;
   const lineup = (C.lineup || []).map(x => `<tr><td style="padding:3px 14px 3px 0;font:700 13px Arial,sans-serif;color:#DA291C;white-space:nowrap">${esc(x.time)}</td><td style="padding:3px 0;font:600 15px Georgia,serif;color:#27251F">${esc(x.act)}</td></tr>`).join('');
   return `<!doctype html><html><body style="margin:0;padding:24px 12px;background:#FFF9EA">
@@ -42,12 +42,16 @@ function buildHtml(C, nickname, num) {
   <div style="font:900 13px Arial,sans-serif;letter-spacing:3px;color:#DA291C;text-transform:uppercase;margin-bottom:6px">Lineup</div>
   <table role="presentation" cellpadding="0" cellspacing="0">${lineup}</table>
 </td></tr>
-<tr><td align="center" style="padding:20px 24px 28px;font:600 13px Arial,sans-serif;color:#6B3A1E">Keep this number safe. You will need it for the raffle draw!</td></tr>
+<tr><td align="center" style="padding:18px 24px 8px">
+  <div style="font:900 13px Arial,sans-serif;letter-spacing:2px;color:#DA291C;text-transform:uppercase;margin-bottom:10px">Your event check-in QR</div>
+  ${qrUrl ? `<img src="${esc(qrUrl)}" width="190" height="190" alt="Your personal event check-in QR code" style="display:block;width:190px;height:190px;margin:0 auto;background:#fff;padding:8px;border:2px solid #27251F;border-radius:12px">` : '<div style="font:600 13px Arial,sans-serif;color:#6B3A1E">Open your digital invitation on your phone to show your QR code.</div>'}
+</td></tr>
+<tr><td align="center" style="padding:14px 24px 28px;font:600 13px Arial,sans-serif;color:#6B3A1E">Show this QR code at the entrance for check-in. Keep it private. Your raffle number is also needed for the draw!</td></tr>
 </table></td></tr></table></body></html>`;
 }
 
 function buildText(C, nickname, num) {
-  return [`${C.partyName}`, 'Coachella: Beyond the Arches', '', `You are invited, ${nickname}!`, `Your raffle number: ${num}`, '',
+  return [`${C.partyName}`, 'Coachella: Beyond the Arches', '', `You are invited, ${nickname}!`, `Your raffle number: ${num}`, 'Your personal check-in QR code is included in the HTML version of this email. You can also open your digital invitation on your phone.', '',
     `When: ${C.when}`, `Where: ${C.where}`, `Dress code: ${C.dress}`, '', 'Lineup:',
     ...(C.lineup || []).map(x => `  ${x.time}  ${x.act}`), '', 'Keep this number safe. You will need it for the raffle draw!'].join('\n');
 }
@@ -115,9 +119,15 @@ async function handler(req, res) {
     // Ask the database: is this a real guest with a raffle number? (also enforces the 5-copy limit)
     const g = await rpc(C, 'request_invite_copy', { p_nickname: nickname, p_email: email });
     if (!g.ok) return res.status(400).json({ error: g.data.message || 'Could not find your invitation.' });
+    const qr = await rpc(C, 'get_guest_qr_token', { p_nickname: g.data.nickname });
+    if (!qr.ok || !qr.data) throw new Error('Could not prepare the guest QR code.');
+    const proto = String(req.headers['x-forwarded-proto'] || 'https').split(',')[0].trim();
+    const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
+    if (!host) throw new Error('Could not determine the invitation website address.');
+    const qrUrl = `${proto}://${host}/api/qr?token=${encodeURIComponent(qr.data)}`;
 
     await sendMail(C, email, `Your invitation: ${C.partyName}`,
-      buildText(C, g.data.nickname, g.data.raffle_number), buildHtml(C, g.data.nickname, g.data.raffle_number));
+      buildText(C, g.data.nickname, g.data.raffle_number), buildHtml(C, g.data.nickname, g.data.raffle_number, qrUrl));
     await rpc(C, 'mark_invite_sent', { p_nickname: g.data.nickname }).catch(() => {});
     return res.status(200).json({ ok: true });
   } catch (err) {
