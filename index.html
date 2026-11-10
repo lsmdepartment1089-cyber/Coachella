@@ -10,6 +10,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Cormorant+Garamond:wght@500;600&family=Nunito+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="config.js"></script>
 <style>
 :root{--red:#DA291C;--yellow:#FFC72C;--dark:#27251F;--cream:#FFF4D6;--orange:#FF8A1F;--page:#FFF9EA;
@@ -191,6 +193,16 @@ h2.sec{font-size:clamp(2.1rem,7vw,3.4rem);margin-bottom:18px;color:var(--red);te
 .mbtns{display:grid;gap:10px;margin-top:14px}
 .confetti i{position:absolute;top:-16px;width:8px;height:14px;animation:fall 1.7s ease-in forwards}
 
+/* guest QR pass + organizer attendance */
+.qr-pass{display:grid;justify-items:center;gap:10px;margin:18px auto 0;padding:18px;background:#fff;border:3px dashed var(--dark);border-radius:18px;max-width:300px;text-align:center}
+#guestQr{background:#fff;padding:8px;border-radius:8px;min-width:180px;min-height:180px}
+#guestQr img,#guestQr canvas{display:block;margin:auto}
+.qr-pass small{font-size:.78rem;opacity:.8}
+.scan-card{background:#fff;border:3px solid var(--dark);border-radius:16px;padding:16px;margin:0 0 16px}
+.scan-actions{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+#qr-reader{max-width:520px;margin:12px auto}
+.scan-result{font-weight:800;padding:10px;border-radius:10px;background:#fff4d6;min-height:42px}
+.scan-result.ok{background:#d8f5e6}.scan-result.warn{background:#ffe2df}
 /* organizer desk */
 body.admin .hero,body.admin main,body.admin .marquee{display:none!important}
 body.admin #adminPage{display:block;min-height:100svh;background:var(--cream)}
@@ -334,6 +346,11 @@ body.presenting .wactions{display:none}
         <p id="status"></p>
       </div>
       <div class="pass-num" id="passNum"><span>Raffle number</span><b id="num">?</b></div>
+      <div class="qr-pass" id="guestQrPass" hidden>
+        <strong>YOUR EVENT CHECK-IN QR</strong>
+        <div id="guestQr" aria-label="Personal event check-in QR code"></div>
+        <small>Show this code to the organizers at the entrance. Keep it private.</small>
+      </div>
     </div>
   </section>
 
@@ -453,9 +470,19 @@ body.presenting .wactions{display:none}
         <button class="btn small yellow" id="xlsx" type="button">Download Excel</button>
         <button class="btn small dark" id="sendAll" type="button">Send to everyone not yet sent</button>
       </div>
+      <section class="scan-card" aria-labelledby="scanTitle">
+        <h3 id="scanTitle">Guest QR check-in</h3>
+        <p>Scan a guest’s personal QR code at the entrance. A guest can only be checked in once.</p>
+        <div class="scan-actions">
+          <button class="btn small" id="scanStart" type="button">Start camera scanner</button>
+          <button class="btn small dark" id="scanStop" type="button" disabled>Stop scanner</button>
+        </div>
+        <div id="qr-reader"></div>
+        <div class="scan-result" id="scanResult" role="status">Scanner is stopped.</div>
+      </section>
       <div class="msg" id="bulkMsg" role="status" style="margin:0 0 12px"></div>
       <div class="tablewrap"><table>
-        <thead><tr><th>Raffle #</th><th>Nickname</th><th>RSVP</th><th>Re-rolled</th><th>Talent</th><th>Real name</th><th>Stage name</th><th>Files</th><th>Email</th><th>Invitation email</th><th>Signed up</th><th></th></tr></thead>
+        <thead><tr><th>Raffle #</th><th>Nickname</th><th>RSVP</th><th>Re-rolled</th><th>Talent</th><th>Real name</th><th>Stage name</th><th>Files</th><th>Email</th><th>Invitation email</th><th>Attendance</th><th>Signed up</th><th></th></tr></thead>
         <tbody id="rows"></tbody>
       </table></div>
     </div>
@@ -670,6 +697,16 @@ function renderPass() {
   $('rNote').textContent = has
     ? 'Your previously assigned raffle number remains valid. Good luck at the draw!'
     : 'Thank you for registering. Raffle number drawing is no longer available.';
+  renderGuestQR();
+}
+function renderGuestQR() {
+  const panel = $('guestQrPass');
+  if (!guest || !guest.qr_token || guest.raffle_number == null || !window.QRCode) {
+    panel.hidden = true; return;
+  }
+  panel.hidden = false; $('guestQr').textContent = '';
+  new QRCode($('guestQr'), { text: guest.qr_token, width: 180, height: 180,
+    colorDark: '#27251F', colorLight: '#FFFFFF', correctLevel: QRCode.CorrectLevel.H });
 }
 function confetti() {
   if (reduce) return; const box = $('confetti'); box.textContent = '';
@@ -793,7 +830,7 @@ const fmt = d => new Date(d).toLocaleString([], { dateStyle: 'medium', timeStyle
 const fileUrl = f => sb.storage.from(C.uploadBucket).getPublicUrl(f.path).data.publicUrl;
 function openAdmin() { document.body.classList.add('admin'); scrollTo({ top: 0 }); }
 $('adminOpen').addEventListener('click', openAdmin);
-$('adminExit').addEventListener('click', () => { try { sessionStorage.removeItem('fest_admin_pw'); } catch (e) {} adminPw = null; all = []; $('adminData').hidden = true; $('adminForm').hidden = false; $('adminPw').value = ''; document.body.classList.remove('admin'); });
+$('adminExit').addEventListener('click', () => { try { sessionStorage.removeItem('fest_admin_pw'); } catch (e) {} adminPw = null; if (qrScanner && qrScanner.isScanning) qrScanner.stop().catch(() => {}); all = []; $('adminData').hidden = true; $('adminForm').hidden = false; $('adminPw').value = ''; document.body.classList.remove('admin'); });
 async function loadAdmin() {
   const { data, error } = await sb.rpc('admin_list', { p_password: adminPw });
   if (error) { adminPw = null; $('adminMsg').textContent = error.message; return false; }
@@ -808,13 +845,13 @@ $('refresh').addEventListener('click', loadAdmin);
 $('filter').addEventListener('input', renderAdmin);
 function renderAdmin() {
   const n = f => all.filter(f).length;
-  const st = [['Registered', all.length], ['Going', n(g => g.rsvp === 'going')], ['Maybe', n(g => g.rsvp === 'maybe')], ['No reply yet', n(g => g.rsvp === 'pending')], ['Have a number', n(g => g.raffle_number != null)], ['Performers', n(g => g.talent_status === 'yes')], ['Winners', n(g => g.won_at)]];
+  const st = [['Registered', all.length], ['Going', n(g => g.rsvp === 'going')], ['Maybe', n(g => g.rsvp === 'maybe')], ['No reply yet', n(g => g.rsvp === 'pending')], ['Have a number', n(g => g.raffle_number != null)], ['Performers', n(g => g.talent_status === 'yes')], ['Winners', n(g => g.won_at)], ['Checked in', n(g => g.checked_in_at)], ['Not checked in', n(g => !g.checked_in_at)]];
   $('stats').textContent = '';
   st.forEach(([l, v]) => { const d = document.createElement('div'), b = document.createElement('b'), s = document.createElement('span'); d.className = 'stat'; b.textContent = v; s.textContent = l; d.append(b, s); $('stats').appendChild(d); });
   const q = $('filter').value.trim().toLowerCase();
   const list = all.filter(g => !q || `${g.nickname} ${g.raffle_number ?? ''} ${g.real_name || ''} ${g.stage_name || ''}`.toLowerCase().includes(q));
   const body = $('rows'); body.textContent = '';
-  if (!list.length) { const td = body.insertRow().insertCell(); td.colSpan = 12; td.textContent = all.length ? 'No guests match your search.' : 'No one has signed up yet.'; return; }
+  if (!list.length) { const td = body.insertRow().insertCell(); td.colSpan = 13; td.textContent = all.length ? 'No guests match your search.' : 'No one has signed up yet.'; return; }
   const pill = (cls, text) => { const s = document.createElement('span'); s.className = 'pill ' + cls; s.textContent = text; return s; };
   list.forEach(g => {
     const tr = body.insertRow();
@@ -829,6 +866,9 @@ function renderAdmin() {
     (g.talent_files || []).forEach(f => { const a = document.createElement('a'); a.href = fileUrl(f); a.target = '_blank'; a.rel = 'noopener'; a.textContent = f.name; fc.appendChild(a); });
     tr.insertCell().textContent = g.email || '';
     tr.insertCell().textContent = g.email_sent_at ? 'Sent ' + fmt(g.email_sent_at) : g.email ? 'Not sent yet' : '—';
+    const attendance = tr.insertCell();
+    attendance.appendChild(pill(g.checked_in_at ? 'yes' : 'pending', g.checked_in_at ? 'Checked in' : 'Not checked in'));
+    if (g.checked_in_at) { const time = document.createElement('small'); time.textContent = fmt(g.checked_in_at); attendance.appendChild(document.createElement('br')); attendance.appendChild(time); }
     tr.insertCell().textContent = fmt(g.created_at);
     const ac = tr.insertCell();
     if (g.email && g.raffle_number != null) {
@@ -847,6 +887,44 @@ function renderAdmin() {
   const waiting = all.filter(g => g.email && g.raffle_number != null && !g.email_sent_at).length;
   $('sendAll').textContent = 'Send to everyone not yet sent (' + waiting + ')';
 }
+/* ---------- QR attendance scanner ---------- */
+let qrScanner = null, scanBusy = false;
+function scanMessage(message, kind) {
+  const el = $('scanResult'); el.textContent = message;
+  el.className = 'scan-result' + (kind ? ' ' + kind : '');
+}
+async function handleGuestQr(decodedText) {
+  if (scanBusy) return;
+  scanBusy = true;
+  try {
+    const { data, error } = await sb.rpc('admin_checkin', {
+      p_password: adminPw, p_qr_token: String(decodedText).trim()
+    });
+    if (error) { scanMessage(error.message || 'Could not check in this QR code.', 'warn'); return; }
+    if (data.already_checked_in) {
+      scanMessage(data.guest.nickname + ' was already checked in at ' + fmt(data.guest.checked_in_at) + '.', 'warn');
+    } else {
+      scanMessage('Checked in: ' + data.guest.nickname + ' · Raffle #' + (data.guest.raffle_number ?? '—'), 'ok');
+    }
+    await loadAdmin();
+  } catch (err) { scanMessage('Check-in failed. Please try again.', 'warn'); }
+  finally { setTimeout(() => { scanBusy = false; }, 1400); }
+}
+$('scanStart').addEventListener('click', async () => {
+  if (!window.Html5Qrcode) { scanMessage('Camera scanner library did not load. Refresh and try again.', 'warn'); return; }
+  try {
+    if (!qrScanner) qrScanner = new Html5Qrcode('qr-reader');
+    await qrScanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 240, height: 240 } },
+      handleGuestQr, () => {});
+    $('scanStart').disabled = true; $('scanStop').disabled = false;
+    scanMessage('Camera is ready. Point it at a guest QR code.');
+  } catch (err) { scanMessage('Could not start camera. Allow camera access and use the site over HTTPS.', 'warn'); }
+});
+$('scanStop').addEventListener('click', async () => {
+  if (qrScanner && qrScanner.isScanning) await qrScanner.stop();
+  $('scanStart').disabled = false; $('scanStop').disabled = true;
+  scanMessage('Scanner is stopped.');
+});
 /*RESEND_API*/
 async function resendOne(nickname) {
   try {
@@ -1093,11 +1171,11 @@ $('xlsx').addEventListener('click', () => {
   const links = g => (g.talent_files || []).map(fileUrl).join('\n');
   const guests = sorted.map(g => ({ 'Raffle Number': g.raffle_number ?? '', 'Nickname': g.nickname, 'RSVP': LABEL[g.rsvp] || g.rsvp,
     'Re-rolled': g.rerolled ? 'Yes' : 'No', 'Talent': TAL[g.talent_status] || g.talent_status, 'Real Name': g.real_name || '', 'Stage Name': g.stage_name || '',
-    'Files': (g.talent_files || []).length, 'File Links': links(g), 'Email': g.email || '', 'Email Sent': g.email_sent_at ? fmt(g.email_sent_at) : '', 'Winner #': g.won_order ?? '', 'Signed Up': fmt(g.created_at) }));
+    'Files': (g.talent_files || []).length, 'File Links': links(g), 'Email': g.email || '', 'Email Sent': g.email_sent_at ? fmt(g.email_sent_at) : '', 'Winner #': g.won_order ?? '', 'Checked In': g.checked_in_at ? fmt(g.checked_in_at) : 'No', 'Signed Up': fmt(g.created_at) }));
   const perf = sorted.filter(g => g.talent_status === 'yes').map(g => ({ 'Stage Name': g.stage_name || '', 'Real Name': g.real_name || '', 'Nickname': g.nickname,
     'Raffle Number': g.raffle_number ?? '', 'RSVP': LABEL[g.rsvp] || g.rsvp, 'File Links': links(g) }));
   const wb = XLSX.utils.book_new();
-  const ws1 = XLSX.utils.json_to_sheet(guests); ws1['!cols'] = [14, 20, 14, 10, 14, 24, 22, 7, 50, 30, 22, 10, 22].map(w => ({ wch: w }));
+  const ws1 = XLSX.utils.json_to_sheet(guests); ws1['!cols'] = [14, 20, 14, 10, 14, 24, 22, 7, 50, 30, 22, 18, 10, 22].map(w => ({ wch: w }));
   const ws2 = XLSX.utils.json_to_sheet(perf); ws2['!cols'] = [22, 24, 20, 14, 14, 50].map(w => ({ wch: w }));
   XLSX.utils.book_append_sheet(wb, ws1, 'Guests'); XLSX.utils.book_append_sheet(wb, ws2, 'Performers');
   XLSX.writeFile(wb, 'year-end-party-guests.xlsx');
