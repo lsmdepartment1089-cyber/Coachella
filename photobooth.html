@@ -120,6 +120,7 @@ main{min-height:0;position:relative}
   <header class="bar">
     <h1>Photo Booth</h1><span class="sp"></span>
     <span class="st" id="prStat"></span><span class="st" id="stats"></span>
+    <button class="btn s y" id="guestScreenBtn" type="button">Open HDMI guest display</button><span class="st" id="guestScreenStatus">Guest display: disconnected</span>
     <button class="btn s w" id="fsBtn" type="button">Full screen</button>
     <button class="btn s y" id="setBtn" type="button">Settings and printer</button>
   </header>
@@ -142,7 +143,7 @@ main{min-height:0;position:relative}
         <div class="chips" id="fltChips"></div>
         <label class="chk"><input type="checkbox" id="autoPrint"> Print right after the photo</label>
         <button class="btn big" id="startBtn" type="button">START</button>
-        <div class="msg" id="homeMsg" role="status"></div>
+        <div class="msg" id="homeMsg" role="status"></div><div class="note" style="margin-top:10px">Self-service: guests use this laptop to choose a layout and press START. Open the HDMI guest display on the second screen for a large live preview.</div>
       </aside>
     </section>
     <section id="shoot" hidden>
@@ -389,6 +390,59 @@ $('timerSeg').addEventListener('click', e => { const b = e.target.closest('butto
 $('copySeg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; B.copies = +b.dataset.v; LSset('booth_copies', B.copies); markOpts(); });
 $('autoPrint').addEventListener('change', e => { B.auto = e.target.checked; LSset('booth_auto', B.auto ? '1' : '0'); });
 
+/* ---------- secondary HDMI display (no second camera connection) ---------- */
+const GUEST_CHANNEL = 'coachella-booth-display-v1';
+const guestChannel = 'BroadcastChannel' in window ? new BroadcastChannel(GUEST_CHANNEL) : null;
+let guestWindow = null, guestFrameTimer = null, guestFrameBusy = false, guestQrUrl = '';
+const guestFrameCanvas = document.createElement('canvas');
+function guestSend(data) { if (guestChannel) guestChannel.postMessage(data); }
+function guestStatus() {
+  $('guestScreenStatus').textContent = guestWindow && !guestWindow.closed ? 'Guest display: connected' : 'Guest display: open on HDMI';
+}
+function guestState() {
+  guestSend({type:'state', mode:B.mode, shotInfo:$('shotInfo').textContent,
+    count: $('count').hidden ? '' : $('countN').textContent,
+    status:$('resStatus').textContent, qrUrl:guestQrUrl,
+    tpl:B.tpl.name});
+}
+function guestDrawFrame() {
+  if (!guestChannel || guestFrameBusy) return;
+  const v=$('vid');
+  if (B.mode === 'home' || B.mode === 'shoot') {
+    if (!v.videoWidth || !v.videoHeight) return;
+    const c=guestFrameCanvas, ctx=c.getContext('2d');
+    c.width=960; c.height=540;
+    ctx.fillStyle='#27251F';ctx.fillRect(0,0,c.width,c.height);
+    // Mirror exactly as the operator's camera preview, without opening a second camera.
+    const scale=Math.max(c.width/v.videoWidth,c.height/v.videoHeight);
+    const dw=v.videoWidth*scale,dh=v.videoHeight*scale;
+    ctx.save();ctx.filter=cssOf(B.filter);if(B.mirror){ctx.translate(c.width,0);ctx.scale(-1,1);}
+    ctx.drawImage(v,(c.width-dw)/2,(c.height-dh)/2,dw,dh);ctx.restore();
+    guestFrameBusy=true;
+    c.toBlob(blob=>{guestFrameBusy=false;if(blob) guestSend({type:'frame',blob});},'image/jpeg',.68);
+  } else if (B.mode === 'result' && B.final) {
+    guestFrameBusy=true;
+    B.final.toBlob(blob=>{guestFrameBusy=false;if(blob) guestSend({type:'frame',blob});},'image/jpeg',.75);
+  }
+}
+async function guestPreviewCamera() {
+  if (B.mode !== 'home' || B.busy || B.stream) return;
+  await ensureCam();
+}
+$('guestScreenBtn').addEventListener('click', async () => {
+  if (!guestChannel) { alert('This browser does not support synchronized guest displays. Please use recent Chrome or Edge.'); return; }
+  const url=new URL('photobooth-display.html', location.href);
+  guestWindow=window.open(url.href,'coachella_guest_display','popup=yes,width=1280,height=800');
+  if(!guestWindow){alert('Allow pop-ups for this website, then try again.');return;}
+  guestStatus();
+  await guestPreviewCamera();guestState();guestDrawFrame();
+});
+if (guestChannel) {
+  guestChannel.onmessage=e=>{if(e.data && e.data.type==='ready'){guestState();guestDrawFrame();guestStatus();}};
+  guestFrameTimer=setInterval(()=>{if(B.mode==='home')guestPreviewCamera();guestState();guestDrawFrame();},300);
+}
+addEventListener('pagehide',()=>{guestSend({type:'offline'});if(guestFrameTimer)clearInterval(guestFrameTimer);});
+
 /* ---------- camera ---------- */
 function demoStream() {
   const cv = document.createElement('canvas'); cv.width = 1280; cv.height = 720; const c = cv.getContext('2d'); let t = 0;
@@ -411,7 +465,7 @@ async function fillCams() {
 }
 
 /* ---------- screens ---------- */
-function setMode(m) { B.mode = m; $('home').hidden = m !== 'home'; $('shoot').hidden = m !== 'shoot'; $('result').hidden = m !== 'result'; clearTimeout(B.retT); }
+function setMode(m) { guestQrUrl = m === 'result' ? guestQrUrl : ''; B.mode = m; $('home').hidden = m !== 'home'; $('shoot').hidden = m !== 'shoot'; $('result').hidden = m !== 'result'; clearTimeout(B.retT); }
 function toHome() { setMode('home'); B.live = null; B.shots = []; B.shareExpiresAt = 0; $('qrPanel').hidden = true; $('qrCode').textContent=''; $('printRoot').textContent = ''; }
 function layoutStage() {
   const L = B.tpl.layout, st = $('stage'); st.style.setProperty('--ar', L.w / L.h); const li = liveSlotIdx(), s = L.slots[li == null ? 0 : li], sbx = $('slotbox'), W = st.clientWidth || 300, k = W / L.w;
@@ -465,7 +519,7 @@ async function createTemporaryPhotoLink(canvas) {
     const response=await fetch(photoFunctionUrl(),{method:'POST',headers:{'apikey':C.SUPABASE_ANON_KEY,'Authorization':'Bearer '+C.SUPABASE_ANON_KEY,'Content-Type':'image/jpeg','x-action':'upload','x-site-origin':location.origin,'x-booth-password':SS.get('fest_admin_pw')||''},body:blob});
     const data=await response.json().catch(()=>({}));
     if(!response.ok||!data.ok) throw new Error(data.error||'Photo upload failed.');
-    B.shareExpiresAt=new Date(data.expiresAt).getTime();
+    B.shareExpiresAt=new Date(data.expiresAt).getTime(); guestQrUrl=data.shareUrl; guestState();
     if(!window.QRCode) throw new Error('QR generator did not load. Refresh the page and try again.');
     new QRCode($('qrCode'),{text:data.shareUrl,width:106,height:106,colorDark:'#27251F',colorLight:'#FFFFFF',correctLevel:QRCode.CorrectLevel.M});
     setQrStatus('Ready! Scan now. The download expires in 10 minutes.');
@@ -559,7 +613,7 @@ $('fsBtn').addEventListener('click', () => { if (document.fullscreenElement) doc
 new ResizeObserver(() => { if (B.mode === 'shoot') layoutStage(); }).observe($('stage'));
 
 /* ---------- login + start ---------- */
-async function init() { await loadFonts(); stats(); prStat(); buildHome(); setMode('home'); if (LSget('booth_qz', '0') === '1') findPrinters(); }
+async function init() { await loadFonts(); stats(); prStat(); buildHome(); setMode('home'); if(guestChannel) guestPreviewCamera(); if (LSget('booth_qz', '0') === '1') findPrinters(); }
 async function enter(pw) { const r = await sb.rpc('admin_list', { p_password: pw }); if (r.error) return r.error.message; SS.set('fest_admin_pw', pw); $('gate').hidden = true; $('app').hidden = false; await init(); return null; }
 $('gateForm').addEventListener('submit', async e => { e.preventDefault(); $('gateBtn').disabled = true; $('gateMsg').textContent = ''; const err = await enter($('pw').value); $('gateBtn').disabled = false; if (err) $('gateMsg').textContent = err; });
 
