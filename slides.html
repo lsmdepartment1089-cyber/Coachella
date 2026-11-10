@@ -1202,5 +1202,6 @@ $('sScreen').addEventListener('change', () => LSset(LEDKEY, $('sScreen').value))
 /* auto sign-in when coming from the organizer desk */
 if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if (sp) { const err = await enter(sp); if (err) { SS.del('fest_admin_pw'); $('gateMsg').textContent = ''; } } })();
 </script>
+<script src="mcdo-brand.js"></script>
 </body>
 </html>
