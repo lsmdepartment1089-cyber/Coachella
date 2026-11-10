@@ -2,9 +2,44 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Coachella Photobooth — Guest Display</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Nunito+Sans:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#27251F;color:#FFF4D6;font-family:Arial,sans-serif;overflow:hidden}.screen{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2vh 3vw;gap:1.5vh}header{font-weight:900;font-size:clamp(24px,3vw,55px);color:#FFC72C;letter-spacing:.08em;text-align:center}.sub{font-size:clamp(18px,2vw,35px);font-weight:bold;text-align:center;min-height:1.4em}.frame{position:relative;flex:1;min-height:0;max-width:95vw;display:flex;justify-content:center;align-items:center}.frame img{display:block;max-height:100%;max-width:100%;object-fit:contain;border:8px solid #FFC72C;border-radius:18px;background:#161512}.count{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:min(32vh,30vw);font-weight:900;color:#fff;text-shadow:0 7px 30px #000}.count[hidden],#qrWrap[hidden]{display:none}footer{text-align:center;font-size:clamp(15px,1.5vw,24px);padding:1vh}#qrWrap{display:flex;align-items:center;justify-content:center;gap:20px;background:#FFF4D6;color:#27251F;border-radius:15px;padding:12px 24px;font-size:clamp(16px,2vw,30px);font-weight:900}#qr{background:white;padding:8px}#qr img{display:block}#offline{color:#FFC72C}
-</style></head><body><div class="screen"><header>COACHELLA · BEYOND THE ARCHES</header><div class="sub" id="heading">Your photobooth preview</div><div class="frame"><img id="preview" alt="Live photobooth camera preview"><div class="count" id="count" hidden></div></div><div id="qrWrap" hidden><div id="qr"></div><span>SCAN TO DOWNLOAD YOUR PHOTO</span></div><footer id="offline">Waiting for the laptop photobooth…</footer></div>
+:root{--red:#DA291C;--gold:#FFC72C;--ink:#27251F;--cream:#FFF4D6}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{font-family:'Nunito Sans',Arial,sans-serif;color:var(--ink);background:radial-gradient(ellipse at 50% 38%,#fff9e9 0%,#fff0bf 58%,#ffd98d 100%)}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.18;background-image:radial-gradient(#DA291C 1.5px,transparent 1.5px);background-size:28px 28px}
+.arch{position:fixed;z-index:0;pointer-events:none;opacity:.13;fill:none;stroke:var(--red);stroke-width:32;stroke-linecap:round;stroke-linejoin:round}
+.arch.left{height:95vh;left:-16vw;bottom:-25vh;transform:rotate(-17deg)}.arch.right{height:90vh;right:-17vw;top:-28vh;transform:rotate(18deg)}
+.screen{position:relative;z-index:1;height:100dvh;display:flex;flex-direction:column;align-items:center;padding:1.4vh 3vw 1.5vh;gap:1vh}
+.brand{display:flex;align-items:center;justify-content:center;gap:1.2vw;flex:none}
+.brand svg{height:clamp(42px,6.3vh,75px);width:auto;filter:drop-shadow(2px 3px 0 #27251f)}
+header{font-family:'Londrina Solid',Impact,sans-serif;font-size:clamp(36px,5.1vw,90px);line-height:.92;color:var(--red);letter-spacing:.045em;text-shadow:3px 4px 0 var(--gold);text-align:center}
+.tag{font-weight:900;letter-spacing:.28em;text-transform:uppercase;text-align:center;font-size:clamp(11px,1.1vw,19px)}
+.sub{font-family:'Londrina Solid',Impact,sans-serif;font-size:clamp(21px,2.5vw,43px);color:var(--ink);text-align:center;min-height:1.15em}
+.frame-shell{position:relative;flex:1;min-height:0;min-width:0;width:min(100%,1300px);border:5px solid var(--ink);border-radius:25px;padding:9px;background:var(--gold);box-shadow:9px 9px 0 var(--red),0 16px 35px #7b4b2526}
+.frame{height:100%;width:100%;position:relative;display:flex;justify-content:center;align-items:center;overflow:hidden;border-radius:13px;background:linear-gradient(135deg,#fff3c8,#eecb8b)}
+.frame:before{content:"LIVE PHOTO PREVIEW";position:absolute;z-index:2;top:12px;left:12px;background:var(--red);color:#fff;font-weight:900;letter-spacing:.14em;padding:7px 13px;border-radius:8px;font-size:clamp(11px,1vw,17px);box-shadow:2px 3px 0 var(--ink)}
+.frame img{display:block;max-height:100%;max-width:100%;width:100%;height:100%;object-fit:contain}
+.count{position:absolute;z-index:4;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Londrina Solid',Impact,sans-serif;font-size:min(36vh,30vw);font-weight:900;color:#fff;text-shadow:6px 8px 0 var(--red),0 0 55px #000}
+.count[hidden],#qrWrap[hidden]{display:none}
+#qrWrap{position:absolute;z-index:5;right:22px;bottom:22px;display:flex;align-items:center;justify-content:center;gap:14px;background:var(--cream);color:var(--ink);border:4px solid var(--ink);border-radius:17px;padding:12px 18px;max-width:85%;font-size:clamp(15px,1.5vw,26px);font-weight:900;box-shadow:5px 5px 0 var(--red)}
+#qr{background:white;padding:7px;flex:none}#qr img{display:block}
+footer{flex:none;text-align:center;font-weight:900;font-size:clamp(14px,1.45vw,25px);background:var(--red);color:white;border:3px solid var(--ink);border-radius:100px;padding:.5vh 2.3vw;max-width:95vw}
+@media(max-height:650px){.screen{gap:.4vh;padding:1vh 2vw}.brand svg{height:35px}header{font-size:clamp(30px,3.6vw,58px)}.tag{font-size:11px}.sub{font-size:20px}.frame-shell{padding:5px;border-width:3px}footer{font-size:14px}}
+</style></head><body>
+<svg class="arch left" viewBox="0 0 240 300" aria-hidden="true"><path d="M20 290V145C20 -15 105 -15 120 145 135 -15 220 -15 220 145V290"/></svg>
+<svg class="arch right" viewBox="0 0 240 300" aria-hidden="true"><path d="M20 290V145C20 -15 105 -15 120 145 135 -15 220 -15 220 145V290"/></svg>
+<div class="screen">
+<div class="brand">
+<svg viewBox="0 0 120 80" aria-hidden="true"><path d="M12 74V38C12 -4 56 -4 60 38 64 -4 108 -4 108 38V74" fill="none" stroke="#FFC72C" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<div><header>COACHELLA</header><div class="tag">BEYOND THE ARCHES</div></div>
+<svg viewBox="0 0 120 80" aria-hidden="true"><path d="M12 74V38C12 -4 56 -4 60 38 64 -4 108 -4 108 38V74" fill="none" stroke="#FFC72C" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</div>
+<div class="sub" id="heading">Your photobooth preview</div>
+<div class="frame-shell"><div class="frame"><img id="preview" alt="Live photobooth camera preview"><div class="count" id="count" hidden></div><div id="qrWrap" hidden><div id="qr"></div><span>SCAN TO DOWNLOAD<br>YOUR PHOTO</span></div></div></div>
+<footer id="offline">Waiting for the laptop photobooth…</footer>
+</div>
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
