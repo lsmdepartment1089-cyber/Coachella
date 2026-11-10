@@ -18,9 +18,15 @@ module.exports = async (req, res) => {
     // checks the organizer password inside the database and returns this guest's saved email
     const g = await rpc(C, 'admin_prepare_resend', { p_password: password, p_nickname: nickname });
     if (!g.ok) return res.status(400).json({ error: g.data.message || 'Could not prepare the email.' });
+    const qr = await rpc(C, 'get_guest_qr_token', { p_nickname: g.data.nickname });
+    if (!qr.ok || !qr.data) throw new Error('Could not prepare the guest QR code.');
+    const proto = String(req.headers['x-forwarded-proto'] || 'https').split(',')[0].trim();
+    const host = String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
+    if (!host) throw new Error('Could not determine the invitation website address.');
+    const qrUrl = `${proto}://${host}/api/qr?token=${encodeURIComponent(qr.data)}`;
 
     await sendMail(C, g.data.email, `Your invitation: ${C.partyName}`,
-      buildText(C, g.data.nickname, g.data.raffle_number), buildHtml(C, g.data.nickname, g.data.raffle_number));
+      buildText(C, g.data.nickname, g.data.raffle_number), buildHtml(C, g.data.nickname, g.data.raffle_number, qrUrl));
     await rpc(C, 'mark_invite_sent', { p_nickname: g.data.nickname }).catch(() => {});
     return res.status(200).json({ ok: true, email: g.data.email });
   } catch (err) {
