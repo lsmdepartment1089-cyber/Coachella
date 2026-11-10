@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Certificate Maker | Coachella Organizer Desk</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Nunito+Sans:wght@400;600;800;900&family=Londrina+Solid:wght@400;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="config.js"></script>
+<style>
+:root{--red:#da291c;--gold:#ffc72c;--ink:#27251f;--cream:#fff4d6}
+*{box-sizing:border-box}body{margin:0;background:#f7edda;color:var(--ink);font-family:'Nunito Sans',sans-serif}
+button,input,select{font:inherit}button{cursor:pointer}.top{background:var(--ink);color:#fff;padding:16px 4vw;display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}.top b{font-family:'Londrina Solid';font-size:27px;color:var(--gold)}.top a{color:white}
+.layout{display:grid;grid-template-columns:minmax(280px,350px) minmax(0,1fr);gap:25px;max-width:1550px;margin:auto;padding:24px}.controls{background:white;border:2px solid var(--ink);border-radius:16px;padding:22px;align-self:start;box-shadow:5px 5px 0 var(--gold)}
+h1{font-family:'Londrina Solid';font-size:31px;margin:0 0 6px}p{line-height:1.5}.hint{font-size:13px;color:#625d52}label{display:block;font-weight:900;margin:14px 0 5px}input,select{width:100%;padding:11px;border:2px solid #a8a097;border-radius:8px;background:#fff}input:focus,select:focus{outline:3px solid #ffc72c}
+.btn{background:var(--red);border:2px solid var(--ink);border-radius:9px;padding:12px 14px;color:white;font-weight:900;box-shadow:3px 3px 0 var(--ink)}.btn.alt{background:var(--gold);color:var(--ink)}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}.actions button{flex:1}.status{min-height:1.5em;color:#8c251b;font-size:13px;font-weight:800}
+.preview{min-width:0;text-align:center}.preview>p{margin:0 0 12px;font-size:13px}.sheet-wrap{width:min(100%,850px);margin:auto}
+.certificate{--accent:#a62219;--accent2:#f4b834;--paper:#fff9ed;--line:#a62219;position:relative;aspect-ratio:210/297;overflow:hidden;width:100%;background:var(--paper);color:#29221d;border:1px solid #d4c8b5;isolation:isolate;text-align:center}
+.certificate .pattern{position:absolute;inset:0;opacity:.28;pointer-events:none;background:radial-gradient(circle at 5% 5%,var(--accent2) 0 3px,transparent 4px) 0 0/28px 28px}
+.certificate .edge{position:absolute;inset:3.3%;border:2.2px solid var(--line);pointer-events:none}
+.certificate .edge:after{content:"";position:absolute;inset:7px;border:1px solid var(--accent2)}
+.certificate .archL,.certificate .archR{position:absolute;top:0;width:34%;height:48%;opacity:.11;stroke:var(--accent);fill:none;stroke-width:20}
+.certificate .archL{left:-13%;transform:rotate(-13deg)}.certificate .archR{right:-13%;transform:rotate(13deg)}
+.certificate .body{position:absolute;inset:7% 9% 6%;display:flex;flex-direction:column;align-items:center;justify-content:space-between}
+.eyebrow{font-size:clamp(10px,1.2vw,17px);font-weight:900;letter-spacing:.25em;color:var(--accent);text-transform:uppercase}
+.emblem{width:18%;max-height:13%;margin:2% auto 0}
+.emblem path{stroke:var(--accent2);stroke-width:12;fill:none;stroke-linecap:round}
+.certificate h2{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(28px,4.6vw,68px);line-height:.95;color:var(--accent);margin:1% 0;font-weight:700}
+.category{font-size:clamp(11px,1.5vw,22px);font-weight:900;text-transform:uppercase;letter-spacing:.13em;max-width:90%;line-height:1.25}
+.small{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(15px,2vw,30px);font-style:italic}
+.name{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(27px,4.3vw,65px);font-weight:700;line-height:1.08;overflow-wrap:anywhere;max-width:100%;border-bottom:2px solid var(--accent2);padding:0 2% 1%}
+.message{font-size:clamp(13px,1.75vw,26px);line-height:1.48;max-width:90%;white-space:pre-line}
+.event{font-size:clamp(10px,1.1vw,17px);font-weight:900;letter-spacing:.12em;color:var(--accent);text-transform:uppercase}
+.signatures{display:flex;gap:5%;width:100%;justify-content:space-between;align-items:flex-end}
+.sig{width:48%;font-size:clamp(9px,1.05vw,15px);line-height:1.35}.sig .line{border-top:1.5px solid var(--ink);padding-top:8px;font-weight:900}.sig span{font-size:.92em}
+.seal{width:13%;aspect-ratio:1;border:3px double var(--accent);border-radius:50%;display:grid;place-items:center;color:var(--accent);font-family:'Londrina Solid';font-size:clamp(10px,1.4vw,20px);transform:rotate(-10deg);background:var(--accent2)}
+.certificate[data-style="appreciation"]{--paper:#fffdf5;--accent:#7d221d;--accent2:#d7a53d}
+.certificate[data-style="manager"]{--paper:#f8f6ed;--accent:#153c4d;--accent2:#c49c53}
+.certificate[data-style="trainer"]{--paper:#fff8e9;--accent:#7e3d12;--accent2:#e6a740}
+.certificate[data-style="crewyear"]{--paper:#fff4e0;--accent:#bc241c;--accent2:#ffca36}
+.certificate[data-style="gelyear"]{--paper:#f7f2ff;--accent:#64318b;--accent2:#ddbd70}
+.certificate[data-style="manageryear"]{--paper:#f5f6f9;--accent:#253955;--accent2:#d2a54b}
+.certificate[data-style="crewyear2"]{--paper:#fff7e9;--accent:#5b2d16;--accent2:#eab43d}
+.certificate[data-style="fashion"]{--paper:#fff0ed;--accent:#b32053;--accent2:#f2ba6d}
+.certificate[data-style="maverick"]{--paper:#f1f5f4;--accent:#17635b;--accent2:#d9aa55}
+.certificate[data-style="crown"]{--paper:#fff9e7;--accent:#613f76;--accent2:#e4bb4b}
+.certificate[data-style="queen"]{--paper:#fff0f3;--accent:#9e2056;--accent2:#f1b34b}
+.certificate[data-style="king"]{--paper:#f2f4f9;--accent:#1f4269;--accent2:#e2b34d}
+.certificate[data-style="queen"] .edge,.certificate[data-style="king"] .edge{border-width:5px}
+.certificate[data-style="fashion"] .pattern,.certificate[data-style="maverick"] .pattern{background:repeating-linear-gradient(135deg,transparent 0 28px,var(--accent2) 29px 31px,transparent 32px 65px)}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.certificate h2{font-size:clamp(26px,8vw,68px)}.category{font-size:clamp(10px,2.6vw,22px)}.small{font-size:clamp(14px,3.4vw,30px)}.name{font-size:clamp(25px,7vw,65px)}.message{font-size:clamp(12px,3vw,26px)}.sig{font-size:clamp(9px,2vw,15px)}.eyebrow{font-size:clamp(10px,2.2vw,17px)}}
+@page{size:A4 portrait;margin:0}
+@media print{html,body{margin:0!important;background:white!important}.top,.controls,.preview>p{display:none!important}.layout,.preview,.sheet-wrap{display:block!important;margin:0!important;padding:0!important;width:210mm!important;max-width:none!important}.certificate{width:210mm!important;height:297mm!important;aspect-ratio:auto!important;border:0!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}.certificate h2{font-size:17mm}.category{font-size:5mm}.small{font-size:6mm}.name{font-size:15mm}.message{font-size:5.7mm}.eyebrow{font-size:3.8mm}.sig{font-size:3.3mm}.event{font-size:3.5mm}}
+</style></head><body>
+<div class="top"><b>COACHELLA · CERTIFICATE STUDIO</b><a href="index.html#admin">← Organizer Desk</a></div>
+<div class="layout"><section class="controls">
+<h1>Certificate Maker</h1><p class="hint">A4 portrait · 15 award selections · instant print-ready preview</p>
+<label for="type">Certificate title</label><select id="type"></select>
+<label for="recipient">Recipient's full name</label><input id="recipient" placeholder="Enter awardee name" maxlength="100">
+<label for="date">Award date</label><input id="date" type="date">
+<label for="note">Optional custom citation</label><input id="note" placeholder="Leave blank for title-based wording" maxlength="250">
+<div class="actions"><button class="btn" id="pdf">Download A4 PDF</button><button class="btn alt" id="print">Print A4</button></div>
+<p id="status" class="status" role="status"></p>
+<p class="hint">Signatures are printed as labeled signature lines (no signatures are forged). Have Rochelle Pascual and Ruel sign after printing.</p>
+</section>
+<section class="preview"><p>Live A4 preview — recipient and award update automatically</p><div class="sheet-wrap">
+<div class="certificate" id="certificate" data-style="appreciation">
+<div class="pattern"></div><div class="edge"></div>
+<svg class="archL" viewBox="0 0 220 300"><path d="M20 300V130C20 -30 100 -30 110 130 120 -30 200 -30 200 130V300"/></svg>
+<svg class="archR" viewBox="0 0 220 300"><path d="M20 300V130C20 -30 100 -30 110 130 120 -30 200 -30 200 130V300"/></svg>
+<div class="body"><div class="eyebrow">McDonald's · Santa Rosa Bayan</div>
+<svg class="emblem" viewBox="0 0 120 90" aria-hidden="true"><path d="M14 82V45C14 -3 55 -3 60 45 65 -3 106 -3 106 45V82"/></svg>
+<div class="eyebrow">Coachella · Beyond the Arches</div>
+<h2 id="heading">Certificate of Appreciation</h2>
+<div class="category" id="category"></div><div class="small">Proudly presented to</div>
+<div class="name" id="name">Recipient Name</div>
+<div class="message" id="message"></div>
+<div class="seal">HONOREE</div><div class="event" id="event"></div>
+<div class="signatures"><div class="sig"><div class="line">Rochelle Pascual</div><span>Restaurant General Manager</span></div><div class="sig"><div class="line">Ruel</div><span>Operation Consultant</span></div></div>
+</div></div></div></section></div>
+<script>
+const $=id=>document.getElementById(id);
+const awards=[
+['Certificate of Appreciation to Guest Experience Leader','appreciation','Certificate of Appreciation','Guest Experience Leader','In grateful recognition of your outstanding hospitality, dedication, and commitment to creating memorable guest experiences.'],
+['Certificate of Appreciation to Manager','manager','Certificate of Appreciation','Manager','In sincere appreciation of your leadership, professionalism, and exceptional contribution to the success of our restaurant team.'],
+['Certificate of Appreciation to Crew Trainer','trainer','Certificate of Appreciation','Crew Trainer','In recognition of your patience, mentorship, and dedication to developing the skills and confidence of our crew.'],
+['Certificate to Crew of the Year','crewyear','Certificate of Excellence','Crew of the Year','For consistently demonstrating exceptional performance, teamwork, and commitment to service excellence.'],
+['Certificate to GEL of the Year','gelyear','Certificate of Excellence','GEL of the Year','For exemplary guest engagement, warmth, and a remarkable commitment to outstanding guest experiences.'],
+['Certificate to Manager of the Year','manageryear','Certificate of Excellence','Manager of the Year','For extraordinary leadership, integrity, and outstanding achievements in guiding and inspiring the team.'],
+['Certificate to Crew of the Year — Alternate Design','crewyear2','Certificate of Excellence','Crew of the Year','For setting a shining example of hard work, reliability, teamwork, and excellence throughout the year.'],
+['Coachella Fashion Icon – Crew (Female)','fashion','Coachella Style Awards','Fashion Icon · Crew (Female)','For captivating the celebration with confidence, originality, and a standout Coachella-inspired look.'],
+['Coachella Fashion Diva – Crew (Female)','fashion','Coachella Style Awards','Fashion Diva · Crew (Female)','For dazzling the crowd with expressive style, creativity, and unforgettable festival fashion.'],
+['Coachella Style Maverick – Crew (Male)','maverick','Coachella Style Awards','Style Maverick · Crew (Male)','For making a bold statement through individuality, confidence, and fearless festival fashion.'],
+['Coachella Style Ace – Crew (Male)','maverick','Coachella Style Awards','Style Ace · Crew (Male)','For bringing impeccable style, originality, and confidence to the Coachella celebration.'],
+['Coachella Crown Jewel – Manager (Female)','crown','Coachella Style Awards','Crown Jewel · Manager (Female)','For embodying elegance, leadership, and an extraordinary presence at our Coachella celebration.'],
+['Coachella Prime Leader – Manager (Male)','crown','Coachella Style Awards','Prime Leader · Manager (Male)','For standing out through confident leadership, refined style, and remarkable festival spirit.'],
+['Queen of the Desert','queen','Royal Festival Honors','Queen of the Desert','For reigning with radiance, grace, and unforgettable Coachella spirit.'],
+['King of the Desert','king','Royal Festival Honors','King of the Desert','For commanding the celebration with charisma, confidence, and unforgettable Coachella spirit.']
+];
+const select=$('type');awards.forEach((a,i)=>{const o=document.createElement('option');o.value=i;o.textContent=a[0];select.append(o)});
+const date=new Date();$('date').value=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+function update(){const a=awards[+select.value],d=$('date').value; $('certificate').dataset.style=a[1];$('heading').textContent=a[2];$('category').textContent=a[3];$('name').textContent=$('recipient').value.trim()||'Recipient Name';$('message').textContent=$('note').value.trim()||a[4];$('event').textContent='McDonald’s Year-End Party · '+(d?new Date(d+'T12:00:00').toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}):'');}
+[select,$('recipient'),$('date'),$('note')].forEach(el=>el.addEventListener('input',update));update();
+function valid(){if(!$('recipient').value.trim()){ $('status').textContent='Please enter the recipient’s full name.';$('recipient').focus();return false} $('status').textContent='';return true}
+$('print').onclick=()=>{if(valid())window.print()};
+$('pdf').onclick=async()=>{if(!valid())return;const btn=$('pdf');btn.disabled=true;$('status').textContent='Generating A4 PDF…';try{
+if(!window.html2canvas||!window.jspdf)throw Error('PDF libraries could not load. Check your internet connection.');
+await document.fonts.ready;const el=$('certificate');
+const canvas=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false,windowWidth:Math.max(1100,window.innerWidth)});
+const pdf=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+pdf.addImage(canvas.toDataURL('image/jpeg',.95),'JPEG',0,0,210,297);
+const safe=$('recipient').value.trim().replace(/[^a-z0-9 _-]/gi,'').replace(/\s+/g,'-').slice(0,60);
+pdf.save('Coachella-Certificate-'+safe+'.pdf');$('status').textContent='A4 PDF downloaded.';
+}catch(e){$('status').textContent='PDF error: '+e.message}finally{btn.disabled=false}};
+(async()=>{try{const pw=sessionStorage.getItem('fest_admin_pw');if(!pw)throw Error('Organizer login required. Open Organizer Desk first.');const sb=window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);const r=await sb.rpc('admin_list',{p_password:pw});if(r.error)throw Error('Organizer session expired. Sign in again.');}catch(e){document.querySelector('.layout').hidden=true;const p=document.createElement('p');p.style='text-align:center;padding:40px;font-weight:bold';p.textContent=e.message+' ';const a=document.createElement('a');a.href='index.html#admin';a.textContent='Go to Organizer Desk';p.append(a);document.body.append(p)}})();
+</script></body></html>
