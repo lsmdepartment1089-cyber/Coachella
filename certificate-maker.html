@@ -1,85 +1,118 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Certificate Maker | Coachella Organizer Desk</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Nunito+Sans:wght@400;600;800;900&family=Londrina+Solid:wght@400;900&display=swap" rel="stylesheet">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Certificate Designer | Coachella</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Nunito+Sans:wght@400;600;800;900&family=Londrina+Solid:wght@400;900&family=Playfair+Display:wght@500;700&family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
 <script src="config.js"></script>
 <style>
-:root{--red:#da291c;--gold:#ffc72c;--ink:#27251f;--cream:#fff4d6}
-*{box-sizing:border-box}body{margin:0;background:#f7edda;color:var(--ink);font-family:'Nunito Sans',sans-serif}
-button,input,select{font:inherit}button{cursor:pointer}.top{background:var(--ink);color:#fff;padding:16px 4vw;display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}.top b{font-family:'Londrina Solid';font-size:27px;color:var(--gold)}.top a{color:white}
-.layout{display:grid;grid-template-columns:minmax(280px,350px) minmax(0,1fr);gap:25px;max-width:1550px;margin:auto;padding:24px}.controls{background:white;border:2px solid var(--ink);border-radius:16px;padding:22px;align-self:start;box-shadow:5px 5px 0 var(--gold)}
-h1{font-family:'Londrina Solid';font-size:31px;margin:0 0 6px}p{line-height:1.5}.hint{font-size:13px;color:#625d52}label{display:block;font-weight:900;margin:14px 0 5px}input,select{width:100%;padding:11px;border:2px solid #a8a097;border-radius:8px;background:#fff}input:focus,select:focus{outline:3px solid #ffc72c}
-.btn{background:var(--red);border:2px solid var(--ink);border-radius:9px;padding:12px 14px;color:white;font-weight:900;box-shadow:3px 3px 0 var(--ink)}.btn.alt{background:var(--gold);color:var(--ink)}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}.actions button{flex:1}.status{min-height:1.5em;color:#8c251b;font-size:13px;font-weight:800}
-.preview{min-width:0;text-align:center}.preview>p{margin:0 0 12px;font-size:13px}.sheet-wrap{width:min(100%,850px);margin:auto}
-.certificate{--accent:#a62219;--accent2:#f4b834;--paper:#fff9ed;--line:#a62219;position:relative;aspect-ratio:210/297;overflow:hidden;width:100%;background:var(--paper);color:#29221d;border:1px solid #d4c8b5;isolation:isolate;text-align:center}
-.certificate .pattern{position:absolute;inset:0;opacity:.28;pointer-events:none;background:radial-gradient(circle at 5% 5%,var(--accent2) 0 3px,transparent 4px) 0 0/28px 28px}
-.certificate .edge{position:absolute;inset:3.3%;border:2.2px solid var(--line);pointer-events:none}
-.certificate .edge:after{content:"";position:absolute;inset:7px;border:1px solid var(--accent2)}
-.certificate .archL,.certificate .archR{position:absolute;top:0;width:34%;height:48%;opacity:.11;stroke:var(--accent);fill:none;stroke-width:20}
-.certificate .archL{left:-13%;transform:rotate(-13deg)}.certificate .archR{right:-13%;transform:rotate(13deg)}
-.certificate .body{position:absolute;inset:7% 9% 6%;display:flex;flex-direction:column;align-items:center;justify-content:space-between}
-.eyebrow{font-size:clamp(10px,1.2vw,17px);font-weight:900;letter-spacing:.25em;color:var(--accent);text-transform:uppercase}
-.emblem{width:18%;max-height:13%;margin:2% auto 0}
-.emblem path{stroke:var(--accent2);stroke-width:12;fill:none;stroke-linecap:round}
-.certificate h2{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(28px,4.6vw,68px);line-height:.95;color:var(--accent);margin:1% 0;font-weight:700}
-.category{font-size:clamp(11px,1.5vw,22px);font-weight:900;text-transform:uppercase;letter-spacing:.13em;max-width:90%;line-height:1.25}
-.small{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(15px,2vw,30px);font-style:italic}
-.name{font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(27px,4.3vw,65px);font-weight:700;line-height:1.08;overflow-wrap:anywhere;max-width:100%;border-bottom:2px solid var(--accent2);padding:0 2% 1%}
-.message{font-size:clamp(13px,1.75vw,26px);line-height:1.48;max-width:90%;white-space:pre-line}
-.event{font-size:clamp(10px,1.1vw,17px);font-weight:900;letter-spacing:.12em;color:var(--accent);text-transform:uppercase}
-.signatures{display:flex;gap:5%;width:100%;justify-content:space-between;align-items:flex-end}
-.sig{width:48%;font-size:clamp(9px,1.05vw,15px);line-height:1.35}.sig .line{border-top:1.5px solid var(--ink);padding-top:8px;font-weight:900}.sig span{font-size:.92em}
-.seal{width:13%;aspect-ratio:1;border:3px double var(--accent);border-radius:50%;display:grid;place-items:center;color:var(--accent);font-family:'Londrina Solid';font-size:clamp(10px,1.4vw,20px);transform:rotate(-10deg);background:var(--accent2)}
-.certificate[data-style="appreciation"]{--paper:#fffdf5;--accent:#7d221d;--accent2:#d7a53d}
-.certificate[data-style="manager"]{--paper:#f8f6ed;--accent:#153c4d;--accent2:#c49c53}
-.certificate[data-style="trainer"]{--paper:#fff8e9;--accent:#7e3d12;--accent2:#e6a740}
-.certificate[data-style="crewyear"]{--paper:#fff4e0;--accent:#bc241c;--accent2:#ffca36}
-.certificate[data-style="gelyear"]{--paper:#f7f2ff;--accent:#64318b;--accent2:#ddbd70}
-.certificate[data-style="manageryear"]{--paper:#f5f6f9;--accent:#253955;--accent2:#d2a54b}
-.certificate[data-style="crewyear2"]{--paper:#fff7e9;--accent:#5b2d16;--accent2:#eab43d}
-.certificate[data-style="fashion"]{--paper:#fff0ed;--accent:#b32053;--accent2:#f2ba6d}
-.certificate[data-style="maverick"]{--paper:#f1f5f4;--accent:#17635b;--accent2:#d9aa55}
-.certificate[data-style="crown"]{--paper:#fff9e7;--accent:#613f76;--accent2:#e4bb4b}
-.certificate[data-style="queen"]{--paper:#fff0f3;--accent:#9e2056;--accent2:#f1b34b}
-.certificate[data-style="king"]{--paper:#f2f4f9;--accent:#1f4269;--accent2:#e2b34d}
-.certificate[data-style="queen"] .edge,.certificate[data-style="king"] .edge{border-width:5px}
-.certificate[data-style="fashion"] .pattern,.certificate[data-style="maverick"] .pattern{background:repeating-linear-gradient(135deg,transparent 0 28px,var(--accent2) 29px 31px,transparent 32px 65px)}
-@media(max-width:850px){.layout{grid-template-columns:1fr}.certificate h2{font-size:clamp(26px,8vw,68px)}.category{font-size:clamp(10px,2.6vw,22px)}.small{font-size:clamp(14px,3.4vw,30px)}.name{font-size:clamp(25px,7vw,65px)}.message{font-size:clamp(12px,3vw,26px)}.sig{font-size:clamp(9px,2vw,15px)}.eyebrow{font-size:clamp(10px,2.2vw,17px)}}
-@page{size:A4 portrait;margin:0}
-@media print{html,body{margin:0!important;background:white!important}.top,.controls,.preview>p{display:none!important}.layout,.preview,.sheet-wrap{display:block!important;margin:0!important;padding:0!important;width:210mm!important;max-width:none!important}.certificate{width:210mm!important;height:297mm!important;aspect-ratio:auto!important;border:0!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}.certificate h2{font-size:17mm}.category{font-size:5mm}.small{font-size:6mm}.name{font-size:15mm}.message{font-size:5.7mm}.eyebrow{font-size:3.8mm}.sig{font-size:3.3mm}.event{font-size:3.5mm}}
+:root{--red:#da291c;--gold:#ffc72c;--ink:#27251f}*{box-sizing:border-box}
+body{margin:0;background:#f3eddf;color:var(--ink);font-family:'Nunito Sans',sans-serif}button,input,select,textarea{font:inherit}
+.top{background:#27251f;color:white;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px}.top strong{font-family:'Londrina Solid';font-size:26px;color:var(--gold)}.top a{color:white}
+.layout{display:grid;grid-template-columns:335px minmax(0,1fr);gap:20px;padding:20px;max-width:1800px;margin:auto}.panel{background:white;border:2px solid #27251f;border-radius:14px;box-shadow:5px 5px 0 #ffc72c;padding:18px;max-height:calc(100vh - 100px);overflow:auto}
+h1{font-family:'Londrina Solid';font-size:29px;margin:0}p{line-height:1.4}.hint{font-size:12px;color:#645d52}
+label{font-weight:900;display:block;margin:11px 0 4px;font-size:13px}input,select,textarea{width:100%;border:1.5px solid #aaa095;border-radius:7px;padding:9px;background:#fff}input[type=color]{height:39px;padding:3px}input[type=range]{padding:0}.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+details{border-top:1px solid #ddd3c5;padding:10px 0}summary{font-weight:900;cursor:pointer;color:#a92b21}details:first-of-type{margin-top:10px}
+.btn{background:#da291c;color:white;font-weight:900;border:2px solid #27251f;border-radius:8px;padding:11px;cursor:pointer;box-shadow:2px 2px 0 #27251f}.btn.alt{background:#ffc72c;color:#27251f}.buttons{display:flex;gap:9px;margin-top:15px}.buttons button{flex:1}.status{font-weight:800;color:#a42b20;font-size:13px;min-height:20px}
+.preview{min-width:0}.tip{text-align:center;font-size:13px;margin:2px 0 12px;color:#5d574d}
+.sheet-wrap{width:min(100%,1150px);margin:auto}
+.certificate{--accent:#a5221b;--secondary:#d8a740;--paper:#fffaf0;--border:#a5221b;--title-font:'Cormorant Garamond',Georgia,serif;position:relative;width:100%;aspect-ratio:297/210;overflow:hidden;background:var(--paper);color:#29221d;border:1px solid #d0c2ae;isolation:isolate;text-align:center}
+.certificate .texture{position:absolute;inset:0;pointer-events:none;opacity:.18;background:radial-gradient(circle,var(--accent) 1px,transparent 1.5px) 0 0/25px 25px}
+.certificate .border{position:absolute;inset:3.2%;border:3px solid var(--border);pointer-events:none}
+.certificate .border:after{content:"";position:absolute;inset:7px;border:1px solid var(--secondary)}
+.certificate .ornament{position:absolute;inset:0;pointer-events:none;opacity:.15;background:radial-gradient(ellipse at 0 0,var(--secondary),transparent 45%),radial-gradient(ellipse at 100% 100%,var(--accent),transparent 45%)}
+.certificate .arches{position:absolute;inset:0;pointer-events:none;opacity:.12}.arches svg{height:100%;position:absolute;top:0;fill:none;stroke:var(--accent);stroke-width:24}.arches .left{left:-10%}.arches .right{right:-10%}
+.body{position:absolute;inset:6% 8% 5%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:.4%;z-index:1}
+.logo{width:13%;height:13%;object-fit:contain;display:none}
+.arch-logo{width:13%;height:13%;display:block;fill:none;stroke:var(--secondary);stroke-width:13;stroke-linecap:round}
+.eyebrow{font-family:'Nunito Sans',sans-serif;font-size:clamp(10px,1.08vw,17px);font-weight:900;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+h2{font-family:var(--title-font);font-size:clamp(30px,4.1vw,67px);line-height:1.04;margin:0;color:var(--accent);font-weight:700}
+.category{font-size:clamp(12px,1.6vw,26px);font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.leadin{font-family:var(--title-font);font-style:italic;font-size:clamp(15px,1.5vw,25px)}
+.name{font-family:var(--title-font);font-weight:700;font-size:clamp(29px,4.3vw,70px);line-height:1.04;border-bottom:2px solid var(--secondary);padding:0 12px 4px;max-width:95%;overflow-wrap:anywhere}
+.message{font-size:clamp(12px,1.45vw,23px);line-height:1.35;max-width:85%;white-space:pre-line}
+.event{font-weight:900;color:var(--accent);font-size:clamp(10px,1.08vw,17px);letter-spacing:.12em;text-transform:uppercase}
+.signatures{display:flex;justify-content:space-between;width:80%;gap:12%;margin-top:1%}
+.sig{width:44%;font-size:clamp(9px,1vw,16px);line-height:1.3}.sig .sig-name{border-top:1.5px solid #27251f;padding-top:5px;font-weight:900}.sig-role{font-size:.91em}
+[contenteditable=true]{outline:none;cursor:text;min-width:15px}[contenteditable=true]:focus{outline:2px dashed var(--secondary);outline-offset:4px;background:#fff8}
+.certificate[data-design="classic"]{--paper:#fffdf5;--accent:#7c241d;--secondary:#cda444}
+.certificate[data-design="executive"]{--paper:#f5f7fa;--accent:#1a3d58;--secondary:#c7a25d}
+.certificate[data-design="mentor"]{--paper:#fff6e7;--accent:#7b3c16;--secondary:#e3ad4e}
+.certificate[data-design="festival"]{--paper:#fff3dd;--accent:#d2291c;--secondary:#ffc72c}
+.certificate[data-design="violet"]{--paper:#f8f2ff;--accent:#69338d;--secondary:#dfbd6a}
+.certificate[data-design="royalblue"]{--paper:#f0f4fa;--accent:#213c64;--secondary:#e0b45a}
+.certificate[data-design="bronze"]{--paper:#fdf2df;--accent:#6b351d;--secondary:#dcaa59}
+.certificate[data-design="rose"]{--paper:#fff1f1;--accent:#a92054;--secondary:#f2b76c}
+.certificate[data-design="sage"]{--paper:#eff8f1;--accent:#24634e;--secondary:#d8a850}
+.certificate[data-design="amethyst"]{--paper:#faf1ff;--accent:#583177;--secondary:#e4bb4b}
+.certificate[data-design="queen"]{--paper:#fff0f5;--accent:#a21d56;--secondary:#e6ac52}
+.certificate[data-design="king"]{--paper:#edf2f9;--accent:#1b3c69;--secondary:#d9aa4b}
+.certificate[data-design="sunset"]{--paper:#fff0dc;--accent:#b9442c;--secondary:#ffb647}
+.certificate[data-design="midnight"]{--paper:#16263b;--accent:#f2d28a;--secondary:#d8a04b;color:#fff7e9}
+.certificate[data-design="midnight"] .sig-name{border-color:#fff7e9}
+.certificate[data-design="emerald"]{--paper:#ecf6f1;--accent:#125b48;--secondary:#d6b96d}
+.certificate[data-design="minimal"]{--paper:#fff;--accent:#292929;--secondary:#a9a9a9}
+.certificate[data-design="coral"]{--paper:#fff4e9;--accent:#db5b46;--secondary:#e9b14c}
+.certificate[data-design="gold"]{--paper:#fff8e4;--accent:#8b611b;--secondary:#e3b444}
+.certificate[data-pattern="none"] .texture,.certificate[data-pattern="none"] .ornament,.certificate[data-pattern="none"] .arches{display:none}
+.certificate[data-pattern="arches"] .texture,.certificate[data-pattern="arches"] .ornament{display:none}
+.certificate[data-pattern="dots"] .arches,.certificate[data-pattern="dots"] .ornament{display:none}
+.certificate[data-pattern="glow"] .arches,.certificate[data-pattern="glow"] .texture{display:none}
+.certificate[data-pattern="stripes"] .arches,.certificate[data-pattern="stripes"] .ornament{display:none}
+.certificate[data-pattern="stripes"] .texture{background:repeating-linear-gradient(135deg,transparent 0 24px,var(--secondary) 25px 27px,transparent 28px 52px)}
+.certificate[data-border="none"] .border{display:none}
+.certificate[data-border="thick"] .border{border-width:9px}
+.certificate[data-border="corners"] .border{border:0;background:linear-gradient(var(--border),var(--border)) left top/15% 4px no-repeat,linear-gradient(var(--border),var(--border)) left top/4px 19% no-repeat,linear-gradient(var(--border),var(--border)) right top/15% 4px no-repeat,linear-gradient(var(--border),var(--border)) right top/4px 19% no-repeat,linear-gradient(var(--border),var(--border)) left bottom/15% 4px no-repeat,linear-gradient(var(--border),var(--border)) left bottom/4px 19% no-repeat,linear-gradient(var(--border),var(--border)) right bottom/15% 4px no-repeat,linear-gradient(var(--border),var(--border)) right bottom/4px 19% no-repeat}
+.certificate[data-border="corners"] .border:after{display:none}
+@media(max-width:950px){.layout{grid-template-columns:1fr}.panel{max-height:none}.certificate h2{font-size:clamp(20px,4.6vw,67px)}.certificate .name{font-size:clamp(22px,5vw,70px)}.certificate .message{font-size:clamp(10px,1.7vw,23px)}}
+@page{size:A4 landscape;margin:0}
+@media print{body{background:#fff}.top,.panel,.tip{display:none!important}.layout,.preview,.sheet-wrap{display:block!important;padding:0!important;margin:0!important;width:297mm!important;max-width:none!important}.certificate{width:297mm!important;height:210mm!important;aspect-ratio:auto!important;border:0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.certificate h2{font-size:18mm}.certificate .name{font-size:18mm}.certificate .message{font-size:5mm}.certificate .eyebrow{font-size:3.7mm}.certificate .category{font-size:6mm}.certificate .leadin{font-size:5mm}.certificate .event{font-size:3.5mm}.certificate .sig{font-size:3.2mm}}
 </style></head><body>
-<div class="top"><b>COACHELLA · CERTIFICATE STUDIO</b><a href="index.html#admin">← Organizer Desk</a></div>
-<div class="layout"><section class="controls">
-<h1>Certificate Maker</h1><p class="hint">A4 portrait · 15 award selections · instant print-ready preview</p>
-<label for="type">Certificate title</label><select id="type"></select>
-<label for="recipient">Recipient's full name</label><input id="recipient" placeholder="Enter awardee name" maxlength="100">
+<div class="top"><strong>COACHELLA · CERTIFICATE STUDIO</strong><a href="index.html#admin">← Organizer Desk</a></div>
+<div class="layout"><aside class="panel"><h1>Landscape Certificate Maker</h1><p class="hint">A4 landscape · edit every text area by clicking directly on the preview · customize colors, logo, and design.</p>
+<label for="award">Award / starting content</label><select id="award"></select>
+<label for="design">Design theme</label><select id="design"></select>
+<div class="pair"><div><label for="pattern">Background detail</label><select id="pattern"><option value="arches">Golden arches</option><option value="dots">Confetti dots</option><option value="glow">Corner glow</option><option value="stripes">Festival stripes</option><option value="none">Clean / none</option></select></div>
+<div><label for="borderStyle">Border style</label><select id="borderStyle"><option value="double">Double frame</option><option value="thick">Bold frame</option><option value="corners">Corner accents</option><option value="none">No border</option></select></div></div>
+<details open><summary>Logo / icon</summary><label for="logoUpload">Replace arches with your image (PNG, JPG, SVG)</label><input type="file" id="logoUpload" accept="image/png,image/jpeg,image/webp,image/svg+xml">
+<div class="pair"><button class="btn alt" id="restoreLogo" type="button">Restore arches</button><div><label for="logoSize">Logo size</label><input type="range" id="logoSize" min="7" max="23" value="13"></div></div>
+<p class="hint">Use a high-resolution logo with transparent background for best results.</p></details>
+<details><summary>Colors and typography</summary>
+<div class="pair"><div><label for="accent">Accent</label><input type="color" id="accent" value="#a5221b"></div><div><label for="secondary">Gold / highlight</label><input type="color" id="secondary" value="#d8a740"></div><div><label for="paper">Paper color</label><input type="color" id="paper" value="#fffaf0"></div><div><label for="borderColor">Border color</label><input type="color" id="borderColor" value="#a5221b"></div></div>
+<label for="font">Heading and name font</label><select id="font"><option value="serif">Cormorant Garamond</option><option value="playfair">Playfair Display</option><option value="montserrat">Montserrat</option><option value="londrina">Londrina Solid</option></select>
+<label for="textAlign">Text alignment</label><select id="textAlign"><option value="center">Centered</option><option value="left">Left aligned</option><option value="right">Right aligned</option></select>
+<div class="pair"><div><label for="titleSize">Title size</label><input id="titleSize" type="range" min="2.2" max="5.5" step=".1" value="4.1"></div><div><label for="nameSize">Name size</label><input id="nameSize" type="range" min="2.5" max="6" step=".1" value="4.3"></div></div>
+</details>
+<details><summary>Text and award details</summary><p class="hint">Every certificate text field can be edited directly on the preview, including the signatories. These fields provide quick edits.</p>
+<label for="recipient">Recipient name</label><input id="recipient" value="Recipient Name">
+<label for="citation">Award citation</label><textarea id="citation" rows="3"></textarea>
 <label for="date">Award date</label><input id="date" type="date">
-<label for="note">Optional custom citation</label><input id="note" placeholder="Leave blank for title-based wording" maxlength="250">
-<div class="actions"><button class="btn" id="pdf">Download A4 PDF</button><button class="btn alt" id="print">Print A4</button></div>
-<p id="status" class="status" role="status"></p>
-<p class="hint">Signatures are printed as labeled signature lines (no signatures are forged). Have Rochelle Pascual and Ruel sign after printing.</p>
-</section>
-<section class="preview"><p>Live A4 preview — recipient and award update automatically</p><div class="sheet-wrap">
-<div class="certificate" id="certificate" data-style="appreciation">
-<div class="pattern"></div><div class="edge"></div>
-<svg class="archL" viewBox="0 0 220 300"><path d="M20 300V130C20 -30 100 -30 110 130 120 -30 200 -30 200 130V300"/></svg>
-<svg class="archR" viewBox="0 0 220 300"><path d="M20 300V130C20 -30 100 -30 110 130 120 -30 200 -30 200 130V300"/></svg>
-<div class="body"><div class="eyebrow">McDonald's · Santa Rosa Bayan</div>
-<svg class="emblem" viewBox="0 0 120 90" aria-hidden="true"><path d="M14 82V45C14 -3 55 -3 60 45 65 -3 106 -3 106 45V82"/></svg>
-<div class="eyebrow">Coachella · Beyond the Arches</div>
-<h2 id="heading">Certificate of Appreciation</h2>
-<div class="category" id="category"></div><div class="small">Proudly presented to</div>
-<div class="name" id="name">Recipient Name</div>
-<div class="message" id="message"></div>
-<div class="seal">HONOREE</div><div class="event" id="event"></div>
-<div class="signatures"><div class="sig"><div class="line">Rochelle Pascual</div><span>Restaurant General Manager</span></div><div class="sig"><div class="line">Ruel</div><span>Operation Consultant</span></div></div>
-</div></div></div></section></div>
+</details>
+<div class="buttons"><button class="btn" id="pdf">Download A4 PDF</button><button class="btn alt" id="print">Print A4</button></div>
+<div class="buttons"><button class="btn alt" id="reset">Reset award design</button></div><p id="status" class="status" role="status"></p>
+<p class="hint">Signature lines are for Rochelle Pascual and Ruel to sign after printing. The page does not fabricate handwritten signatures.</p>
+</aside><main class="preview"><p class="tip">Click any text on the certificate to edit it directly. Print and PDF use A4 landscape (297 × 210 mm).</p>
+<div class="sheet-wrap"><div class="certificate" id="certificate" data-design="classic" data-pattern="arches" data-border="double">
+<div class="texture"></div><div class="ornament"></div><div class="border"></div>
+<div class="arches"><svg class="left" viewBox="0 0 220 300"><path d="M20 300V130C20 -30 100 -30 110 130 120 -30 200 -30 200 130V300"/></svg><svg class="right" viewBox="0 0 220 300"><path d="M20 300V130C20 -30 100 -30 110 130 120 -30 200 -30 200 130V300"/></svg></div>
+<div class="body">
+<div class="eyebrow" contenteditable="true" spellcheck="false">McDonald's · Santa Rosa Bayan</div>
+<svg id="archLogo" class="arch-logo" viewBox="0 0 120 90"><path d="M14 82V45C14 -3 55 -3 60 45 65 -3 106 -3 106 45V82"/></svg><img id="customLogo" class="logo" alt="Custom certificate logo">
+<div class="eyebrow" contenteditable="true" spellcheck="false">Coachella · Beyond the Arches</div>
+<h2 id="heading" contenteditable="true" spellcheck="false">Certificate of Appreciation</h2>
+<div class="category" id="category" contenteditable="true" spellcheck="false">Guest Experience Leader</div>
+<div class="leadin" contenteditable="true" spellcheck="false">Proudly presented to</div>
+<div class="name" id="name" contenteditable="true" spellcheck="false">Recipient Name</div>
+<div class="message" id="message" contenteditable="true" spellcheck="false"></div>
+<div class="event" id="event" contenteditable="true" spellcheck="false">McDonald's Year-End Party</div>
+<div class="signatures">
+<div class="sig"><div class="sig-name" contenteditable="true" spellcheck="false">Rochelle Pascual</div><div class="sig-role" contenteditable="true" spellcheck="false">Restaurant General Manager</div></div>
+<div class="sig"><div class="sig-name" contenteditable="true" spellcheck="false">Ruel</div><div class="sig-role" contenteditable="true" spellcheck="false">Operation Consultant</div></div>
+</div></div></div></div></main></div>
 <script>
 const $=id=>document.getElementById(id);
 const awards=[
+
 ['Certificate of Appreciation to Guest Experience Leader','appreciation','Certificate of Appreciation','Guest Experience Leader','In grateful recognition of your outstanding hospitality, dedication, and commitment to creating memorable guest experiences.'],
 ['Certificate of Appreciation to Manager','manager','Certificate of Appreciation','Manager','In sincere appreciation of your leadership, professionalism, and exceptional contribution to the success of our restaurant team.'],
 ['Certificate of Appreciation to Crew Trainer','trainer','Certificate of Appreciation','Crew Trainer','In recognition of your patience, mentorship, and dedication to developing the skills and confidence of our crew.'],
@@ -95,21 +128,40 @@ const awards=[
 ['Coachella Prime Leader – Manager (Male)','crown','Coachella Style Awards','Prime Leader · Manager (Male)','For standing out through confident leadership, refined style, and remarkable festival spirit.'],
 ['Queen of the Desert','queen','Royal Festival Honors','Queen of the Desert','For reigning with radiance, grace, and unforgettable Coachella spirit.'],
 ['King of the Desert','king','Royal Festival Honors','King of the Desert','For commanding the celebration with charisma, confidence, and unforgettable Coachella spirit.']
+
 ];
-const select=$('type');awards.forEach((a,i)=>{const o=document.createElement('option');o.value=i;o.textContent=a[0];select.append(o)});
-const date=new Date();$('date').value=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-function update(){const a=awards[+select.value],d=$('date').value; $('certificate').dataset.style=a[1];$('heading').textContent=a[2];$('category').textContent=a[3];$('name').textContent=$('recipient').value.trim()||'Recipient Name';$('message').textContent=$('note').value.trim()||a[4];$('event').textContent='McDonald’s Year-End Party · '+(d?new Date(d+'T12:00:00').toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}):'');}
-[select,$('recipient'),$('date'),$('note')].forEach(el=>el.addEventListener('input',update));update();
-function valid(){if(!$('recipient').value.trim()){ $('status').textContent='Please enter the recipient’s full name.';$('recipient').focus();return false} $('status').textContent='';return true}
+const themes=[
+['Classic Burgundy','classic'],['Executive Navy','executive'],['Mentor Bronze','mentor'],['Coachella Festival','festival'],['Violet Prestige','violet'],['Royal Blue','royalblue'],['Warm Bronze','bronze'],['Rose Glam','rose'],['Sage Modern','sage'],['Amethyst Crown','amethyst'],['Desert Queen','queen'],['Desert King','king'],['Sunset Boho','sunset'],['Midnight Luxury','midnight'],['Emerald Excellence','emerald'],['Minimal Editorial','minimal'],['Coral Chic','coral'],['Golden Legacy','gold']
+];
+const styles=['classic','executive','mentor','festival','violet','royalblue','bronze','rose','sage','amethyst','queen','king'];
+const mapped={appreciation:'classic',manager:'executive',trainer:'mentor',crewyear:'festival',gelyear:'violet',manageryear:'royalblue',crewyear2:'bronze',fashion:'rose',maverick:'sage',crown:'amethyst',queen:'queen',king:'king'};
+awards.forEach((a,i)=>{const o=document.createElement('option');o.value=i;o.textContent=a[0];$('award').append(o)});
+themes.forEach(([name,key])=>{const o=document.createElement('option');o.value=key;o.textContent=name;$('design').append(o)});
+const cert=$('certificate');const date=new Date();$('date').value=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+function applyDesign(){const key=$('design').value;cert.dataset.design=key;cert.style.removeProperty('--accent');cert.style.removeProperty('--secondary');cert.style.removeProperty('--paper');cert.style.removeProperty('--border');const computed=getComputedStyle(cert);const toHex=v=>{const m=v.match(/\d+/g);return m&&m.length>=3?'#'+m.slice(0,3).map(n=>(+n).toString(16).padStart(2,'0')).join(''):'#ffffff'};$('accent').value=toHex(computed.getPropertyValue('--accent').trim());$('secondary').value=toHex(computed.getPropertyValue('--secondary').trim());$('paper').value=toHex(computed.getPropertyValue('--paper').trim());$('borderColor').value=$('accent').value}
+function setAward(){const a=awards[+$('award').value];$('heading').textContent=a[2];$('category').textContent=a[3];$('message').textContent=a[4];$('citation').value=a[4];$('recipient').value='Recipient Name';$('name').textContent='Recipient Name';$('design').value=mapped[a[1]]||'classic';applyDesign();setDate()}
+function setDate(){const d=$('date').value;$('event').textContent='McDonald’s Year-End Party · '+(d?new Date(d+'T12:00:00').toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}):'')}
+$('award').onchange=setAward;$('design').onchange=applyDesign;
+$('pattern').onchange=()=>cert.dataset.pattern=$('pattern').value;
+$('borderStyle').onchange=()=>cert.dataset.border=$('borderStyle').value;
+[['accent','--accent'],['secondary','--secondary'],['paper','--paper'],['borderColor','--border']].forEach(([id,css])=>{$(id).oninput=()=>cert.style.setProperty(css,$(id).value)});
+const fonts={serif:"'Cormorant Garamond',Georgia,serif",playfair:"'Playfair Display',Georgia,serif",montserrat:"'Montserrat',Arial,sans-serif",londrina:"'Londrina Solid',Impact,sans-serif"};
+$('font').onchange=()=>cert.style.setProperty('--title-font',fonts[$('font').value]);
+$('textAlign').onchange=()=>{cert.style.textAlign=$('textAlign').value;cert.querySelector('.body').style.alignItems=$('textAlign').value==='center'?'center':$('textAlign').value==='left'?'flex-start':'flex-end'};
+$('titleSize').oninput=()=>{$('heading').style.fontSize=$('titleSize').value+'vw'};
+$('nameSize').oninput=()=>{$('name').style.fontSize=$('nameSize').value+'vw'};
+$('recipient').oninput=()=>{$('name').textContent=$('recipient').value};
+$('citation').oninput=()=>{$('message').textContent=$('citation').value};
+$('name').addEventListener('input',()=>{$('recipient').value=$('name').textContent});
+$('message').addEventListener('input',()=>{$('citation').value=$('message').innerText});
+$('date').onchange=setDate;
+$('logoUpload').onchange=e=>{const f=e.target.files?.[0];if(!f)return;if(!/^image\/(png|jpeg|webp|svg\+xml)$/.test(f.type)||f.size>5*1024*1024){$('status').textContent='Choose a PNG, JPG, WebP, or SVG image under 5 MB.';return}const r=new FileReader();r.onload=()=>{const img=$('customLogo');img.src=r.result;img.style.display='block';$('archLogo').style.display='none';};r.readAsDataURL(f)};
+$('restoreLogo').onclick=()=>{$('customLogo').style.display='none';$('customLogo').removeAttribute('src');$('archLogo').style.display='block';$('logoUpload').value=''};
+$('logoSize').oninput=()=>{$('customLogo').style.width=$('logoSize').value+'%';$('archLogo').style.width=$('logoSize').value+'%'};
+$('reset').onclick=()=>{location.reload()};
+function valid(){if(!$('name').textContent.trim()||$('name').textContent.trim()==='Recipient Name'){$('status').textContent='Please enter a recipient name before exporting.';return false}return true}
 $('print').onclick=()=>{if(valid())window.print()};
-$('pdf').onclick=async()=>{if(!valid())return;const btn=$('pdf');btn.disabled=true;$('status').textContent='Generating A4 PDF…';try{
-if(!window.html2canvas||!window.jspdf)throw Error('PDF libraries could not load. Check your internet connection.');
-await document.fonts.ready;const el=$('certificate');
-const canvas=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false,windowWidth:Math.max(1100,window.innerWidth)});
-const pdf=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
-pdf.addImage(canvas.toDataURL('image/jpeg',.95),'JPEG',0,0,210,297);
-const safe=$('recipient').value.trim().replace(/[^a-z0-9 _-]/gi,'').replace(/\s+/g,'-').slice(0,60);
-pdf.save('Coachella-Certificate-'+safe+'.pdf');$('status').textContent='A4 PDF downloaded.';
-}catch(e){$('status').textContent='PDF error: '+e.message}finally{btn.disabled=false}};
-(async()=>{try{const pw=sessionStorage.getItem('fest_admin_pw');if(!pw)throw Error('Organizer login required. Open Organizer Desk first.');const sb=window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);const r=await sb.rpc('admin_list',{p_password:pw});if(r.error)throw Error('Organizer session expired. Sign in again.');}catch(e){document.querySelector('.layout').hidden=true;const p=document.createElement('p');p.style='text-align:center;padding:40px;font-weight:bold';p.textContent=e.message+' ';const a=document.createElement('a');a.href='index.html#admin';a.textContent='Go to Organizer Desk';p.append(a);document.body.append(p)}})();
+$('pdf').onclick=async()=>{if(!valid())return;const btn=$('pdf');btn.disabled=true;$('status').textContent='Rendering landscape A4 PDF…';try{if(!window.html2canvas||!window.jspdf)throw Error('PDF libraries unavailable. Check internet access.');await document.fonts.ready;document.activeElement.blur();const canvas=await html2canvas(cert,{scale:2,backgroundColor:'#fff',useCORS:true,logging:false,windowWidth:Math.max(1300,window.innerWidth)});const pdf=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4',compress:true});pdf.addImage(canvas.toDataURL('image/jpeg',.96),'JPEG',0,0,297,210);const safe=$('name').textContent.trim().replace(/[^a-z0-9 _-]/gi,'').replace(/\s+/g,'-').slice(0,60);pdf.save('Coachella-Certificate-'+safe+'.pdf');$('status').textContent='A4 landscape PDF downloaded.'}catch(e){$('status').textContent='PDF error: '+e.message}finally{btn.disabled=false}};
+setAward();
+(async()=>{try{const pw=sessionStorage.getItem('fest_admin_pw');if(!pw)throw Error('Organizer login required.');const sb=window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);const r=await sb.rpc('admin_list',{p_password:pw});if(r.error)throw Error('Organizer session expired.');}catch(e){document.querySelector('.layout').hidden=true;const p=document.createElement('p');p.style='text-align:center;padding:40px;font-weight:bold';p.textContent=e.message+' ';const a=document.createElement('a');a.href='index.html#admin';a.textContent='Go to Organizer Desk';p.append(a);document.body.append(p)}})();
 </script></body></html>
