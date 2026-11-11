@@ -465,6 +465,7 @@ body.presenting .wactions{display:none}
         <button class="btn small" id="refresh" type="button">Refresh</button>
         <button class="btn small" id="wheelBtn" type="button">Spin the wheel</button>
         <button class="btn small" id="slidesBtn" type="button">Slide show</button>
+        <button class="btn small yellow" id="slides2Btn" type="button">Slideshow 2 ⚡</button>
         <button class="btn small" id="wallBtn" type="button">Photo wall</button>
         <button class="btn small yellow" id="boothBtn" type="button">Photo booth</button>
         <button class="btn small yellow" id="certMakerBtn" type="button">Certificate Maker</button>
@@ -1102,6 +1103,7 @@ let idleT; document.addEventListener('mousemove', () => { document.body.classLis
 
 $('wheelBtn').addEventListener('click', openWheel);
 $('slidesBtn').addEventListener('click', () => { location.href = 'slides.html'; });
+$('slides2Btn').addEventListener('click', () => { location.href = 'slideshow2.html'; });
 $('wallBtn').addEventListener('click', () => { location.href = 'wall.html'; });
 $('boothBtn').addEventListener('click', () => { location.href = 'photobooth.html'; });
 $('certMakerBtn').addEventListener('click', () => { location.href = 'certificate-maker.html'; });
