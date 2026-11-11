@@ -317,6 +317,7 @@ body.idle-out{cursor:none}
     <button class="btn s w" id="back" type="button">Back to organizer desk</button>
     <button class="btn s y" id="addBtn" type="button">+ Add slide</button>
     <button class="btn s w" id="perfBtn" type="button">Slides for performers</button>
+    <button class="btn s y" id="exportPdfBtn" type="button">Export / Print PDF</button>
     <button class="btn s w" id="setBtn" type="button">Settings</button>
     <span class="sp"></span>
     <span id="saveSt" role="status"></span>
@@ -1203,5 +1204,91 @@ $('sScreen').addEventListener('change', () => LSset(LEDKEY, $('sScreen').value))
 if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if (sp) { const err = await enter(sp); if (err) { SS.del('fest_admin_pw'); $('gateMsg').textContent = ''; } } })();
 </script>
 <script src="mcdo-brand.js"></script>
+
+<div id="slidePdfModal" hidden style="position:fixed;inset:0;z-index:99999;background:#000a;display:grid;place-items:center;padding:18px">
+  <div style="background:#fff4d6;color:#27251f;border:4px solid #27251f;border-radius:18px;padding:25px;width:min(95vw,470px);box-shadow:8px 8px 0 #da291c;font-family:Arial,sans-serif">
+    <h2 style="margin:0 0 12px">Export slides to PDF</h2>
+    <label style="display:block;font-weight:bold;margin:12px 0 5px" for="pdfScope">Which slides?</label>
+    <select id="pdfScope" style="width:100%;padding:11px;border:2px solid #27251f;border-radius:8px"><option value="current">Selected slide only</option><option value="all">All slides</option><option value="range">Slide range</option></select>
+    <div id="pdfRangeFields" hidden style="display:flex;gap:12px;margin-top:12px"><label>From <input id="pdfFrom" type="number" min="1" value="1" style="width:100%;padding:8px"></label><label>To <input id="pdfTo" type="number" min="1" value="1" style="width:100%;padding:8px"></label></div>
+    <label style="display:block;font-weight:bold;margin:12px 0 5px" for="pdfPaper">Paper size</label>
+    <select id="pdfPaper" style="width:100%;padding:11px;border:2px solid #27251f;border-radius:8px">
+      <option value="a4">A4 landscape (297 × 210 mm)</option>
+      <option value="4r-landscape">4R / 4×6 landscape (6 × 4 in)</option>
+      <option value="4r-portrait">4R / 4×6 portrait (4 × 6 in)</option>
+    </select>
+    <p id="pdfPaperHint" style="font-size:13px">16:9 slide artwork fits within the selected paper size without cropping. White margins are normal.</p>
+    <p id="pdfExportStatus" role="status" style="min-height:1.4em;font-weight:bold;color:#a62219"></p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn s y" id="pdfDownloadBtn" type="button">Download PDF</button><button class="btn s w" id="pdfCloseBtn" type="button">Close</button></div>
+  </div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script>
+/* Organizer Slide PDF export: independent still stages; never changes the live LED presentation. */
+(() => {
+ const $pdf = id => document.getElementById(id);
+ const modal = $pdf('slidePdfModal');
+ modal.style.display = 'none';
+ $pdf('exportPdfBtn').addEventListener('click', () => {
+   if (!deck || !deck.slides?.length) return;
+   $pdf('pdfFrom').max = deck.slides.length; $pdf('pdfTo').max = deck.slides.length;
+   $pdf('pdfFrom').value = String(sel+1); $pdf('pdfTo').value = String(sel+1);
+   $pdf('pdfScope').value = 'current'; $pdf('pdfRangeFields').hidden = true;
+   $pdf('pdfExportStatus').textContent = 'Selected: slide ' + (sel+1) + ' of ' + deck.slides.length;
+   modal.hidden = false; modal.style.display = 'grid';
+ });
+ $pdf('pdfCloseBtn').addEventListener('click', () => { modal.hidden=true; modal.style.display='none'; });
+ $pdf('pdfScope').addEventListener('change', () => { $pdf('pdfRangeFields').hidden = $pdf('pdfScope').value !== 'range'; });
+ $pdf('pdfPaper').addEventListener('change', () => { $pdf('pdfPaperHint').textContent = $pdf('pdfPaper').value==='4r-portrait' ? 'Portrait 4R has larger top and bottom margins to preserve the original 16:9 slide.' : '16:9 slide artwork fits within the selected paper size without cropping. White margins are normal.'; });
+ async function settleImages(root) {
+   await Promise.all([...root.querySelectorAll('img')].map(img => {
+     if (img.complete) return Promise.resolve();
+     return new Promise(resolve => { img.addEventListener('load',resolve,{once:true}); img.addEventListener('error',resolve,{once:true}); setTimeout(resolve,4000); });
+   }));
+ }
+ $pdf('pdfDownloadBtn').addEventListener('click', async () => {
+   const status=$pdf('pdfExportStatus'), btn=$pdf('pdfDownloadBtn');
+   if (!window.html2canvas || !window.jspdf?.jsPDF) { status.textContent='PDF libraries failed to load. Check internet access.'; return; }
+   let indices=[]; const scope=$pdf('pdfScope').value;
+   if (scope==='current') indices=[sel];
+   else if(scope==='all') indices=deck.slides.map((_,i)=>i);
+   else { const from=Number($pdf('pdfFrom').value),to=Number($pdf('pdfTo').value); if(!Number.isInteger(from)||!Number.isInteger(to)||from<1||to>deck.slides.length||from>to){status.textContent='Enter a valid slide range.';return;} indices=Array.from({length:to-from+1},(_,i)=>from+i-1); }
+   btn.disabled=true; let holder;
+   try {
+     await document.fonts.ready;
+     const paper=$pdf('pdfPaper').value;
+     const isA4=paper==='a4', isPortrait=paper==='4r-portrait';
+     const pageW=isA4?297:(isPortrait?101.6:152.4);
+     const pageH=isA4?210:(isPortrait?152.4:101.6);
+     const pdf=new window.jspdf.jsPDF({orientation:isPortrait?'portrait':'landscape',unit:'mm',format:[pageW,pageH],compress:true});
+     holder=document.createElement('div');holder.style.cssText='position:fixed;left:-10000px;top:0;width:1920px;height:1080px;z-index:-1;pointer-events:none';document.body.appendChild(holder);
+     for(let j=0;j<indices.length;j++){
+       const i=indices[j], slideData=deck.slides[i]; status.textContent='Rendering slide '+(i+1)+' ('+(j+1)+'/'+indices.length+')…';
+       holder.replaceChildren();const root=document.createElement('div');holder.appendChild(root);
+       const stage=makeStage(root,true);stage.setBg(bgOf(slideData));stage.show(slideData,{animate:false});
+       // Keep motion effects from altering the still image.
+       root.querySelectorAll('*').forEach(n=>{n.style.animation='none';n.style.transition='none';});
+       await settleImages(root);
+       await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+       const canvas=await html2canvas(root,{backgroundColor:'#27251f',scale:.85,useCORS:true,allowTaint:false,logging:false,windowWidth:1920,windowHeight:1080});
+       if(j) pdf.addPage([pageW,pageH],isPortrait?'portrait':'landscape');
+       // Preserve 16:9 slide proportions and center on the selected paper.
+       const margin=isA4?10:4;
+       const w=Math.min(pageW-2*margin,(pageH-2*margin)*16/9);
+       const h=w*9/16;
+       pdf.addImage(canvas.toDataURL('image/jpeg',.94),'JPEG',(pageW-w)/2,(pageH-h)/2,w,h);
+     }
+     const name=scope==='current'?'slide-'+(sel+1):scope==='all'?'all-slides':'selected-range';
+     const sizeLabel=isA4?'A4-landscape':(isPortrait?'4R-portrait':'4R-landscape');
+     pdf.save('Coachella-'+name+'-'+sizeLabel+'.pdf');
+     status.textContent='PDF downloaded! Print on '+(isA4?'A4 landscape':'4R / 4×6 '+(isPortrait?'portrait':'landscape'))+' paper at actual size.';
+   } catch(err) { console.error(err); status.textContent='PDF export failed: '+(err?.message||String(err)); }
+   finally { holder?.remove();btn.disabled=false; }
+ });
+})();
+</script>
 </body>
 </html>
