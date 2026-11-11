@@ -1219,7 +1219,7 @@ if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if 
     </select>
     <p id="pdfPaperHint" style="font-size:13px">16:9 slide artwork fits within the selected paper size without cropping. White margins are normal.</p>
     <p id="pdfExportStatus" role="status" style="min-height:1.4em;font-weight:bold;color:#a62219"></p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn s y" id="pdfDownloadBtn" type="button">Download PDF</button><button class="btn s w" id="pdfCloseBtn" type="button">Close</button></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn s y" id="pdfDownloadBtn" type="button">Download PDF</button><button class="btn s w" id="pdfNativeBtn" type="button">Print / Save as PDF (recommended)</button><button class="btn s w" id="pdfCloseBtn" type="button">Close</button></div>
   </div>
 </div>
 
@@ -1288,6 +1288,68 @@ if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if 
      return new Promise(resolve => { img.addEventListener('load',resolve,{once:true}); img.addEventListener('error',resolve,{once:true}); setTimeout(resolve,4000); });
    }));
  }
+  // Native browser printing avoids html2canvas's unsupported CSS parser.
+  // Opens the print window synchronously to avoid popup blockers.
+  $pdf('pdfNativeBtn').addEventListener('click', async () => {
+    const status=$pdf('pdfExportStatus');
+    if (!deck || !deck.slides?.length) { status.textContent='No slides found.'; return; }
+    let indices=[]; const scope=$pdf('pdfScope').value;
+    if(scope==='current') indices=[sel];
+    else if(scope==='all') indices=deck.slides.map((_,i)=>i);
+    else {
+      const from=Number($pdf('pdfFrom').value),to=Number($pdf('pdfTo').value);
+      if(!Number.isInteger(from)||!Number.isInteger(to)||from<1||to>deck.slides.length||from>to){status.textContent='Enter a valid slide range.';return;}
+      indices=Array.from({length:to-from+1},(_,i)=>from-1+i);
+    }
+    const paper=$pdf('pdfPaper').value;
+    const pageW=paper==='a4'?297:paper==='4r-portrait'?101.6:152.4;
+    const pageH=paper==='a4'?210:paper==='4r-portrait'?152.4:101.6;
+    const margin=paper==='a4'?10:4;
+    const scale=Math.min((pageW-2*margin)*96/25.4/1920,(pageH-2*margin)*96/25.4/1080);
+    const win=window.open('','_blank');
+    if(!win){status.textContent='Allow pop-ups for this website, then try again.';return;}
+    status.textContent='Preparing '+indices.length+' slide(s) for browser PDF printing…';
+    try {
+      // Render the existing slide DOM using the application's own stage renderer.
+      const pages=[];
+      const holder=document.createElement('div');
+      holder.style.cssText='position:fixed;left:-10000px;top:0;width:1920px;height:1080px;pointer-events:none';
+      document.body.appendChild(holder);
+      try {
+        for(const i of indices){
+          holder.replaceChildren();
+          const root=document.createElement('div');holder.appendChild(root);
+          const stage=makeStage(root,true);const s=deck.slides[i];
+          stage.setBg(bgOf(s));stage.show(s,{animate:false});
+          root.querySelectorAll('*').forEach(n=>{n.style.animation='none';n.style.transition='none'});
+          await settleImages(root);
+          pages.push(root.outerHTML);
+        }
+      }finally{holder.remove()}
+      // Preserve the site's slide CSS, fonts and image paths in the print document.
+      const css=[...document.querySelectorAll('head style, head link[rel="stylesheet"]')]
+        .map(n=>n.outerHTML).join('\n');
+      const html='<!doctype html><html><head><meta charset="utf-8">'+
+        '<base href="'+location.href.replace(/"/g,'&quot;')+'">'+css+
+        '<style>@page{size:'+pageW+'mm '+pageH+'mm;margin:0}'+
+        'html,body{margin:0!important;padding:0!important;background:white!important;overflow:visible!important}'+
+        '.paper{position:relative;width:'+pageW+'mm;height:'+pageH+'mm;overflow:hidden;break-after:page;page-break-after:always;background:#fff}'+
+        '.paper:last-child{break-after:auto;page-break-after:auto}'+
+        '.paper>.stage{position:absolute!important;left:50%!important;top:50%!important;'+
+        'transform:translate(-50%,-50%) scale('+scale+')!important;transform-origin:center center!important;'+
+        'width:1920px!important;height:1080px!important}'+
+        '.stage *{animation:none!important;transition:none!important}'+
+        '@media screen{body{background:#ddd!important}.paper{margin:16px auto;box-shadow:0 2px 15px #888}}'+
+        '@media print{.paper{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'+
+        '</style></head><body>'+pages.map(p=>'<section class="paper">'+p+'</section>').join('')+
+        '<script>window.addEventListener("load",async()=>{await document.fonts.ready;'+
+        'await Promise.all([...document.images].map(i=>i.decode().catch(()=>{})));'+
+        'setTimeout(()=>window.print(),400)});<\\/script>'.replace('<\\/script>','<\/script>')+
+        '</body></html>';
+      win.document.open();win.document.write(html);win.document.close();
+      status.textContent='Print window opened. Choose Destination → Save as PDF (or your printer). Turn on Background graphics and set margins to None.';
+    }catch(err){console.error('Native slide print failed',err);status.textContent='Print preparation failed: '+(err?.message||String(err));win.close()}
+  });
  $pdf('pdfDownloadBtn').addEventListener('click', async () => {
    const status=$pdf('pdfExportStatus'), btn=$pdf('pdfDownloadBtn');
    try { await ensurePdfLibraries(status); } catch (err) { status.textContent=err.message; return; }
