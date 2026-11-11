@@ -1224,12 +1224,51 @@ if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if 
 </div>
 
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<!-- PDF dependencies are loaded on demand, with automatic CDN fallback. -->
 <script>
 /* Organizer Slide PDF export: independent still stages; never changes the live LED presentation. */
 (() => {
  const $pdf = id => document.getElementById(id);
+ const PDF_SOURCES = [
+  {name:'html2canvas',ready:()=>typeof window.html2canvas==='function',urls:[
+    'vendor/html2canvas.min.js',
+    'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
+    'https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+  ]},
+  {name:'jsPDF',ready:()=>typeof window.jspdf?.jsPDF==='function',urls:[
+    'vendor/jspdf.umd.min.js',
+    'https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js',
+    'https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js'
+  ]}
+ ];
+ let pdfLoading;
+ function loadScript(url,timeout=6500){
+   return new Promise((resolve,reject)=>{
+     const el=document.createElement('script');let done=false;
+     const finish=(err)=>{if(done)return;done=true;clearTimeout(timer);el.onload=null;el.onerror=null;if(err){el.remove();reject(err)}else resolve()};
+     const timer=setTimeout(()=>finish(new Error('Timed out')),timeout);
+     el.async=true;el.src=url;el.onload=()=>finish();el.onerror=()=>finish(new Error('Blocked or unavailable'));
+     document.head.appendChild(el);
+   });
+ }
+ async function ensurePdfLibraries(status){
+   if(PDF_SOURCES.every(x=>x.ready()))return;
+   if(pdfLoading)return pdfLoading;
+   pdfLoading=(async()=>{
+     for(const lib of PDF_SOURCES){
+       if(lib.ready())continue;
+       let loaded=false;
+       for(const url of lib.urls){
+         status.textContent='Loading '+lib.name+' PDF tool…';
+         try{await loadScript(url);if(lib.ready()){loaded=true;break}}catch(err){console.warn('PDF library source unavailable:',url,err.message)}
+       }
+       if(!loaded)throw new Error('Could not load '+lib.name+'. Check whether your network blocks CDN scripts, or install local vendor libraries (see INSTALL.md).');
+     }
+   })();
+   try{await pdfLoading}finally{pdfLoading=null}
+ }
  const modal = $pdf('slidePdfModal');
  modal.style.display = 'none';
  $pdf('exportPdfBtn').addEventListener('click', () => {
@@ -1251,7 +1290,7 @@ if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if 
  }
  $pdf('pdfDownloadBtn').addEventListener('click', async () => {
    const status=$pdf('pdfExportStatus'), btn=$pdf('pdfDownloadBtn');
-   if (!window.html2canvas || !window.jspdf?.jsPDF) { status.textContent='PDF libraries failed to load. Check internet access.'; return; }
+   try { await ensurePdfLibraries(status); } catch (err) { status.textContent=err.message; return; }
    let indices=[]; const scope=$pdf('pdfScope').value;
    if (scope==='current') indices=[sel];
    else if(scope==='all') indices=deck.slides.map((_,i)=>i);
