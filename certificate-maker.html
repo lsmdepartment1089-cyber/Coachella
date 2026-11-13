@@ -67,7 +67,62 @@ h2{font-family:var(--title-font);font-size:clamp(30px,4.1vw,67px);line-height:1.
 @media(max-width:950px){.layout{grid-template-columns:1fr}.panel{max-height:none}.certificate h2{font-size:clamp(20px,4.6vw,67px)}.certificate .name{font-size:clamp(22px,5vw,70px)}.certificate .message{font-size:clamp(10px,1.7vw,23px)}}
 @page{size:A4 landscape;margin:0}
 @media print{body{background:#fff}.top,.panel,.tip{display:none!important}.layout,.preview,.sheet-wrap{display:block!important;padding:0!important;margin:0!important;width:297mm!important;max-width:none!important}.certificate{width:297mm!important;height:210mm!important;aspect-ratio:auto!important;border:0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.certificate h2{font-size:18mm}.certificate .name{font-size:18mm}.certificate .message{font-size:5mm}.certificate .eyebrow{font-size:3.7mm}.certificate .category{font-size:6mm}.certificate .leadin{font-size:5mm}.certificate .event{font-size:3.5mm}.certificate .sig{font-size:3.2mm}}
-</style></head><body>
+</style><style>
+/* Coachella Certificate Studio — additive theme. Original editor remains intact. */
+:root{--red:#DA291C;--gold:#FFC72C;--ink:#27251F}
+body{background:radial-gradient(circle at 5% 10%,#ffe2b0,transparent 32%),linear-gradient(135deg,#fff8e9,#ffe5ca 55%,#ffeed5)}
+.top{background:linear-gradient(100deg,#652020,#DA291C 48%,#FF8A1F);border-bottom:5px solid #FFC72C}
+.top strong{color:#FFF3C2;letter-spacing:.045em}
+.panel{border-color:#632d25;box-shadow:6px 6px 0 #FF8A1F}
+.panel h1{color:#B12E1B}
+.btn{background:#DA291C}.btn.alt{background:#FFC72C}
+/* Festival sunset: bright and printable with clear typography */
+.certificate[data-design="festival"],.certificate[data-design="sunset"]{
+ --paper:#FFF4DA;--accent:#B92722;--secondary:#EBA62B;--border:#B92722;
+ background:linear-gradient(180deg,#FFF8E9 0%,#FFE9CB 65%,#FFD7AA 100%);
+}
+.certificate[data-design="festival"] .ornament,.certificate[data-design="sunset"] .ornament{
+ opacity:.65;background:radial-gradient(circle at 89% 13%,#FFB84A 0 7%,#FFB84A00 18%),radial-gradient(ellipse at 8% 92%,#F77D4C88,transparent 32%),radial-gradient(ellipse at 95% 95%,#D82D4D55,transparent 30%);
+}
+.certificate[data-design="festival"] .texture,.certificate[data-design="sunset"] .texture{
+ opacity:.2;background:repeating-linear-gradient(145deg,transparent 0 25px,#CE722B 26px 27px,transparent 28px 51px);
+}
+.certificate[data-design="festival"] .border,.certificate[data-design="sunset"] .border{
+ inset:2.6%;border:4px solid #C83D28;border-radius:2px;
+ box-shadow:inset 0 0 0 6px #FFE8BC,inset 0 0 0 8px #E6A13E;
+}
+.certificate[data-design="festival"] .border:after,.certificate[data-design="sunset"] .border:after{border:0}
+.certificate[data-design="festival"] .arches,.certificate[data-design="sunset"] .arches{opacity:.09}
+.certificate[data-design="festival"] h2,.certificate[data-design="sunset"] h2{font-family:'Londrina Solid',Impact,sans-serif;letter-spacing:.035em;text-shadow:1px 2px 0 #F4C36A}
+.certificate[data-design="festival"] .eyebrow,.certificate[data-design="sunset"] .eyebrow{letter-spacing:.23em}
+.certificate[data-design="festival"] .name,.certificate[data-design="sunset"] .name{color:#7C2525;border-bottom:3px solid #DCA63D}
+/* Electric Festival: neon energy but still readable in print */
+.certificate[data-design="electric"]{
+ --paper:#F3FFFF;--accent:#C61578;--secondary:#FF7900;--border:#00B9D1;
+ background:linear-gradient(135deg,#E5FBFF 0%,#FFFFFF 42%,#FFF5C8 75%,#FFE6F1 100%);color:#151733;
+}
+.certificate[data-design="electric"] .ornament{opacity:.75;background:radial-gradient(circle at 9% 12%,#00DFFF88,transparent 23%),radial-gradient(circle at 94% 18%,#FFF00088,transparent 24%),radial-gradient(circle at 7% 92%,#39FF1477,transparent 24%),radial-gradient(circle at 90% 88%,#FF149366,transparent 25%)}
+.certificate[data-design="electric"] .texture{opacity:.38;background:repeating-linear-gradient(135deg,transparent 0 24px,#00DFFF 25px 27px,transparent 28px 50px)}
+.certificate[data-design="electric"] .border{border:5px solid #00B9D1;box-shadow:inset 0 0 0 7px #FFF,inset 0 0 0 10px #FF1493}
+.certificate[data-design="electric"] .border:after{border:0}
+.certificate[data-design="electric"] .arches{opacity:.09}
+.certificate[data-design="electric"] h2{font-family:'Londrina Solid',Impact,sans-serif;color:#C61578;text-shadow:2px 2px 0 #FFF000}
+.certificate[data-design="electric"] .name{color:#142A48;border-bottom:3px solid #FF7900}
+.certificate[data-design="electric"] .event{color:#B11376}
+/* Sunset Boho 2: desert-inspired, subtle festival styling */
+.certificate[data-design="boho"]{--paper:#FFF3E1;--accent:#A74731;--secondary:#D5A15B;--border:#B66A40;background:linear-gradient(145deg,#FFF7E9,#F6DEC0)}
+.certificate[data-design="boho"] .texture{opacity:.17;background:repeating-radial-gradient(circle at 50% 105%,transparent 0 17px,#BA7848 18px 19px,transparent 20px 35px)}
+.certificate[data-design="boho"] .ornament{opacity:.45;background:radial-gradient(circle at 87% 15%,#F7C77A,transparent 21%),radial-gradient(ellipse at 10% 90%,#CA855F,transparent 31%)}
+.certificate[data-design="boho"] .border{border:3px solid #B66A40}.certificate[data-design="boho"] .border:after{border-color:#D9B37B}
+/* Decorative festival motif at bottom, safely behind certificate text. */
+.certificate[data-design="festival"]::before,.certificate[data-design="sunset"]::before,.certificate[data-design="boho"]::before,.certificate[data-design="electric"]::before{
+ content:"";position:absolute;left:3%;right:3%;bottom:3%;height:9%;pointer-events:none;z-index:0;opacity:.35;
+ background:linear-gradient(135deg,transparent 40%,var(--secondary) 41% 43%,transparent 44%) 0 100%/38px 45px repeat-x;
+}
+@media print{.certificate{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
+
+</style>
+</head><body>
 <div class="top"><strong>COACHELLA · CERTIFICATE STUDIO</strong><a href="index.html#admin">← Organizer Desk</a></div>
 <div class="layout"><aside class="panel"><h1>Landscape Certificate Maker</h1><p class="hint">A4 landscape · edit every text area by clicking directly on the preview · customize colors, logo, and design.</p>
 <label for="award">Award / starting content</label><select id="award"></select>
@@ -165,4 +220,27 @@ $('pdf').onclick=async()=>{if(!valid())return;const btn=$('pdf');btn.disabled=tr
 setAward();
 (async()=>{try{const pw=sessionStorage.getItem('fest_admin_pw');if(!pw)throw Error('Organizer login required.');const sb=window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);const r=await sb.rpc('admin_list',{p_password:pw});if(r.error)throw Error('Organizer session expired.');}catch(e){document.querySelector('.layout').hidden=true;const p=document.createElement('p');p.style='text-align:center;padding:40px;font-weight:bold';p.textContent=e.message+' ';const a=document.createElement('a');a.href='index.html#admin';a.textContent='Go to Organizer Desk';p.append(a);document.body.append(p)}})();
 </script><script src="mcdo-brand.js"></script>
+<script>
+/* Adds festival presets without modifying the existing Certificate Maker logic. */
+(function(){
+  function init(){
+    const select=document.getElementById('design');
+    const cert=document.getElementById('certificate');
+    if(!select||!cert)return;
+    const themes=[['Electric Festival','electric'],['Desert Boho','boho']];
+    for(const [label,key] of themes){if(![...select.options].some(o=>o.value===key)){const opt=document.createElement('option');opt.value=key;opt.textContent=label;select.add(opt)}}
+    // Keep every existing award preset and text editable. Default to Coachella Festival.
+    select.value='festival';
+    select.dispatchEvent(new Event('change',{bubbles:true}));
+    const pattern=document.getElementById('pattern');
+    if(pattern){pattern.value='glow';pattern.dispatchEvent(new Event('change',{bubbles:true}));}
+    const label=document.querySelector('label[for="secondary"]');if(label)label.textContent='Festival highlight';
+    const title=document.querySelector('.panel h1');if(title)title.textContent='Coachella Certificate Studio';
+    const top=document.querySelector('.top a');
+    if(top && top.getAttribute('href')==='index.html#admin')top.href='organizer.html#admin';
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+
+</script>
 </body></html>
