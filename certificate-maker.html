@@ -12,7 +12,7 @@
 
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script><script src="config.js"></script><style>
-:root{--ink:#272525;--wine:#503c37;--cream:#faf6ed}*{box-sizing:border-box}html,body{margin:0}body{font-family:'DM Sans',Arial,sans-serif;background:#ede9e1;color:var(--ink)}button,input,select,textarea{font:inherit}.top{padding:17px 28px;background:#272b2b;color:#f7efe2;display:flex;align-items:center;justify-content:space-between;gap:14px}.top strong{font-size:13px;letter-spacing:.23em;font-weight:700}.top a{color:#e9d2a8;text-decoration:none;font-size:12px}.layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:24px;max-width:1750px;padding:25px;margin:auto;align-items:start}.panel{padding:23px;background:#fffcf7;border:1px solid #d9cfc1;border-radius:12px;max-height:calc(100vh - 110px);overflow:auto;box-shadow:0 12px 38px #382c2112}.panel h1{font:600 29px/1.08 'Cormorant Garamond',Georgia,serif;color:#48382f}.hint{font-size:11px;color:#82786e;line-height:1.6}label{font-size:11px;letter-spacing:.03em;font-weight:700;display:block;margin:13px 0 5px}input,select,textarea{width:100%;border:1px solid #d7cdc0;border-radius:6px;padding:9px;background:#fff;color:#3c3530;font-size:12px}input[type=color]{height:38px;padding:3px}input[type=range]{padding:0}.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}details{border-top:1px solid #e9e0d5;margin-top:13px;padding-top:11px}summary{font-size:12px;font-weight:700;cursor:pointer;color:#755a4c}.buttons{display:flex;gap:8px;margin-top:13px}.buttons button{flex:1}.btn{border:1px solid #463d36;background:#453d38;color:#fff;padding:10px 8px;border-radius:5px;cursor:pointer;font-weight:700;font-size:11px}.btn.alt{background:#e8ddcb;color:#4c4035;border-color:#d0bda4}.btn:disabled{opacity:.5;cursor:wait}.status{font-size:12px;color:#7a4a3e;min-height:17px}.preview{min-width:0;position:sticky;top:20px}.tip{text-align:center;color:#817970;font-size:12px;margin:0 0 14px}.sheet-wrap{width:100%;max-width:1250px;margin:auto;box-shadow:0 20px 65px #32282028}.certificate{--accent:#854d4b;--secondary:#b79a64;--paper:#fffaf0;--border:#a17b5b;--title-font:'Cormorant Garamond',Georgia,serif;position:relative;width:100%;aspect-ratio:297/210;overflow:hidden;background:var(--paper);color:#3e342f;text-align:center;isolation:isolate}.artwork{position:absolute;inset:0;z-index:0;pointer-events:none}.artwork svg{width:100%;height:100%;display:block}.body{position:absolute;z-index:2;inset:12.8% 16% 9.5%;display:flex;flex-direction:column;justify-content:space-between;align-items:center;gap:0;text-align:center}.eyebrow{font:700 clamp(7px,.85vw,12px)/1.15 'DM Sans',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}.emblem{font:500 clamp(12px,1.5vw,23px) 'Cormorant Garamond',serif;letter-spacing:.3em;color:var(--secondary);height:5%;display:flex;align-items:center;justify-content:center}.logo{max-height:12%;max-width:65%;width:20%;object-fit:contain;display:none}.certificate h2{font:600 clamp(22px,3.25vw,51px)/1.04 var(--title-font);color:var(--accent);margin:0;max-width:100%;text-wrap:balance}.category{font:700 clamp(11px,1.38vw,21px)/1.2 'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.16em;color:var(--accent);max-width:100%}.leadin{font:italic 500 clamp(13px,1.55vw,24px) 'Cormorant Garamond',serif}.name{font:600 clamp(25px,4vw,61px)/1.06 var(--title-font);color:var(--accent);border-bottom:1px solid var(--secondary);padding:0 14px 5px;max-width:100%;overflow-wrap:anywhere;text-wrap:balance}.message{font:400 clamp(11px,1.2vw,18px)/1.45 'DM Sans',sans-serif;max-width:87%;white-space:pre-line;text-wrap:pretty}.event{font:700 clamp(9px,1vw,15px) 'DM Sans',sans-serif;letter-spacing:.08em;color:var(--accent)}.signatures{display:flex;justify-content:space-between;gap:12%;width:86%;margin-top:1.5%}.sig{width:44%;font:500 clamp(9px,.94vw,14px)/1.35 'DM Sans',sans-serif}.sig-name{border-top:1px solid currentColor;padding-top:5px;font-weight:700}.sig-role{font-size:.84em;color:#70645a}.certificate [contenteditable=true]{outline:none;cursor:text;min-width:10px}.certificate [contenteditable=true]:focus{outline:1px dashed var(--secondary);outline-offset:3px;background:#ffffff44}.certificate[data-award='13'] .body,.certificate[data-award='14'] .body{inset:17.5% 16% 10%}.certificate[data-award='13'] .category,.certificate[data-award='14'] .category{font-size:clamp(15px,2.1vw,33px);letter-spacing:.11em;font-family:var(--title-font);font-weight:700}.certificate[data-award='13'] .emblem,.certificate[data-award='14'] .emblem{display:none}.certificate[data-award='13'] h2,.certificate[data-award='14'] h2{font-size:clamp(20px,2.7vw,42px)}.certificate[data-award='13'] .name,.certificate[data-award='14'] .name{font-size:clamp(27px,4.3vw,66px)}.certificate[data-award='13'] .message,.certificate[data-award='14'] .message{max-width:80%}.certificate[data-border='none'] .frame-lines,.certificate[data-border='none'] .frame-detail{display:none}.certificate[data-border='corners'] .frame-lines{display:none}.certificate[data-border='double'] .frame-detail{display:none}.certificate[data-pattern='none'] .decor{display:none}.certificate[data-pattern='subtle'] .decor{opacity:.32}.certificate[data-award='14']{color:#f6edd9}.certificate[data-award='14'] .sig-role{color:#d5c6b4}.certificate[data-award='14'] .sig-name{border-color:#bba373}@media(max-width:1100px){.layout{grid-template-columns:1fr}.preview{position:static}.panel{max-height:none}.sheet-wrap{max-width:950px}.certificate .body{inset:12% 15% 9%}}@page{size:A4 landscape;margin:0}@media print{html,body{width:297mm;height:210mm;background:white!important}.top,.panel,.tip{display:none!important}.layout,.preview,.sheet-wrap{display:block!important;padding:0!important;margin:0!important;width:297mm!important;max-width:none!important;box-shadow:none!important}.certificate{width:297mm!important;height:210mm!important;aspect-ratio:auto!important;print-color-adjust:exact;-webkit-print-color-adjust:exact;break-inside:avoid}.certificate h2{font-size:12.6mm}.certificate .category{font-size:5.1mm}.certificate .name{font-size:15mm}.certificate .message{font-size:4.1mm}.certificate .eyebrow{font-size:3.1mm}.certificate .event{font-size:3.4mm}.certificate .sig{font-size:3.3mm}.certificate .leadin{font-size:5mm}.certificate[data-award='13'] h2,.certificate[data-award='14'] h2{font-size:10mm}.certificate[data-award='13'] .category,.certificate[data-award='14'] .category{font-size:8mm}.certificate[data-award='13'] .name,.certificate[data-award='14'] .name{font-size:16mm}}
+:root{--ink:#272525;--wine:#503c37;--cream:#faf6ed}*{box-sizing:border-box}html,body{margin:0}body{font-family:'DM Sans',Arial,sans-serif;background:#ede9e1;color:var(--ink)}button,input,select,textarea{font:inherit}.top{padding:17px 28px;background:#272b2b;color:#f7efe2;display:flex;align-items:center;justify-content:space-between;gap:14px}.top strong{font-size:13px;letter-spacing:.23em;font-weight:700}.top a{color:#e9d2a8;text-decoration:none;font-size:12px}.layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:24px;max-width:1750px;padding:25px;margin:auto;align-items:start}.panel{padding:23px;background:#fffcf7;border:1px solid #d9cfc1;border-radius:12px;max-height:calc(100vh - 110px);overflow:auto;box-shadow:0 12px 38px #382c2112}.panel h1{font:600 29px/1.08 'Cormorant Garamond',Georgia,serif;color:#48382f}.hint{font-size:11px;color:#82786e;line-height:1.6}label{font-size:11px;letter-spacing:.03em;font-weight:700;display:block;margin:13px 0 5px}input,select,textarea{width:100%;border:1px solid #d7cdc0;border-radius:6px;padding:9px;background:#fff;color:#3c3530;font-size:12px}input[type=color]{height:38px;padding:3px}input[type=range]{padding:0}.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}details{border-top:1px solid #e9e0d5;margin-top:13px;padding-top:11px}summary{font-size:12px;font-weight:700;cursor:pointer;color:#755a4c}.buttons{display:flex;gap:8px;margin-top:13px}.buttons button{flex:1}.btn{border:1px solid #463d36;background:#453d38;color:#fff;padding:10px 8px;border-radius:5px;cursor:pointer;font-weight:700;font-size:11px}.btn.alt{background:#e8ddcb;color:#4c4035;border-color:#d0bda4}.btn:disabled{opacity:.5;cursor:wait}.status{font-size:12px;color:#7a4a3e;min-height:17px}.preview{min-width:0;position:sticky;top:20px}.tip{text-align:center;color:#817970;font-size:12px;margin:0 0 14px}.sheet-wrap{width:100%;max-width:1250px;margin:auto;box-shadow:0 20px 65px #32282028}.certificate{--accent:#854d4b;--secondary:#b79a64;--paper:#fffaf0;--border:#a17b5b;--title-font:'Cormorant Garamond',Georgia,serif;position:relative;width:100%;aspect-ratio:297/210;overflow:hidden;background:var(--paper);color:#3e342f;text-align:center;isolation:isolate}.artwork{position:absolute;inset:0;z-index:0;pointer-events:none}.artwork svg{width:100%;height:100%;display:block}.body{position:absolute;z-index:2;inset:12.8% 16% 9.5%;display:flex;flex-direction:column;justify-content:space-between;align-items:center;gap:0;text-align:center}.eyebrow{font:700 clamp(7px,.85vw,12px)/1.15 'DM Sans',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}.emblem{font:500 clamp(12px,1.5vw,23px) 'Cormorant Garamond',serif;letter-spacing:.3em;color:var(--secondary);height:5%;display:flex;align-items:center;justify-content:center}.logo{max-height:12%;max-width:65%;width:20%;object-fit:contain;display:none}.certificate h2{font:600 clamp(22px,3.25vw,51px)/1.04 var(--title-font);color:var(--accent);margin:0;max-width:100%;text-wrap:balance}.category{font:700 clamp(11px,1.38vw,21px)/1.2 'DM Sans',sans-serif;text-transform:uppercase;letter-spacing:.16em;color:var(--accent);max-width:100%}.leadin{font:italic 500 clamp(13px,1.55vw,24px) 'Cormorant Garamond',serif}.name{font:600 clamp(25px,4vw,61px)/1.06 var(--title-font);color:var(--accent);border-bottom:1px solid var(--secondary);padding:0 14px 5px;max-width:100%;overflow-wrap:anywhere;text-wrap:balance}.message{font:400 clamp(11px,1.2vw,18px)/1.45 'DM Sans',sans-serif;max-width:87%;white-space:pre-line;text-wrap:pretty}.event{font:700 clamp(9px,1vw,15px) 'DM Sans',sans-serif;letter-spacing:.08em;color:var(--accent)}.signatures{display:flex;justify-content:space-between;gap:12%;width:86%;margin-top:1.5%}.sig{width:44%;font:500 clamp(9px,.94vw,14px)/1.35 'DM Sans',sans-serif}.sig-name{border-top:1px solid currentColor;padding-top:5px;font-weight:700}.sig-role{font-size:.84em;color:#70645a}.certificate [contenteditable=true]{outline:none;cursor:text;min-width:10px}.certificate [contenteditable=true]:focus{outline:1px dashed var(--secondary);outline-offset:3px;background:#ffffff44}.certificate[data-award='13'] .body,.certificate[data-award='14'] .body{inset:17.5% 16% 10%}.certificate[data-award='13'] .category,.certificate[data-award='14'] .category{font-size:clamp(15px,2.1vw,33px);letter-spacing:.11em;font-family:var(--title-font);font-weight:700}.certificate[data-award='13'] .emblem,.certificate[data-award='14'] .emblem{display:none}.certificate[data-award='13'] h2,.certificate[data-award='14'] h2{font-size:clamp(20px,2.7vw,42px)}.certificate[data-award='13'] .name,.certificate[data-award='14'] .name{font-size:clamp(27px,4.3vw,66px)}.certificate[data-award='13'] .message,.certificate[data-award='14'] .message{max-width:80%}.certificate[data-border='none'] .frame-lines,.certificate[data-border='none'] .frame-detail{display:none}.certificate[data-border='corners'] .frame-lines{display:none}.certificate[data-border='double'] .frame-detail{display:none}.certificate[data-pattern='none'] .decor{display:none}.certificate[data-pattern='subtle'] .decor{opacity:.32}.certificate[data-award='14']{color:#f6edd9}.certificate[data-award='14'] .sig-role{color:#d5c6b4}.certificate[data-award='14'] .sig-name{border-color:#bba373}@media(max-width:1100px){.layout{grid-template-columns:1fr}.preview{position:static}.panel{max-height:none}.sheet-wrap{max-width:950px}.certificate .body{inset:12% 15% 9%}}@page{size:A4 landscape;margin:0}@media print{html,body{width:297mm;height:210mm;background:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.top,.panel,.tip{display:none!important}.layout,.preview,.sheet-wrap{display:block!important;padding:0!important;margin:0!important;width:297mm!important;max-width:none!important;box-shadow:none!important}.certificate{width:297mm!important;height:210mm!important;aspect-ratio:auto!important;print-color-adjust:exact;-webkit-print-color-adjust:exact;break-inside:avoid}.certificate h2{font-size:12.6mm}.certificate .category{font-size:5.1mm}.certificate .name{font-size:15mm}.certificate .message{font-size:4.1mm}.certificate .eyebrow{font-size:3.1mm}.certificate .event{font-size:3.4mm}.certificate .sig{font-size:3.3mm}.certificate .leadin{font-size:5mm}.certificate[data-award='13'] h2,.certificate[data-award='14'] h2{font-size:10mm}.certificate[data-award='13'] .category,.certificate[data-award='14'] .category{font-size:8mm}.certificate[data-award='13'] .name,.certificate[data-award='14'] .name{font-size:16mm}}
 /* 2026 Festival Atelier — fully art-directed backgrounds, editorial award hierarchy */
 :root{--ink:#2b2830;--cream:#f6eee6}
 body{background:radial-gradient(circle at 60% 0%,#fff9ef,#ebe1d7 75%);color:#302b2b}
@@ -67,6 +67,15 @@ body{background:radial-gradient(circle at 60% 0%,#fff9ef,#ebe1d7 75%);color:#302
  .certificate[data-award='13'] .category,.certificate[data-award='14'] .category{font-size:11mm}
  .certificate[data-award='13'] .name,.certificate[data-award='14'] .name{font-size:18mm}
 }
+
+@media print{
+  .layout{grid-template-columns:1fr!important;min-height:0!important;max-height:none!important;}
+  .preview{position:static!important;width:297mm!important;max-width:none!important;}
+  .sheet-wrap{border:0!important;}
+  .certificate,.certificate svg,.artwork{visibility:visible!important;overflow:visible!important;}
+  .certificate{overflow:hidden!important;page-break-after:avoid!important;page-break-inside:avoid!important;}
+  .artwork{overflow:hidden!important;}
+}
 </style></head><body>
 <div class="top"><strong>COACHELLA  /  CERTIFICATE ATELIER</strong><a href="organizer.html#admin">← Organizer Desk</a></div>
 <div class="layout"><aside class="panel"><h1>The Festival Honors Collection</h1><p class="hint">15 individually composed award editions · A4 landscape · edit certificate text directly · customize every detail.</p>
@@ -88,7 +97,7 @@ body{background:radial-gradient(circle at 60% 0%,#fff9ef,#ebe1d7 75%);color:#302
 <label for="citation">Award citation</label><textarea id="citation" rows="3"></textarea>
 <label for="date">Award date</label><input id="date" type="date" value="2026-11-24"/>
 </details>
-<div class="buttons"><button class="btn" id="pdf">Download A4 PDF</button><button class="btn alt" id="print">Print A4</button></div>
+<div class="buttons"><button class="btn" id="pdf">Download A4 PDF</button><button class="btn alt" id="print">Print A4</button></div><p class="hint" style="margin-top:8px">If a PDF download is blocked, the print dialog opens automatically. Select <b>Save as PDF</b>, <b>Landscape</b>, and enable <b>Background graphics</b>.</p>
 <div class="buttons"><button class="btn alt" id="reset">Reset award design</button></div><p class="status" id="status" role="status"></p>
 <p class="hint">Signature lines are intentionally left unsigned for Rochelle Pascual and Ruel.</p>
 </aside><main class="preview"><p class="tip">Click any text on the certificate to edit it directly. Print and PDF use A4 landscape (297 × 210 mm).</p>
@@ -162,8 +171,71 @@ $('restoreLogo').onclick=()=>{$('customLogo').style.display='none';$('customLogo
 $('logoSize').oninput=()=>{$('customLogo').style.width=$('logoSize').value+'%'};
 $('reset').onclick=()=>{location.reload()};
 function valid(){if(!$('name').innerText.trim()||$('name').innerText.trim()==='Recipient Name'){$('status').textContent='Enter a recipient name before exporting.';return false}return true}
+/* PDF repair: try the already-loaded libraries, then alternative CDNs.
+   If all copies are blocked/offline, use Chromium/Edge's native PDF print. */
+function loadPdfScript(src,ready){
+ return new Promise(resolve=>{
+  if(ready())return resolve(true);
+  const el=document.createElement('script');
+  let finished=false;
+  const finish=ok=>{if(finished)return;finished=true;clearTimeout(timer);el.onload=null;el.onerror=null;if(!ok)el.remove();resolve(ok&&ready())};
+  const timer=setTimeout(()=>finish(false),6500);
+  el.async=true;el.src=src;el.referrerPolicy='no-referrer';
+  el.onload=()=>finish(true);el.onerror=()=>finish(false);
+  document.head.appendChild(el);
+ });
+}
+async function loadPdfFallbacks(check,urls){
+ if(check())return true;
+ for(const url of urls){
+  if(await loadPdfScript(url,check))return true;
+ }
+ return check();
+}
+async function ensurePdfLibraries(){
+ const [canvasReady,pdfReady]=await Promise.all([
+  loadPdfFallbacks(()=>typeof window.html2canvas==='function',[
+   'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
+   'https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js'
+  ]),
+  loadPdfFallbacks(()=>!!(window.jspdf&&window.jspdf.jsPDF),[
+   'https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js',
+   'https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js'
+  ])
+ ]);
+ return canvasReady&&pdfReady;
+}
+function printPdfFallback(){
+ $('status').textContent='PDF download library blocked. Use the print window: Destination → Save as PDF, Layout → Landscape, More settings → Background graphics ON.';
+ // Native print is the most reliable library-free PDF path.
+ window.print();
+}
 $('print').onclick=()=>{if(valid())window.print()};
-$('pdf').onclick=async()=>{if(!valid())return;let btn=$('pdf');btn.disabled=true;$('status').textContent='Preparing A4 landscape PDF…';try{if(!window.html2canvas||!window.jspdf)throw Error('PDF libraries unavailable; check your connection.');await document.fonts.ready;document.activeElement.blur();const canvas=await html2canvas(cert,{scale:2.2,backgroundColor:null,useCORS:true,logging:false,windowWidth:Math.max(1300,window.innerWidth)});const pdf=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4',compress:true});pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,297,210);let safe=$('name').innerText.trim().replace(/[^a-z0-9 _-]/gi,'').replace(/\s+/g,'-').slice(0,60);pdf.save('Coachella-'+safe+'.pdf');$('status').textContent='Your A4 PDF is ready.'}catch(e){$('status').textContent='PDF export error: '+e.message}finally{btn.disabled=false}};
+$('pdf').onclick=async()=>{
+ if(!valid())return;
+ const btn=$('pdf');btn.disabled=true;
+ $('status').textContent='Preparing A4 landscape PDF…';
+ try{
+  if(!await ensurePdfLibraries()){
+   printPdfFallback();return;
+  }
+  await document.fonts.ready;
+  document.activeElement?.blur?.();
+  const canvas=await window.html2canvas(cert,{
+   scale:2.2,backgroundColor:null,useCORS:true,logging:false,
+   windowWidth:Math.max(1300,window.innerWidth),imageTimeout:15000
+  });
+  if(!canvas.width||!canvas.height)throw Error('Certificate capture was empty');
+  const pdf=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4',compress:true});
+  pdf.addImage(canvas.toDataURL('image/png'),'PNG',0,0,297,210);
+  const safe=$('name').innerText.trim().replace(/[^a-z0-9 _-]/gi,'').replace(/\s+/g,'-').slice(0,60)||'Recipient';
+  pdf.save('Coachella-'+safe+'.pdf');
+  $('status').textContent='Your A4 PDF is ready.';
+ }catch(e){
+  console.error('Certificate PDF export:',e);
+  printPdfFallback();
+ }finally{btn.disabled=false}
+};
 $('date').value='2026-11-24';cert.dataset.border='signature';cert.dataset.pattern='signature';setAward();
 (async()=>{try{let pw=sessionStorage.getItem('fest_admin_pw');if(!pw)throw Error('Organizer login required.');if(!window.supabase||!window.CONFIG)throw Error('Organizer configuration unavailable.');let sb=window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY);let r=await sb.rpc('admin_list',{p_password:pw});if(r.error)throw Error('Organizer session expired.');}catch(e){document.querySelector('.layout').hidden=true;let p=document.createElement('p');p.style='text-align:center;padding:40px;font-weight:bold';p.textContent=e.message+' ';let a=document.createElement('a');a.href='organizer.html#admin';a.textContent='Go to Organizer Desk';p.append(a);document.body.append(p)}})();
 </script></body></html>
