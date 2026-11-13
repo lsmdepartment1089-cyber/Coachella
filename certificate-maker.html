@@ -67,64 +67,81 @@ h2{font-family:var(--title-font);font-size:clamp(30px,4.1vw,67px);line-height:1.
 @media(max-width:950px){.layout{grid-template-columns:1fr}.panel{max-height:none}.certificate h2{font-size:clamp(20px,4.6vw,67px)}.certificate .name{font-size:clamp(22px,5vw,70px)}.certificate .message{font-size:clamp(10px,1.7vw,23px)}}
 @page{size:A4 landscape;margin:0}
 @media print{body{background:#fff}.top,.panel,.tip{display:none!important}.layout,.preview,.sheet-wrap{display:block!important;padding:0!important;margin:0!important;width:297mm!important;max-width:none!important}.certificate{width:297mm!important;height:210mm!important;aspect-ratio:auto!important;border:0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.certificate h2{font-size:18mm}.certificate .name{font-size:18mm}.certificate .message{font-size:5mm}.certificate .eyebrow{font-size:3.7mm}.certificate .category{font-size:6mm}.certificate .leadin{font-size:5mm}.certificate .event{font-size:3.5mm}.certificate .sig{font-size:3.2mm}}
-</style><style>
-/* Coachella Certificate Studio — additive theme. Original editor remains intact. */
-:root{--red:#DA291C;--gold:#FFC72C;--ink:#27251F}
-body{background:radial-gradient(circle at 5% 10%,#ffe2b0,transparent 32%),linear-gradient(135deg,#fff8e9,#ffe5ca 55%,#ffeed5)}
-.top{background:linear-gradient(100deg,#652020,#DA291C 48%,#FF8A1F);border-bottom:5px solid #FFC72C}
-.top strong{color:#FFF3C2;letter-spacing:.045em}
-.panel{border-color:#632d25;box-shadow:6px 6px 0 #FF8A1F}
-.panel h1{color:#B12E1B}
-.btn{background:#DA291C}.btn.alt{background:#FFC72C}
-/* Festival sunset: bright and printable with clear typography */
-.certificate[data-design="festival"],.certificate[data-design="sunset"]{
- --paper:#FFF4DA;--accent:#B92722;--secondary:#EBA62B;--border:#B92722;
- background:linear-gradient(180deg,#FFF8E9 0%,#FFE9CB 65%,#FFD7AA 100%);
-}
-.certificate[data-design="festival"] .ornament,.certificate[data-design="sunset"] .ornament{
- opacity:.65;background:radial-gradient(circle at 89% 13%,#FFB84A 0 7%,#FFB84A00 18%),radial-gradient(ellipse at 8% 92%,#F77D4C88,transparent 32%),radial-gradient(ellipse at 95% 95%,#D82D4D55,transparent 30%);
-}
-.certificate[data-design="festival"] .texture,.certificate[data-design="sunset"] .texture{
- opacity:.2;background:repeating-linear-gradient(145deg,transparent 0 25px,#CE722B 26px 27px,transparent 28px 51px);
-}
-.certificate[data-design="festival"] .border,.certificate[data-design="sunset"] .border{
- inset:2.6%;border:4px solid #C83D28;border-radius:2px;
- box-shadow:inset 0 0 0 6px #FFE8BC,inset 0 0 0 8px #E6A13E;
-}
-.certificate[data-design="festival"] .border:after,.certificate[data-design="sunset"] .border:after{border:0}
-.certificate[data-design="festival"] .arches,.certificate[data-design="sunset"] .arches{opacity:.09}
-.certificate[data-design="festival"] h2,.certificate[data-design="sunset"] h2{font-family:'Londrina Solid',Impact,sans-serif;letter-spacing:.035em;text-shadow:1px 2px 0 #F4C36A}
-.certificate[data-design="festival"] .eyebrow,.certificate[data-design="sunset"] .eyebrow{letter-spacing:.23em}
-.certificate[data-design="festival"] .name,.certificate[data-design="sunset"] .name{color:#7C2525;border-bottom:3px solid #DCA63D}
-/* Electric Festival: neon energy but still readable in print */
-.certificate[data-design="electric"]{
- --paper:#F3FFFF;--accent:#C61578;--secondary:#FF7900;--border:#00B9D1;
- background:linear-gradient(135deg,#E5FBFF 0%,#FFFFFF 42%,#FFF5C8 75%,#FFE6F1 100%);color:#151733;
-}
-.certificate[data-design="electric"] .ornament{opacity:.75;background:radial-gradient(circle at 9% 12%,#00DFFF88,transparent 23%),radial-gradient(circle at 94% 18%,#FFF00088,transparent 24%),radial-gradient(circle at 7% 92%,#39FF1477,transparent 24%),radial-gradient(circle at 90% 88%,#FF149366,transparent 25%)}
-.certificate[data-design="electric"] .texture{opacity:.38;background:repeating-linear-gradient(135deg,transparent 0 24px,#00DFFF 25px 27px,transparent 28px 50px)}
-.certificate[data-design="electric"] .border{border:5px solid #00B9D1;box-shadow:inset 0 0 0 7px #FFF,inset 0 0 0 10px #FF1493}
-.certificate[data-design="electric"] .border:after{border:0}
-.certificate[data-design="electric"] .arches{opacity:.09}
-.certificate[data-design="electric"] h2{font-family:'Londrina Solid',Impact,sans-serif;color:#C61578;text-shadow:2px 2px 0 #FFF000}
-.certificate[data-design="electric"] .name{color:#142A48;border-bottom:3px solid #FF7900}
-.certificate[data-design="electric"] .event{color:#B11376}
-/* Sunset Boho 2: desert-inspired, subtle festival styling */
-.certificate[data-design="boho"]{--paper:#FFF3E1;--accent:#A74731;--secondary:#D5A15B;--border:#B66A40;background:linear-gradient(145deg,#FFF7E9,#F6DEC0)}
-.certificate[data-design="boho"] .texture{opacity:.17;background:repeating-radial-gradient(circle at 50% 105%,transparent 0 17px,#BA7848 18px 19px,transparent 20px 35px)}
-.certificate[data-design="boho"] .ornament{opacity:.45;background:radial-gradient(circle at 87% 15%,#F7C77A,transparent 21%),radial-gradient(ellipse at 10% 90%,#CA855F,transparent 31%)}
-.certificate[data-design="boho"] .border{border:3px solid #B66A40}.certificate[data-design="boho"] .border:after{border-color:#D9B37B}
-/* Decorative festival motif at bottom, safely behind certificate text. */
-.certificate[data-design="festival"]::before,.certificate[data-design="sunset"]::before,.certificate[data-design="boho"]::before,.certificate[data-design="electric"]::before{
- content:"";position:absolute;left:3%;right:3%;bottom:3%;height:9%;pointer-events:none;z-index:0;opacity:.35;
- background:linear-gradient(135deg,transparent 40%,var(--secondary) 41% 43%,transparent 44%) 0 100%/38px 45px repeat-x;
-}
-@media print{.certificate{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
 
+/* COACHELLA GRAND FESTIVAL COLLECTION: decorative print-safe artwork for EVERY theme */
+body{background:radial-gradient(circle at 0 0,#ffd4b8,transparent 38%),radial-gradient(circle at 100% 90%,#f9d3f0,transparent 38%),#fff6e8}
+.top{background:linear-gradient(105deg,#2c173c,#ac2871 48%,#f48138);border-bottom:5px solid #ffcf56}.top strong{color:#fff0b8;letter-spacing:.06em}
+.panel{border:2px solid #6c3552;box-shadow:6px 6px 0 #ffbd55}.panel h1{color:#9d2768}
+.certificate{--art:var(--accent);--art2:var(--secondary);--rim:var(--secondary);--shine:#fff6cf;--royal:0;background:radial-gradient(ellipse at 50% 5%,var(--shine),transparent 52%),linear-gradient(135deg,var(--paper),var(--shine) 55%,var(--paper));}
+.certificate .festival-art{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;color:var(--art)}
+.certificate .festival-horizon{position:absolute;bottom:-1%;left:0;width:100%;height:31%;color:var(--art);opacity:.58}
+.certificate .festival-mandala{position:absolute;width:18%;height:27%;color:var(--art2);opacity:.47;filter:drop-shadow(0 0 1px var(--art2))}
+.certificate .mandala-left{top:-9%;left:-5%}.certificate .mandala-right{top:-9%;right:-5%;transform:scaleX(-1)}
+.certificate .festival-corner{position:absolute;font-family:Georgia,serif;font-size:clamp(11px,1.4vw,22px);letter-spacing:.3em;color:var(--art2);opacity:.95}
+.certificate .corner-tl{top:5.1%;left:7%}.certificate .corner-tr{top:5.1%;right:7%}.certificate .corner-bl{bottom:5.1%;left:7%}.certificate .corner-br{bottom:5.1%;right:7%}
+.certificate .border{inset:2.7%;border:4px double var(--border);border-radius:10px;box-shadow:inset 0 0 0 5px var(--paper),inset 0 0 0 7px var(--rim),0 0 0 3px var(--rim)}
+.certificate .border:after{inset:13px;border:1px solid var(--rim);border-radius:5px}
+.certificate .texture{opacity:.16;background:radial-gradient(circle,var(--art2) 1.5px,transparent 2px) 0 0/27px 27px}
+.certificate .ornament{opacity:.48;background:radial-gradient(circle at 50% -15%,var(--art2),transparent 35%),radial-gradient(circle at 0 100%,var(--art),transparent 27%),radial-gradient(circle at 100% 100%,var(--art2),transparent 27%)}
+.certificate .arches{opacity:.07}
+.certificate .body{inset:7% 11% 8%;z-index:2;justify-content:space-between;gap:.1%}
+.certificate h2{font-family:'Playfair Display',Georgia,serif;font-size:clamp(27px,3.75vw,61px);letter-spacing:.012em;text-shadow:1px 2px 0 var(--shine)}
+.certificate .name{font-family:'Playfair Display',Georgia,serif;font-size:clamp(26px,3.85vw,64px);border-bottom:3px double var(--secondary);text-shadow:0 2px 0 var(--shine)}
+.certificate .category{color:var(--accent);letter-spacing:.16em}
+.certificate .event{border-top:1px solid var(--secondary);border-bottom:1px solid var(--secondary);padding:.3% 3%;background:color-mix(in srgb,var(--shine) 55%,transparent)}
+.certificate .sig-name{border-top:2px solid var(--accent)}
+.certificate .royal-crown,.certificate .royal-gems{display:none}
+/* Each palette is intentionally distinctive, not just recolored flat paper */
+.certificate[data-design="classic"]{--paper:#fff3d9;--accent:#802e44;--secondary:#c68c39;--border:#842a42;--art:#a53f57;--art2:#ca9148;--rim:#d3a05c;--shine:#fff6e2}
+.certificate[data-design="executive"]{--paper:#eaf3f6;--accent:#173b5c;--secondary:#c69a48;--border:#173b5c;--art:#327f96;--art2:#d0a64d;--rim:#c89e50;--shine:#fffaf0}
+.certificate[data-design="mentor"]{--paper:#fff0d9;--accent:#86482b;--secondary:#cc8245;--border:#985c35;--art:#c4793f;--art2:#d9a65b;--rim:#d6a267;--shine:#fff8df}
+.certificate[data-design="festival"]{--paper:#ffe5be;--accent:#b92c58;--secondary:#ef923f;--border:#cc3e5c;--art:#e75d64;--art2:#eaa33c;--rim:#ffbc69;--shine:#fff8d7}
+.certificate[data-design="electric"]{--paper:#e5faff;--accent:#c91a85;--secondary:#ff7c22;--border:#02a5c4;--art:#0cbad3;--art2:#e934a4;--rim:#f8ca18;--shine:#fff7cc}
+.certificate[data-design="violet"]{--paper:#f4e6ff;--accent:#6e318b;--secondary:#c28cdb;--border:#7833a0;--art:#ab61c5;--art2:#e3b14e;--rim:#dfb566;--shine:#fff3fd}
+.certificate[data-design="royalblue"]{--paper:#e5f0ff;--accent:#1b4585;--secondary:#c39a48;--border:#2553a0;--art:#5c82c5;--art2:#d7a85a;--rim:#d6b76c;--shine:#fff9e8}
+.certificate[data-design="bronze"]{--paper:#f8e4c6;--accent:#774023;--secondary:#c17e37;--border:#945a2d;--art:#b66c36;--art2:#d5a15b;--rim:#c88b47;--shine:#fff4d9}
+.certificate[data-design="rose"]{--paper:#ffe4e8;--accent:#ad235c;--secondary:#e6a14f;--border:#bd3b75;--art:#df6895;--art2:#e6ac69;--rim:#efbd84;--shine:#fff8f5}
+.certificate[data-design="sage"]{--paper:#e5f2e7;--accent:#286c59;--secondary:#c18b4a;--border:#377b64;--art:#5c9b7e;--art2:#d3a664;--rim:#d5ae76;--shine:#fff9e9}
+.certificate[data-design="amethyst"]{--paper:#f4e6ff;--accent:#662a85;--secondary:#dbad50;--border:#77329d;--art:#9c57c4;--art2:#dbad50;--rim:#f0c66d;--shine:#fff5ed}
+.certificate[data-design="queen"]{--paper:#ffe6f1;--accent:#9c175b;--secondary:#d9a23d;--border:#9e2266;--art:#c34e8a;--art2:#d9a23d;--rim:#eac46b;--shine:#fff7e9}
+.certificate[data-design="king"]{--paper:#18243c;--accent:#ffdf92;--secondary:#e3af50;--border:#e5b95d;--art:#e2ad51;--art2:#e5bc6b;--rim:#f6d989;--shine:#32435c;color:#fff8e9}
+.certificate[data-design="sunset"]{--paper:#ffdfbd;--accent:#b64a37;--secondary:#f5a34c;--border:#b95346;--art:#d87553;--art2:#eab64e;--rim:#ffbe74;--shine:#fff7d9}
+.certificate[data-design="midnight"]{--paper:#1b2541;--accent:#f3d089;--secondary:#d8a04b;--border:#f2c978;--art:#c8a7ef;--art2:#f2c978;--rim:#d7b36b;--shine:#3b3456;color:#fff7e9}
+.certificate[data-design="emerald"]{--paper:#e4f3eb;--accent:#17624b;--secondary:#c39b4d;--border:#2b735a;--art:#62a58c;--art2:#d5b062;--rim:#d4b76d;--shine:#fff9e8}
+.certificate[data-design="minimal"]{--paper:#fff8e9;--accent:#554054;--secondary:#c78c6c;--border:#806079;--art:#b58b9f;--art2:#d4a66d;--rim:#d5b18a;--shine:#fffdf5}
+.certificate[data-design="coral"]{--paper:#ffe9da;--accent:#c54c54;--secondary:#f4a44c;--border:#cc5361;--art:#e87b72;--art2:#edb258;--rim:#ffbd82;--shine:#fff9e4}
+.certificate[data-design="gold"]{--paper:#fff0c9;--accent:#926118;--secondary:#d1a33f;--border:#b07a2b;--art:#d2a54b;--art2:#e2b95e;--rim:#e7be61;--shine:#fffbe9}
+.certificate[data-design="boho"]{--paper:#f9e8d1;--accent:#a85a3b;--secondary:#c99d6b;--border:#a96c4d;--art:#b97e59;--art2:#d4ae76;--rim:#d8b687;--shine:#fff9e9}
+/* Theme-specific decorative treatments */
+.certificate[data-design="electric"]{background:radial-gradient(circle at 0 0,#00dfff66,transparent 35%),radial-gradient(circle at 100% 0,#ff149355,transparent 35%),radial-gradient(circle at 50% 100%,#39ff1433,transparent 35%),linear-gradient(120deg,#e6fbff,#fff7d7 60%,#ffe7f5)}
+.certificate[data-design="electric"] .border{border-style:solid;border-color:#00c6df;box-shadow:0 0 0 3px #ff1493,inset 0 0 0 7px #fff9d4,inset 0 0 0 10px #ff8b19}
+.certificate[data-design="electric"] h2{font-family:'Londrina Solid',Impact,sans-serif;text-shadow:2px 3px 0 #fff000}
+.certificate[data-design="festival"] h2,.certificate[data-design="sunset"] h2{font-family:'Londrina Solid',Impact,sans-serif;letter-spacing:.03em}
+.certificate[data-design="boho"] .texture,.certificate[data-design="mentor"] .texture{background:repeating-radial-gradient(circle at 50% 100%,transparent 0 22px,var(--art2) 23px 24px,transparent 25px 46px);opacity:.18}
+.certificate[data-design="midnight"],.certificate[data-design="king"]{background:radial-gradient(ellipse at 50% 12%,#3d4d6b,transparent 58%),linear-gradient(130deg,#10192b,#253554 52%,#111b31)}
+.certificate[data-design="midnight"] .sig-name,.certificate[data-design="king"] .sig-name{border-color:#f4d48c}
+.certificate[data-design="midnight"] .event,.certificate[data-design="king"] .event{background:#2c3a56}
+.certificate[data-design="queen"]{background:radial-gradient(ellipse at 50% 12%,#fff7e7,transparent 50%),linear-gradient(135deg,#ffe2f1,#fff4e9 55%,#fbd0e6)}
+/* Royalty certificates: crown, gilded frame, jewel ornaments, ceremonial layout */
+.certificate[data-design="king"] .royal-crown,.certificate[data-design="queen"] .royal-crown{display:flex;position:absolute;top:3.4%;left:50%;transform:translateX(-50%);align-items:center;flex-direction:column;font-size:clamp(32px,5vw,76px);line-height:.75;color:var(--secondary);text-shadow:0 3px 3px #0003;white-space:nowrap}
+.certificate[data-design="king"] .royal-crown span,.certificate[data-design="queen"] .royal-crown span{font:900 clamp(8px,.9vw,14px) 'Montserrat',sans-serif;letter-spacing:.26em;margin-top:10px}
+.certificate[data-design="king"] .royal-gems,.certificate[data-design="queen"] .royal-gems{display:block;position:absolute;bottom:5.7%;left:50%;transform:translateX(-50%);font-size:clamp(12px,1.3vw,22px);letter-spacing:.5em;color:var(--secondary)}
+.certificate[data-design="king"] .border,.certificate[data-design="queen"] .border{inset:2%;border:7px ridge var(--rim);border-radius:16px;box-shadow:inset 0 0 0 6px var(--paper),inset 0 0 0 10px var(--rim),inset 0 0 0 14px var(--paper),0 0 0 3px var(--rim)}
+.certificate[data-design="king"] .border:after,.certificate[data-design="queen"] .border:after{inset:18px;border:2px solid var(--secondary);border-radius:12px}
+.certificate[data-design="king"] .body,.certificate[data-design="queen"] .body{inset:20% 11% 8%;gap:0}
+.certificate[data-design="king"] .body .arch-logo,.certificate[data-design="queen"] .body .arch-logo{height:9%;width:9%}
+.certificate[data-design="king"] h2,.certificate[data-design="queen"] h2{font-family:'Playfair Display',Georgia,serif;font-size:clamp(28px,3.7vw,60px);font-weight:700;letter-spacing:.025em}
+.certificate[data-design="king"] .name,.certificate[data-design="queen"] .name{font-family:'Playfair Display',Georgia,serif;font-size:clamp(29px,4.1vw,67px);border-bottom:4px double var(--secondary)}
+.certificate[data-design="king"] .category,.certificate[data-design="queen"] .category{font-family:'Montserrat',sans-serif;letter-spacing:.22em}
+.certificate[data-design="king"] .festival-mandala,.certificate[data-design="queen"] .festival-mandala{width:22%;height:33%;opacity:.8}
+.certificate[data-design="king"] .festival-horizon,.certificate[data-design="queen"] .festival-horizon{opacity:.35}
+/* Royal titles should have an impressive top-to-bottom visual hierarchy */
+.certificate[data-design="king"] .eyebrow,.certificate[data-design="queen"] .eyebrow{font-size:clamp(9px,.93vw,15px)}
+@media print{.certificate{print-color-adjust:exact;-webkit-print-color-adjust:exact}.certificate .festival-art{print-color-adjust:exact;-webkit-print-color-adjust:exact}.certificate[data-design="king"] .royal-crown,.certificate[data-design="queen"] .royal-crown{font-size:15mm}.certificate[data-design="king"] .royal-crown span,.certificate[data-design="queen"] .royal-crown span{font-size:3mm}.certificate[data-design="king"] .body,.certificate[data-design="queen"] .body{inset:20% 11% 8%}}
 </style>
 </head><body>
 <div class="top"><strong>COACHELLA · CERTIFICATE STUDIO</strong><a href="index.html#admin">← Organizer Desk</a></div>
-<div class="layout"><aside class="panel"><h1>Landscape Certificate Maker</h1><p class="hint">A4 landscape · edit every text area by clicking directly on the preview · customize colors, logo, and design.</p>
+<div class="layout"><aside class="panel"><h1>Coachella Grand Certificate Studio</h1><p class="hint">18+ fully decorated festival themes · A4 landscape · edit every text area by clicking directly on the preview · customize colors, logo, and design.</p>
 <label for="award">Award / starting content</label><select id="award"></select>
 <label for="design">Design theme</label><select id="design"></select>
 <div class="pair"><div><label for="pattern">Background detail</label><select id="pattern"><option value="arches">Golden arches</option><option value="dots">Confetti dots</option><option value="glow">Corner glow</option><option value="stripes">Festival stripes</option><option value="none">Clean / none</option></select></div>
@@ -150,6 +167,19 @@ body{background:radial-gradient(circle at 5% 10%,#ffe2b0,transparent 32%),linear
 <div class="sheet-wrap"><div class="certificate" id="certificate" data-design="classic" data-pattern="arches" data-border="double">
 <div class="texture"></div><div class="ornament"></div><div class="border"></div>
 <div class="arches"><svg class="left" viewBox="0 0 220 300"><path d="M20 300V130C20 -30 100 -30 110 130 120 -30 200 -30 200 130V300"/></svg><svg class="right" viewBox="0 0 220 300"><path d="M20 300V130C20 -30 100 -30 110 130 120 -30 200 -30 200 130V300"/></svg></div>
+<div class="festival-art" aria-hidden="true">
+<svg class="festival-horizon" viewBox="0 0 1200 260" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+<defs><linearGradient id="dunes" x1="0" y1="0" x2="0" y2="1"><stop stop-color="currentColor" stop-opacity=".25"/><stop offset="1" stop-color="currentColor" stop-opacity=".04"/></linearGradient></defs>
+<path d="M0 210 Q145 95 290 203 Q440 123 590 215 Q735 115 880 203 Q1040 107 1200 205V260H0Z" fill="url(#dunes)"/>
+<path d="M0 239 Q200 184 410 235 Q660 174 840 232 Q1020 186 1200 229" fill="none" stroke="currentColor" stroke-width="3" opacity=".45"/>
+<g class="festival-palms" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="5" opacity=".75"><path d="M85 240Q110 140 88 83 M88 83Q44 35 14 84 M88 83Q105 24 145 42 M88 83Q153 62 170 112 M88 83Q37 64 32 120 M1115 240Q1086 150 1112 84 M1112 84Q1073 24 1033 56 M1112 84Q1157 32 1185 76 M1112 84Q1168 74 1190 132 M1112 84Q1070 70 1045 120"/></g>
+<g class="festival-wheel" fill="none" stroke="currentColor" opacity=".55" stroke-width="3" transform="translate(980 153)"><circle r="65"/><circle r="8"/><path d="M0-65V65M-65 0H65M-46-46L46 46M46-46L-46 46M-33 57L0 0L33 57"/><g fill="currentColor" stroke="none"><circle cx="0" cy="-65" r="6"/><circle cx="65" cy="0" r="6"/><circle cx="-65" cy="0" r="6"/><circle cx="0" cy="65" r="6"/></g></g>
+</svg>
+<svg class="festival-mandala mandala-left" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="60" cy="60" r="37"/><circle cx="60" cy="60" r="23"/><circle cx="60" cy="60" r="8"/><path d="M60 2L68 34 60 26 52 34ZM60 118L68 86 60 94 52 86ZM2 60L34 52 26 60 34 68ZM118 60L86 52 94 60 86 68ZM19 19L46 36 36 46ZM101 19L84 46 74 36ZM19 101L46 84 36 74ZM101 101L84 74 74 84Z"/></g></svg>
+<svg class="festival-mandala mandala-right" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="60" cy="60" r="37"/><circle cx="60" cy="60" r="23"/><circle cx="60" cy="60" r="8"/><path d="M60 2L68 34 60 26 52 34ZM60 118L68 86 60 94 52 86ZM2 60L34 52 26 60 34 68ZM118 60L86 52 94 60 86 68ZM19 19L46 36 36 46ZM101 19L84 46 74 36ZM19 101L46 84 36 74ZM101 101L84 74 74 84Z"/></g></svg>
+<div class="festival-corner corner-tl">✦ ❖ ✦</div><div class="festival-corner corner-tr">✦ ❖ ✦</div><div class="festival-corner corner-bl">✦ ❖ ✦</div><div class="festival-corner corner-br">✦ ❖ ✦</div>
+<div class="royal-crown">♛<span>✦ THE DESERT ROYALTY ✦</span></div><div class="royal-gems">◆ ✧ ◆ ✧ ◆</div>
+</div>
 <div class="body">
 <div class="eyebrow" contenteditable="true" spellcheck="false">McDonald's · Santa Rosa Bayan</div>
 <svg id="archLogo" class="arch-logo" viewBox="0 0 120 90"><path d="M14 82V45C14 -3 55 -3 60 45 65 -3 106 -3 106 45V82"/></svg><img id="customLogo" class="logo" alt="Custom certificate logo">
@@ -186,10 +216,10 @@ const awards=[
 
 ];
 const themes=[
-['Classic Burgundy','classic'],['Executive Navy','executive'],['Mentor Bronze','mentor'],['Coachella Festival','festival'],['Violet Prestige','violet'],['Royal Blue','royalblue'],['Warm Bronze','bronze'],['Rose Glam','rose'],['Sage Modern','sage'],['Amethyst Crown','amethyst'],['Desert Queen','queen'],['Desert King','king'],['Sunset Boho','sunset'],['Midnight Luxury','midnight'],['Emerald Excellence','emerald'],['Minimal Editorial','minimal'],['Coral Chic','coral'],['Golden Legacy','gold']
+['Classic Burgundy','classic'],['Executive Navy','executive'],['Mentor Bronze','mentor'],['Coachella Festival','festival'],['Violet Prestige','violet'],['Royal Blue','royalblue'],['Warm Bronze','bronze'],['Rose Glam','rose'],['Sage Modern','sage'],['Amethyst Crown','amethyst'],['DESERT QUEEN · Royal Crown Edition','queen'],['DESERT KING · Royal Crown Edition','king'],['Sunset Boho','sunset'],['Midnight Luxury','midnight'],['Emerald Excellence','emerald'],['Minimal Editorial','minimal'],['Coral Chic','coral'],['Golden Legacy','gold']
 ];
 const styles=['classic','executive','mentor','festival','violet','royalblue','bronze','rose','sage','amethyst','queen','king'];
-const mapped={appreciation:'classic',manager:'executive',trainer:'mentor',crewyear:'festival',gelyear:'violet',manageryear:'royalblue',crewyear2:'bronze',fashion:'rose',maverick:'sage',crown:'amethyst',queen:'queen',king:'king'};
+const mapped={appreciation:'festival',manager:'executive',trainer:'mentor',crewyear:'electric',gelyear:'violet',manageryear:'royalblue',crewyear2:'bronze',fashion:'rose',maverick:'sage',crown:'amethyst',queen:'queen',king:'king'};
 awards.forEach((a,i)=>{const o=document.createElement('option');o.value=i;o.textContent=a[0];$('award').append(o)});
 themes.forEach(([name,key])=>{const o=document.createElement('option');o.value=key;o.textContent=name;$('design').append(o)});
 const cert=$('certificate');const date=new Date();$('date').value=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
