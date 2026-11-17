@@ -607,6 +607,53 @@ Object.assign(LAYOUTS, {
   invite: { name: 'Invitation', info: 'Elegant card with participant name, event details and dress code', bg: 'night', d: { kicker: 'Special Invitation', name: 'Participant Name', lead: 'You are warmly invited to celebrate with us at the', event: 'Year End Party', theme: 'Coachella: Beyond the Arches', when: C.when || 'Date and time', where: C.where || 'Venue', dress: 'Festival Chic · Touches of Red & Gold' } },
   scoreboard: { name: 'Scoreboard', info: 'Four teams and their scores', bg: 'stage', d: { title: 'Scoreboard', t1: 'Team Red', s1: '0', t2: 'Team Yellow', s2: '0', t3: 'Team Orange', s3: '0', t4: 'Team Cream', s4: '0' } }
 });
+
+/* Guest Per Table: one professionally designed 16:9 slide with ten editable names.
+   Additional copies can be inserted from Add Slide and adapted for other tables. */
+Object.assign(TPL, {
+  guestTable: f => {
+    const dark = '#243044', ivory = '#FFF8E9', gold = '#F5C45C', cream = '#FFF0C9', terracotta = '#C46240';
+    const names = Array.isArray(f.names) ? f.names : Array.from({length: 10}, (_, i) => 'Guest Name ' + String(i + 1).padStart(2, '0'));
+    const els = [
+      // Decorative top and bottom editorial rules.
+      shp({x: 147,y: 65,w: 1626,h: 4,fill: gold,anim: 'fade'}),
+      tx({x: 280,y: 85,w: 1360,text: 'COACHELLA  ·  BEYOND THE ARCHES',font: BODY,size: 31,ls: 11,color: cream,anim: 'fade',up: true}),
+      disp({x: 180,y: 134,w: 1560,text: 'GUEST PER TABLE',size: 148,color: '#FFFFFF',ls: 5,anim: 'zoom'}),
+      shp({x: 828,y: 289,w: 264,h: 64,shape:'pill',fill: gold,bw: 3,bc: dark,sh: 'hard',anim: 'fade'}),
+      tx({x: 828,y: 299,w: 264,text: f.table || 'TABLE 01',font: BODY,size: 40,color: dark,b: true,ls: 4,anim: 'rise'}),
+      // A pair of balanced editorial cards for five guests each.
+      shp({x: 124,y: 383,w: 814,h: 561,shape: 'round',rad: 28,fill: ivory,bw: 5,bc: gold,sh:'hard',anim:'left'}),
+      shp({x: 982,y: 383,w: 814,h: 561,shape: 'round',rad: 28,fill: ivory,bw: 5,bc: gold,sh:'hard',anim:'right'}),
+      shp({x: 164,y: 427,w: 734,h: 3,fill: '#E5C798',anim:'fade'}),
+      shp({x: 1022,y: 427,w: 734,h: 3,fill: '#E5C798',anim:'fade'}),
+      tx({x: 163,y: 400,w: 740,text: 'SEATING LIST',font: BODY,size: 21,ls: 7,color: terracotta,anim:'fade',b:true}),
+      tx({x: 1022,y: 400,w: 740,text: 'SEATING LIST',font: BODY,size: 21,ls: 7,color: terracotta,anim:'fade',b:true}),
+    ];
+    for (let i = 0; i < 10; i++) {
+      const c = i < 5 ? 0 : 1, r = i % 5, x = c ? 1022 : 164, y = 446 + r * 96;
+      if (r > 0) els.push(shp({x, y: y - 13,w: 735,h: 2,fill:'#EBDAC0',anim:'fade'}));
+      els.push(
+        shp({x: x + 7,y: y + 4,w: 66,h: 66,shape:'circle',fill: gold,bw: 2,bc:dark,anim:'zoom'}),
+        tx({x: x + 9,y: y + 16,w: 62,text: String(i+1).padStart(2,'0'),font: BODY,size: 30,b:true,color:dark,anim:'zoom'}),
+        tx({x: x + 97,y: y + 13,w: 615,text: String(names[i] || 'Guest Name ' + String(i+1).padStart(2,'0')),font: BODY,size: 49,b:true,al:'left',color: dark,lh:1.08,sh:'none',anim:'rise'})
+      );
+    }
+    els.push(
+      shp({x: 147,y: 987,w: 1626,h: 3,fill:gold,anim:'fade'}),
+      tx({x: 300,y: 1002,w: 1320,text: 'PLEASE PROCEED TO YOUR ASSIGNED TABLE',font: BODY,size: 30,ls: 5,color:cream,anim:'fade'})
+    );
+    return els;
+  }
+});
+Object.assign(LAYOUTS, {
+  guestTable: {
+    name: 'Guest Per Table — 10 names',
+    info: 'Two-column Coachella seating slide; edit table number and ten guest names directly',
+    bg: 'night',
+    d: {table: 'TABLE 01'}
+  }
+});
+
 function newSlide(type, bg, over) { return { id: uid(), type, bg: bg || LAYOUTS[type].bg || 'default', els: TPL[type](Object.assign({}, LAYOUTS[type].d, over || {})) }; }
 function defaultDeck() {
   const L = C.lineup || [];
@@ -615,6 +662,17 @@ function defaultDeck() {
   return { v: 2, bg: 'sunset', transition: 'fade', autoplay: 0, slides: s };
 }
 function migrate(d) { let ch = false; d.slides.forEach(s => { if (!s.els) { s.els = (TPL[s.type] || TPL.blank)(s.f || {}); delete s.f; ch = true; } s.els.forEach(e => { if (e.anim === 'float' || e.anim === 'pulse') { e.loop = e.anim; e.anim = 'rise'; ch = true; } }); }); d.v = 2; return ch; }
+
+/* Insert the template into the user's existing saved deck once. Preserve all previous slides.
+   The marker prevents reinsertion if the user later deletes the template slide. */
+function ensureGuestTableTemplate(savedDeck) {
+  if (savedDeck.guestTableTemplateV1) return false;
+  if (!savedDeck.slides.some(s => s.type === 'guestTable')) {
+    savedDeck.slides.push(newSlide('guestTable', 'night'));
+  }
+  savedDeck.guestTableTemplateV1 = true;
+  return true;
+}
 
 /* ---------- rendering ---------- */
 function lettersHtml(t) { let k = 0; return String(t).split(/(\s+)/).map(w => { if (!w) return ''; if (/^\s+$/.test(w)) return w; return '<span class="w">' + [...w].map(ch => '<span class="ch" style="--k:' + (k++) + '">' + esc(ch) + '</span>').join('') + '</span>'; }).join(''); }
@@ -697,9 +755,10 @@ async function enter(password) {
   pw = password; SS.set('fest_admin_pw', password);
   deck = g.data && g.data.slides && g.data.slides.length ? g.data : defaultDeck();
   const migrated = migrate(deck);
+  const guestTableAdded = ensureGuestTableTemplate(deck);
   deck.bg = deck.bg || 'sunset'; deck.transition = deck.transition || 'fade'; deck.autoplay = deck.autoplay || 0;
   const l = await sb.rpc('admin_list', { p_password: password }); guests = (l.data || []).filter(x => x.talent_status === 'yes');
-  $('gate').hidden = true; $('app').hidden = false; buildApp(); if (!g.data || migrated) markDirty();
+  $('gate').hidden = true; $('app').hidden = false; buildApp(); if (!g.data || migrated || guestTableAdded) markDirty();
   return null;
 }
 $('gateForm').addEventListener('submit', async e => { e.preventDefault(); $('gateBtn').disabled = true; $('gateMsg').textContent = ''; const err = await enter($('pw').value); $('gateBtn').disabled = false; if (err) $('gateMsg').textContent = err; });
@@ -1305,12 +1364,7 @@ if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if 
     const pageW=paper==='a4'?297:paper==='4r-portrait'?101.6:152.4;
     const pageH=paper==='a4'?210:paper==='4r-portrait'?152.4:101.6;
     const margin=paper==='a4'?10:4;
-    // Convert CSS px to millimetres (96 CSS px per inch). Keep the stage's
-    // original 1920x1080 layout and scale the whole stage, not its children.
-    const stageWmm=1920*25.4/96, stageHmm=1080*25.4/96;
-    const scale=Math.min((pageW-2*margin)/stageWmm,(pageH-2*margin)/stageHmm);
-    const leftMm=(pageW-stageWmm*scale)/2;
-    const topMm=(pageH-stageHmm*scale)/2;
+    const scale=Math.min((pageW-2*margin)*96/25.4/1920,(pageH-2*margin)*96/25.4/1080);
     const win=window.open('','_blank');
     if(!win){status.textContent='Allow pop-ups for this website, then try again.';return;}
     status.textContent='Preparing '+indices.length+' slide(s) for browser PDF printing…';
@@ -1337,17 +1391,15 @@ if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if 
       const html='<!doctype html><html><head><meta charset="utf-8">'+
         '<base href="'+location.href.replace(/"/g,'&quot;')+'">'+css+
         '<style>@page{size:'+pageW+'mm '+pageH+'mm;margin:0}'+
-        'html,body{margin:0!important;padding:0!important;width:'+pageW+'mm!important;background:#fff!important;overflow:visible!important}'+
-        '*,*::before,*::after{box-sizing:border-box}'+
-        '.paper{display:block!important;position:relative!important;width:'+pageW+'mm!important;height:'+pageH+'mm!important;min-height:'+pageH+'mm!important;max-height:'+pageH+'mm!important;overflow:hidden!important;break-inside:avoid!important;page-break-inside:avoid!important;break-after:page!important;page-break-after:always!important;background:#fff!important;margin:0!important;padding:0!important}'+
-        '.paper:last-of-type{break-after:auto!important;page-break-after:auto!important}'+
-        '.paper>.stage{position:absolute!important;left:'+leftMm+'mm!important;top:'+topMm+'mm!important;'+
-        'transform:scale('+scale+')!important;transform-origin:top left!important;'+
-        'width:1920px!important;height:1080px!important;min-width:1920px!important;min-height:1080px!important;margin:0!important;overflow:hidden!important;display:block!important}'+
+        'html,body{margin:0!important;padding:0!important;background:white!important;overflow:visible!important}'+
+        '.paper{position:relative;width:'+pageW+'mm;height:'+pageH+'mm;overflow:hidden;break-after:page;page-break-after:always;background:#fff}'+
+        '.paper:last-child{break-after:auto;page-break-after:auto}'+
+        '.paper>.stage{position:absolute!important;left:50%!important;top:50%!important;'+
+        'transform:translate(-50%,-50%) scale('+scale+')!important;transform-origin:center center!important;'+
+        'width:1920px!important;height:1080px!important}'+
         '.stage *{animation:none!important;transition:none!important}'+
-        '@media screen{body{background:#ddd!important}.paper{margin:16px auto!important;box-shadow:0 2px 15px #888}}'+
-        '@media print{html,body{width:'+pageW+'mm!important;height:auto!important}'+
-        '.paper{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}'+
+        '@media screen{body{background:#ddd!important}.paper{margin:16px auto;box-shadow:0 2px 15px #888}}'+
+        '@media print{.paper{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'+
         '</style></head><body>'+pages.map(p=>'<section class="paper">'+p+'</section>').join('')+
         '<script>window.addEventListener("load",async()=>{await document.fonts.ready;'+
         'await Promise.all([...document.images].map(i=>i.decode().catch(()=>{})));'+
