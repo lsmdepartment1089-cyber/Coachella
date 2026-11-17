@@ -1272,11 +1272,11 @@ if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if 
     <div id="pdfRangeFields" hidden style="display:flex;gap:12px;margin-top:12px"><label>From <input id="pdfFrom" type="number" min="1" value="1" style="width:100%;padding:8px"></label><label>To <input id="pdfTo" type="number" min="1" value="1" style="width:100%;padding:8px"></label></div>
     <label style="display:block;font-weight:bold;margin:12px 0 5px" for="pdfPaper">Paper size</label>
     <select id="pdfPaper" style="width:100%;padding:11px;border:2px solid #27251f;border-radius:8px">
-      <option value="a4">A4 landscape — full bleed (297 × 210 mm)</option>
+      <option value="a4">A4 landscape — complete design (borderless)</option><option value="widescreen">Exact 16:9 slide — no borders</option>
       <option value="4r-landscape">4R / 4×6 landscape (6 × 4 in)</option>
       <option value="4r-portrait">4R / 4×6 portrait (4 × 6 in)</option>
     </select>
-    <p id="pdfPaperHint" style="font-size:13px">A4: full-page, borderless artwork with no white margins. Your complete 16:9 slide remains visible; extra space is filled with matching background artwork.</p>
+    <p id="pdfPaperHint" style="font-size:13px">A4 uses the real Coachella background and all slide elements, reflowed onto a full-page A4 canvas with no white margins.</p>
     <p id="pdfExportStatus" role="status" style="min-height:1.4em;font-weight:bold;color:#a62219"></p>
     <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn s y" id="pdfDownloadBtn" type="button">Download PDF</button><button class="btn s w" id="pdfNativeBtn" type="button">Print / Save as PDF (recommended)</button><button class="btn s w" id="pdfCloseBtn" type="button">Close</button></div>
   </div>
@@ -1340,27 +1340,32 @@ if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if 
  });
  $pdf('pdfCloseBtn').addEventListener('click', () => { modal.hidden=true; modal.style.display='none'; });
  $pdf('pdfScope').addEventListener('change', () => { $pdf('pdfRangeFields').hidden = $pdf('pdfScope').value !== 'range'; });
- $pdf('pdfPaper').addEventListener('change', () => { $pdf('pdfPaperHint').textContent = $pdf('pdfPaper').value==='4r-portrait' ? 'Portrait 4R has top/bottom margins to preserve the original 16:9 slide.' : 'A4: full-page, borderless artwork with no white margins. Your complete 16:9 slide remains visible; extra space is filled with matching background artwork.'; });
- // Create a true A4 full-bleed image without losing any of the 16:9 layout.
- // The slide stays undistorted; A4's extra height is filled using narrow strips
- // from the actual top and bottom artwork, never plain white letterboxing.
- function fullBleedA4(slideCanvas) {
-   const out=document.createElement('canvas');
-   out.width=slideCanvas.width;
-   out.height=Math.round(out.width*210/297);
-   const ctx=out.getContext('2d',{alpha:false});
-   if(out.height<=slideCanvas.height){
-     ctx.drawImage(slideCanvas,0,0,out.width,out.height);
-     return out;
+ $pdf('pdfPaper').addEventListener('change', () => { const p=$pdf('pdfPaper').value; $pdf('pdfPaperHint').textContent = p==='widescreen'?'Exact 16:9 PDF: the entire slide prints in its original proportions, including all backgrounds, mountains and Ferris wheel.':p==='a4'?'A4 adapts the actual Coachella background and all slide objects to the taller paper with no white margins.':p==='4r-portrait'?'Portrait 4R has top/bottom margins to preserve the original 16:9 slide.':'4R landscape keeps the slide proportions.'; });
+ // Fit the original 16:9 slide to real A4 without trimming its content.
+ // Unlike canvas edge-strip cloning, render the ACTUAL original background
+ // on the taller page, including the original desert hills and Ferris wheel.
+ // Move all existing editable slide objects down together without scaling or
+ // distorting their typography, artwork, or positions relative to one another.
+ function prepareFullArtA4(root, slideData) {
+   const pageHeight=Math.round(1920*210/297); // 1358 CSS px at 1920 px width
+   const extra=pageHeight-1080;
+   root.style.height=pageHeight+'px';
+   root.style.width='1920px';
+   const elements=root.querySelector('.cwrap');
+   if(elements) elements.style.transform='translateY('+Math.round(extra/2)+'px)';
+   // For guest seating slides, preserve the decorative footer's relationship
+   // to the bottom landscape and Ferris wheel, as seen in the LED slide.
+   if(slideData?.type==='guestTable') {
+     const nodes=root.querySelectorAll('.cwrap .els > .el');
+     slideData.els.forEach((e,i)=>{
+       const isFooter=(e.t==='text' && /PLEASE PROCEED TO YOUR ASSIGNED TABLE/i.test(e.text||'')) ||
+         (e.t==='shape' && e.y>950 && e.y<1030 && e.h<=10);
+       if(isFooter && nodes[i]) nodes[i].style.top=(e.y+Math.round(extra/2))+'px';
+     });
    }
-   const padTop=Math.floor((out.height-slideCanvas.height)/2);
-   const padBottom=out.height-slideCanvas.height-padTop;
-   const strip=Math.max(2,Math.round(slideCanvas.height*.012));
-   ctx.drawImage(slideCanvas,0,0,slideCanvas.width,strip,0,0,out.width,padTop);
-   ctx.drawImage(slideCanvas,0,slideCanvas.height-strip,slideCanvas.width,strip,
-       0,padTop+slideCanvas.height,out.width,padBottom);
-   ctx.drawImage(slideCanvas,0,padTop);
-   return out;
+   // Background itself expands to the full page; the hill SVG remains anchored
+   // to the bottom, so its real silhouette and Ferris wheel are included.
+   return pageHeight;
  }
  async function settleImages(root) {
    await Promise.all([...root.querySelectorAll('img')].map(img => {
@@ -1382,13 +1387,12 @@ if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if 
       indices=Array.from({length:to-from+1},(_,i)=>from-1+i);
     }
     const paper=$pdf('pdfPaper').value;
-    const pageW=paper==='a4'?297:paper==='4r-portrait'?101.6:152.4;
-    const pageH=paper==='a4'?210:paper==='4r-portrait'?152.4:101.6;
-    const isA4=paper==='a4';
-    const margin=isA4?0:4;
-    // For A4, occupy the entire 297 mm page width and extend the thematic
-    // background behind the 16:9 slide, rather than cropping any slide elements.
-    const scale=isA4?(pageW*96/25.4/1920):
+    const isA4=paper==='a4', isExact=paper==='widescreen';
+    const pageW=isA4||isExact?297:paper==='4r-portrait'?101.6:152.4;
+    const pageH=isA4?210:isExact?167.0625:paper==='4r-portrait'?152.4:101.6;
+    const margin=isA4||isExact?0:4;
+    const stageHeight=isA4?Math.round(1920*210/297):1080;
+    const scale=(isA4||isExact)?(pageW*96/25.4/1920):
       Math.min((pageW-2*margin)*96/25.4/1920,(pageH-2*margin)*96/25.4/1080);
     const win=window.open('','_blank');
     if(!win){status.textContent='Allow pop-ups for this website, then try again.';return;}
@@ -1407,10 +1411,8 @@ if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if 
           stage.setBg(bgOf(s));stage.show(s,{animate:false});
           root.querySelectorAll('*').forEach(n=>{n.style.animation='none';n.style.transition='none'});
           await settleImages(root);
-          // Print-only extra backing recreates the original slide background
-          // across the taller A4 sheet; the foreground slide is never cropped.
-          const backing=root.querySelector('.bgwrap');
-          pages.push({slide:root.outerHTML,background:backing?backing.outerHTML:''});
+          if(isA4) prepareFullArtA4(root,s);
+          pages.push(root.outerHTML);
         }
       }finally{holder.remove()}
       // Preserve the site's slide CSS, fonts and image paths in the print document.
@@ -1422,17 +1424,13 @@ if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if 
         'html,body{margin:0!important;padding:0!important;background:#27251f!important;overflow:visible!important}'+
         '.paper{position:relative;width:'+pageW+'mm;height:'+pageH+'mm;overflow:hidden;break-after:page;page-break-after:always;background:#27251f}'+
         '.paper:last-child{break-after:auto;page-break-after:auto}'+
-        '.paper>.print-bleed{position:absolute;inset:0;z-index:0;overflow:hidden}'+
-        '.print-bleed>.bgwrap{position:absolute;inset:0;width:100%;height:100%}'+
-        '.print-bleed .bg{position:absolute;inset:0;opacity:1!important;transition:none!important}'+
         '.paper>.stage{position:absolute!important;left:50%!important;top:50%!important;z-index:1!important;'+
         'transform:translate(-50%,-50%) scale('+scale+')!important;transform-origin:center center!important;'+
-        'width:1920px!important;height:1080px!important;overflow:hidden!important}'+
-        '.stage *,.print-bleed *{animation:none!important;transition:none!important}'+
+        'width:1920px!important;height:'+stageHeight+'px!important;overflow:hidden!important}'+
+        '.stage *{animation:none!important;transition:none!important}'+
         '@media screen{body{background:#ddd!important}.paper{margin:16px auto;box-shadow:0 2px 15px #888}}'+
         '@media print{.paper{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'+
-        '</style></head><body>'+pages.map(p=>'<section class="paper">'+
-          (isA4?'<div class="print-bleed">'+p.background+'</div>':'')+p.slide+'</section>').join('')+
+        '</style></head><body>'+pages.map(p=>'<section class="paper">'+p+'</section>').join('')+
         '<script>window.addEventListener("load",async()=>{await document.fonts.ready;'+
         'await Promise.all([...document.images].map(i=>i.decode().catch(()=>{})));'+
         'setTimeout(()=>window.print(),400)});<\\/script>'.replace('<\\/script>','<\/script>')+
@@ -1452,9 +1450,9 @@ if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if 
    try {
      await document.fonts.ready;
      const paper=$pdf('pdfPaper').value;
-     const isA4=paper==='a4', isPortrait=paper==='4r-portrait';
-     const pageW=isA4?297:(isPortrait?101.6:152.4);
-     const pageH=isA4?210:(isPortrait?152.4:101.6);
+     const isA4=paper==='a4', isExact=paper==='widescreen', isPortrait=paper==='4r-portrait';
+     const pageW=(isA4||isExact)?297:(isPortrait?101.6:152.4);
+     const pageH=isA4?210:(isExact?167.0625:(isPortrait?152.4:101.6));
      const pdf=new window.jspdf.jsPDF({orientation:isPortrait?'portrait':'landscape',unit:'mm',format:[pageW,pageH],compress:true});
      holder=document.createElement('div');holder.style.cssText='position:fixed;left:-10000px;top:0;width:1920px;height:1080px;z-index:-1;pointer-events:none';document.body.appendChild(holder);
      for(let j=0;j<indices.length;j++){
@@ -1463,16 +1461,15 @@ if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if 
        const stage=makeStage(root,true);stage.setBg(bgOf(slideData));stage.show(slideData,{animate:false});
        // Keep motion effects from altering the still image.
        root.querySelectorAll('*').forEach(n=>{n.style.animation='none';n.style.transition='none';});
+       const stageHeight=isA4?prepareFullArtA4(root,slideData):1080;
        await settleImages(root);
        await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-       const canvas=await html2canvas(root,{backgroundColor:'#27251f',scale:1.25,useCORS:true,allowTaint:false,logging:false,windowWidth:1920,windowHeight:1080});
+       const canvas=await html2canvas(root,{backgroundColor:'#27251f',scale:1.25,useCORS:true,allowTaint:false,logging:false,windowWidth:1920,windowHeight:stageHeight,width:1920,height:stageHeight});
        if(j) pdf.addPage([pageW,pageH],isPortrait?'portrait':'landscape');
-       if(isA4){
-         // True page-edge-to-page-edge A4; preserve every slide object and
-         // extend the illustrated edge artwork into the additional A4 height.
-         const bleed=fullBleedA4(canvas);
-         pdf.addImage(bleed.toDataURL('image/jpeg',.97),'JPEG',0,0,pageW,pageH);
-         bleed.width=0;bleed.height=0;
+       if(isA4||isExact){
+         // The original full Coachella backdrop and wheel are real rendered DOM
+         // graphics, not stretched JPEG strips. No blank bars and no cropping.
+         pdf.addImage(canvas.toDataURL('image/jpeg',.97),'JPEG',0,0,pageW,pageH);
        }else{
          // Retain proportional fit for 4R print sizes.
          const margin=4;
@@ -1482,9 +1479,9 @@ if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if 
        }
      }
      const name=scope==='current'?'slide-'+(sel+1):scope==='all'?'all-slides':'selected-range';
-     const sizeLabel=isA4?'A4-landscape':(isPortrait?'4R-portrait':'4R-landscape');
+     const sizeLabel=isA4?'A4-landscape':isExact?'16-9-exact':(isPortrait?'4R-portrait':'4R-landscape');
      pdf.save('Coachella-'+name+'-'+sizeLabel+'.pdf');
-     status.textContent='PDF downloaded! '+(isA4?'A4 landscape is borderless within the PDF. For physical edge-to-edge printing, enable Borderless in your printer settings.':'Print on 4R / 4×6 '+(isPortrait?'portrait':'landscape')+' paper.');
+     status.textContent='PDF downloaded! '+(isA4?'A4 landscape includes the complete adapted Coachella artwork. For physical edge-to-edge printing, enable Borderless in your printer settings.':isExact?'Original 16:9 artwork is preserved exactly with no white borders.':'Print on 4R / 4×6 '+(isPortrait?'portrait':'landscape')+' paper.');
    } catch(err) { console.error(err); status.textContent='PDF export failed: '+(err?.message||String(err)); }
    finally { holder?.remove();btn.disabled=false; }
  });
