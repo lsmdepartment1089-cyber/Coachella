@@ -295,6 +295,25 @@ body.idle-out{cursor:none}
 .pvth em{position:absolute;left:3px;top:2px;z-index:2;background:var(--dark);color:var(--yellow);font:800 .68rem var(--body);font-style:normal;border-radius:5px;padding:0 5px}
 @media(max-width:900px){.pvmain{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.stage *{animation-duration:.01s!important;animation-iteration-count:1!important}}
+
+/* Electric Festival mode is deliberately scoped to the individual slide. */
+#electricBtn[aria-pressed="true"]{background:linear-gradient(110deg,#FF1493,#FF6B00);color:#fff;border-color:#10102B;box-shadow:0 0 0 2px #00DFFF,2px 2px 0 #10102B}
+.th.electric-thumb::after{content:"⚡";position:absolute;top:3px;right:3px;z-index:3;background:#FFF000;color:#10102B;border-radius:5px;padding:0 5px;font-size:13px;pointer-events:none}
+.stage.electric-festival{background:#10102B}
+.stage.electric-festival .bg.sunset{background:linear-gradient(135deg,#FF1493 0%,#FF6B00 25%,#FFF000 49%,#39FF14 74%,#00DFFF 100%)}
+.stage.electric-festival .bg.day{background:linear-gradient(140deg,#00DFFF,#39FF14 55%,#FFF000)}
+.stage.electric-festival .bg.night{background:linear-gradient(150deg,#10102B,#35105E 45%,#FF1493)}
+.stage.electric-festival .bg.rays{background:radial-gradient(ellipse at center,#FF6B00,#FF1493 55%,#5E0A6A)}
+.stage.electric-festival .bg.arches{background:linear-gradient(135deg,#00DFFF,#FF1493 50%,#FF6B00)}
+.stage.electric-festival .bg.arches::before{filter:hue-rotate(120deg)}
+.stage.electric-festival .bg.party{background:linear-gradient(160deg,#5E0A6A,#FF1493 45%,#FF6B00)}
+.stage.electric-festival .bg.stage{background:radial-gradient(ellipse at 50% 120%,#5E0A6A 0%,#1c0f30 58%,#09071c 100%)}
+.stage.electric-festival .raysp{background:repeating-conic-gradient(rgba(0,223,255,.26) 0 6deg,transparent 6deg 12deg)}
+.stage.electric-festival .bokeh i{background:radial-gradient(circle,rgba(255,240,0,.9),rgba(255,20,147,0) 70%)}
+.stage.electric-festival .hl2{filter:hue-rotate(135deg) saturate(1.7)}
+.stage.electric-festival .night .hl2{filter:hue-rotate(135deg) saturate(1.7) brightness(.75)}
+.stage.electric-festival .cdb{background:#10102B;border-color:#FFF000}
+.stage.electric-festival .cdb b,.stage.electric-festival .cdover{color:#FFF000}
 </style>
 </head>
 <body>
@@ -330,7 +349,7 @@ body.idle-out{cursor:none}
     <div class="rail" id="rail"></div>
     <div class="mcol">
       <div class="tbar" id="tbar">
-        <div class="grp"><button class="btn s w" id="undoB" type="button" title="Undo (Ctrl+Z)">Undo</button><button class="btn s w" id="redoB" type="button" title="Redo (Ctrl+Y)">Redo</button><button class="btn s d" id="playB" type="button" title="Play the animations of this slide">Play</button></div>
+        <div class="grp"><button class="btn s w" id="undoB" type="button" title="Undo (Ctrl+Z)">Undo</button><button class="btn s w" id="redoB" type="button" title="Redo (Ctrl+Y)">Redo</button><button class="btn s d" id="playB" type="button" title="Play the animations of this slide">Play</button><button class="btn s w" id="electricBtn" type="button" aria-pressed="false" title="Change only this slide to Electric Festival">⚡ Electric: OFF</button></div>
         <div class="grp">
           <button class="btn s y" id="addText" type="button">+ Text</button>
           <button class="btn s y" id="addImg" type="button">+ Image</button>
@@ -443,6 +462,21 @@ const TRANS = { fade: 'Fade', slide: 'Slide from the right', slideup: 'Slide up'
 const FONTS = ['Londrina Solid', 'Nunito Sans', 'Cormorant Garamond', 'Anton', 'Bebas Neue', 'Oswald', 'Poppins', 'Playfair Display', 'DM Serif Display', 'Fredoka', 'Rubik', 'Bangers', 'Lobster', 'Pacifico', 'Permanent Marker', 'Caveat'];
 const SHADOWS = { none: 'none', soft: '0 4px 18px rgba(0,0,0,.45)', hard: '0 .07em 0 #27251F,0 .12em .35em rgba(0,0,0,.35)', glow: '0 0 .22em rgba(255,199,44,.95),0 .05em 0 #27251F' };
 const BOXSH = { none: 'none', soft: '0 10px 30px rgba(0,0,0,.4)', hard: '10px 10px 0 #27251F' };
+
+const ELECTRIC_COLORS={'#DA291C':'#FF1493','#FFC72C':'#FFF000','#FF8A1F':'#FF6B00','#27251F':'#10102B','#FFF4D6':'#E9FAFF','#A8301F':'#FF6B00','#6B1F16':'#5E0A6A'};
+const electricOn=s=>!!(s&&s.festivalTheme==='electric');
+const electricColor=c=>typeof c==='string'?c.replace(/#[0-9a-fA-F]{6}/g,m=>ELECTRIC_COLORS[m.toUpperCase()]||m):c;
+function themedElement(e,i,enabled){
+  if(!enabled)return elNode(e,i);
+  const copy=Object.assign({},e);
+  ['color','fill','bc'].forEach(k=>{if(copy[k])copy[k]=electricColor(copy[k]);});
+  const node=elNode(copy,i);
+  if(e.t==='icon'||e.t==='timer'){
+    const n=node.querySelector('.in');
+    if(n)n.innerHTML=electricColor(n.innerHTML);
+  }
+  return node;
+}
 const SW = ['#FFFFFF', '#FFC72C', '#DA291C', '#FF8A1F', '#27251F', '#FFF4D6'];
 const ENTR = { rise: 'Rise up', fade: 'Fade in', zoom: 'Pop in', left: 'From left', right: 'From right', drop: 'Drop down', flip: 'Flip', spin: 'Spin in', blur: 'Blur in', bounce: 'Bounce in', letters: 'Letters rise (text)', typewriter: 'Typewriter (text)', none: 'None' };
 const LOOPS = { none: 'None', float: 'Float', pulse: 'Pulse', heartbeat: 'Heartbeat', wiggle: 'Wiggle', shake: 'Shake', swing: 'Swing', tada: 'Tada', bounce: 'Bounce', jelly: 'Jelly', spin: 'Spin around', glow: 'Golden glow', rainbow: 'Rainbow colors', flash: 'Flash', neon: 'Neon flicker', wave: 'Wave (text letters)' };
@@ -711,16 +745,20 @@ function makeStage(root, still) {
   let kind = null;
   return {
     root, cw,
-    setBg(k) {
-      if (k === kind) return; kind = k;
-      const t = document.createElement('div'); t.innerHTML = bgHtml(k); const nb = t.firstElementChild; const olds = [...bgw.children]; bgw.appendChild(nb);
+    setBg(k, slideData) {
+      const isOn=electricOn(slideData);
+      root.classList.toggle('electric-festival',isOn);
+      const key=k+'|'+(isOn?'electric':'classic');
+      if(key===kind)return; kind=key;
+      const t=document.createElement('div');t.innerHTML=bgHtml(k); const nb = t.firstElementChild; const olds = [...bgw.children]; bgw.appendChild(nb);
       if (still) { olds.forEach(o => o.remove()); return; }
       requestAnimationFrame(() => { nb.classList.add('on'); setTimeout(() => olds.forEach(o => o.remove()), 1300); });
     },
     show(slide, opt) {
       opt = opt || {};
+      root.classList.toggle('electric-festival',electricOn(slide));
       const layer = document.createElement('div'); layer.className = 'els t-' + (opt.transition || 'fade') + (opt.animate ? ' anim' : '');
-      slide.els.forEach((e, i) => { const n = elNode(e, i); if (opt.step != null && (e.step || 0) > opt.step) n.classList.add('stephid'); layer.appendChild(n); });
+      slide.els.forEach((e, i) => { const n = themedElement(e, i, electricOn(slide)); if (opt.step != null && (e.step || 0) > opt.step) n.classList.add('stephid'); layer.appendChild(n); });
       const olds = [...cw.children]; cw.appendChild(layer);
       if (opt.animate && olds.length) olds.forEach(o => { o.classList.remove('anim'); o.classList.add('leave'); o.style.pointerEvents = 'none'; setTimeout(() => o.remove(), 700); }); else olds.forEach(o => o.remove());
       tickCd();
@@ -748,6 +786,22 @@ let pw = null, deck = null, sel = 0, selId = null, editing = false, guests = [],
 let mainScale = .5, hist = [], hpos = -1, histTimer = null, clip = null, ovl = null, selBox = null, gv = null, gh = null;
 const slide = () => deck.slides[sel];
 const curEl = () => slide().els.find(e => e.id === selId) || null;
+
+function syncElectricButton(){
+  const b=$('electricBtn');if(!b||!deck)return;
+  const on=electricOn(slide());b.setAttribute('aria-pressed',String(on));
+  b.textContent=on?'⚡ Electric: ON':'⚡ Electric: OFF';
+  b.title=on?'Restore the original theme on this slide':'Use Slideshow 2 Electric Festival colors on this slide only';
+}
+$('electricBtn').addEventListener('click',()=>{
+  if(!deck)return;
+  finishEdit(true);flushHist();
+  const current=slide();
+  if(electricOn(current))delete current.festivalTheme;
+  else current.festivalTheme='electric';
+  renderMain(false);refreshThumb(sel);syncElectricButton();commit();
+});
+
 
 async function enter(password) {
   const g = await sb.rpc('admin_get_deck', { p_password: password });
@@ -804,8 +858,8 @@ function renderThumbs() {
   const rail = $('rail'); rail.textContent = ''; thumbs = [];
   deck.slides.forEach((s, i) => {
     const box = h('div', { class: 'box' }), root = document.createElement('div'); box.appendChild(root);
-    const st = makeStage(root, true); st.setBg(bgOf(s)); st.show(s);
-    const th = h('div', { class: 'th' + (i === sel ? ' sel' : ''), draggable: 'true', tabindex: '0', role: 'button', 'aria-label': 'Slide ' + (i + 1) }, h('b', {}, String(i + 1)), box);
+    const st = makeStage(root, true); st.setBg(bgOf(s), s); st.show(s);
+    const th = h('div', { class: 'th' + (i === sel ? ' sel' : '') + (electricOn(s) ? ' electric-thumb' : ''), draggable: 'true', tabindex: '0', role: 'button', 'aria-label': 'Slide ' + (i + 1) }, h('b', {}, String(i + 1)), box);
     th.addEventListener('click', () => selectSlide(i, true));
     th.addEventListener('keydown', e => { if (e.key === 'Enter') selectSlide(i, true); });
     th.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', String(i)); th.classList.add('drag'); });
@@ -816,13 +870,13 @@ function renderThumbs() {
     rail.appendChild(th); thumbs.push({ th, st });
   });
 }
-function refreshThumb(i) { const t = thumbs[i], s = deck.slides[i]; if (!t) return; t.st.setBg(bgOf(s)); t.st.show(s); }
+function refreshThumb(i) { const t = thumbs[i], s = deck.slides[i]; if (!t) return; t.th.classList.toggle('electric-thumb',electricOn(s)); t.st.setBg(bgOf(s), s); t.st.show(s); }
 function selectSlide(i, animate) {
   flushHist(); finishEdit(true);
   sel = Math.max(0, Math.min(i, deck.slides.length - 1)); selId = null; thumbs.forEach((t, k) => t.th.classList.toggle('sel', k === sel));
-  renderMain(animate); fitMain(); buildBar(); buildProps(); if (thumbs[sel]) thumbs[sel].th.scrollIntoView({ block: 'nearest' });
+  syncElectricButton(); renderMain(animate); fitMain(); buildBar(); buildProps(); if (thumbs[sel]) thumbs[sel].th.scrollIntoView({ block: 'nearest' });
 }
-function renderMain(animate) { const s = slide(); mainStage.setBg(bgOf(s)); mainStage.show(s, { animate: !!animate, transition: s.tr || deck.transition }); placeOverlay(); }
+function renderMain(animate) { const s = slide(); mainStage.setBg(bgOf(s), s); mainStage.show(s, { animate: !!animate, transition: s.tr || deck.transition }); placeOverlay(); }
 const nodeOf = id => [...mainStage.root.querySelectorAll('.el')].reverse().find(n => n.dataset.id === id);
 
 /* ---------- selection overlay ---------- */
@@ -906,7 +960,7 @@ $('addArch').addEventListener('click', () => addEl(arch({ x: 865, y: 420 })));
 $('addCd').addEventListener('click', () => addEl(cdEl({ x: 246, y: 390, w: 1428 })));
 $('addTmr').addEventListener('click', () => addEl(tmr({ x: 760, y: 340, w: 400, dur: 30 })));
 $('addIcon').addEventListener('change', e => { const k = e.target.value; e.target.value = ''; if (k) addEl(icon(k, { x: 860, y: 440, w: 200 })); });
-$('playB').addEventListener('click', () => { finishEdit(true); const s = slide(); mainStage.setBg(bgOf(s)); mainStage.show(s, { animate: true, transition: s.tr || deck.transition }); placeOverlay(); });
+$('playB').addEventListener('click', () => { finishEdit(true); const s = slide(); mainStage.setBg(bgOf(s), s); mainStage.show(s, { animate: true, transition: s.tr || deck.transition }); placeOverlay(); });
 $('addShape').addEventListener('change', e => { const k = e.target.value; e.target.value = ''; if (!k) return; addEl(shp({ x: 700, y: 380, w: 520, h: k === 'circle' ? 520 : 300, shape: k, fill: '#FFC72C', bw: 6, bc: '#27251F', sh: 'hard' })); });
 async function uploadImage(file) {
   $('saveSt').textContent = 'Uploading picture...';
@@ -1077,7 +1131,7 @@ function makePlayer(stage, o) {
   P.applyTm = t => { P.tm = Object.assign({}, P.tm, t); sync(); };
   function auto() { if (o.mirror) return; const t = timerOf(sl()); if (t && t.auto && (t.step || 0) === P.step) setTimeout(() => { if (P.tm.has && !P.tm.run && !P.tm.done && P.tm.rem === P.tm.dur) P.start(); }, 900); }
   function arm() { clearTimeout(P.autoT); if (o.mirror || !(deck.autoplay > 0)) return; P.autoT = setTimeout(() => { if (!P.next()) P.go(0, 0, true); }, deck.autoplay * 1000); }
-  P.go = (i, step, animate) => { P.i = clampI(i, deck.slides.length); const s = sl(); P.step = Math.min(step || 0, stepsOf(s)); stage.setBg(bgOf(s)); stage.show(s, { animate: animate !== false, transition: s.tr || deck.transition, step: P.step }); load(); auto(); arm(); if (o.onChange) o.onChange(P.i, P.step); };
+  P.go = (i, step, animate) => { P.i = clampI(i, deck.slides.length); const s = sl(); P.step = Math.min(step || 0, stepsOf(s)); stage.setBg(bgOf(s), s); stage.show(s, { animate: animate !== false, transition: s.tr || deck.transition, step: P.step }); load(); auto(); arm(); if (o.onChange) o.onChange(P.i, P.step); };
   P.setStepTo = (st, animate) => { P.step = st; stage.setStep(st, animate !== false); auto(); if (o.onChange) o.onChange(P.i, P.step); };
   P.next = () => { if (P.step < stepsOf(sl())) { P.setStepTo(P.step + 1, true); arm(); return true; } if (P.i < deck.slides.length - 1) { P.go(P.i + 1, 0, true); return true; } return false; };
   P.prev = () => { if (P.step > 0) { P.setStepTo(P.step - 1, false); arm(); return true; } if (P.i > 0) { const j = P.i - 1; P.go(j, stepsOf(deck.slides[j]), true); return true; } return false; };
@@ -1196,13 +1250,13 @@ function buildPview() {
   const mkStage = (box, still) => { box.textContent = ''; const r = document.createElement('div'); box.appendChild(r); return makeStage(r, still); };
   SH.curBox = $('pvCurBox'); SH.nxtBox = $('pvNextBox'); SH.cur = mkStage(SH.curBox, false); SH.nxt = mkStage(SH.nxtBox, true); SH.mir = makePlayer(SH.cur, { mirror: true });
   const strip = $('pvStrip'); strip.textContent = ''; SH.ths = [];
-  deck.slides.forEach((sl, i) => { const box = h('div', { class: 'box' }), r = document.createElement('div'); box.appendChild(r); const st = makeStage(r, true); st.setBg(bgOf(sl)); st.show(sl);
+  deck.slides.forEach((sl, i) => { const box = h('div', { class: 'box' }), r = document.createElement('div'); box.appendChild(r); const st = makeStage(r, true); st.setBg(bgOf(sl), sl); st.show(sl);
     const th = h('div', { class: 'pvth', role: 'button', tabindex: '0', 'aria-label': 'Go to slide ' + (i + 1) }, h('em', {}, String(i + 1)), box); th.addEventListener('click', () => cmd('goto', { i })); th.addEventListener('keydown', e => { if (e.key === 'Enter') cmd('goto', { i }); }); strip.appendChild(th); SH.ths.push(th); });
 }
 function uiAt(i, step) {
   if (!SH) return; i = clampI(i, deck.slides.length); const sl = deck.slides[i], nx = deck.slides[i + 1], tot = stepsOf(sl);
   if (SH.i !== i || !SH.shown) { SH.shown = true; SH.mir.go(i, step, true); } else SH.mir.setStepTo(step, true);
-  SH.i = i; SH.step = step; const nn = nx || sl; SH.nxt.setBg(bgOf(nn)); SH.nxt.show(nn); SH.nxtBox.classList.toggle('end', !nx);
+  SH.i = i; SH.step = step; const nn = nx || sl; SH.nxt.setBg(bgOf(nn), nn); SH.nxt.show(nn); SH.nxtBox.classList.toggle('end', !nx);
   $('pvNotes').textContent = sl.notes || 'No notes for this slide.'; $('pvCount').textContent = (i + 1) + ' / ' + deck.slides.length; $('pvStep').textContent = tot ? 'Click ' + step + ' of ' + tot : '';
   $('pvTmBox').hidden = !timerOf(sl); SH.ths.forEach((t, k) => t.classList.toggle('on', k === i)); SH.ths[i].scrollIntoView({ block: 'nearest', inline: 'center' }); fitBoxes();
 }
@@ -1408,7 +1462,7 @@ if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if 
           holder.replaceChildren();
           const root=document.createElement('div');holder.appendChild(root);
           const stage=makeStage(root,true);const s=deck.slides[i];
-          stage.setBg(bgOf(s));stage.show(s,{animate:false});
+          stage.setBg(bgOf(s), s);stage.show(s,{animate:false});
           root.querySelectorAll('*').forEach(n=>{n.style.animation='none';n.style.transition='none'});
           await settleImages(root);
           if(isA4) prepareFullArtA4(root,s);
@@ -1458,7 +1512,7 @@ if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if 
      for(let j=0;j<indices.length;j++){
        const i=indices[j], slideData=deck.slides[i]; status.textContent='Rendering slide '+(i+1)+' ('+(j+1)+'/'+indices.length+')…';
        holder.replaceChildren();const root=document.createElement('div');holder.appendChild(root);
-       const stage=makeStage(root,true);stage.setBg(bgOf(slideData));stage.show(slideData,{animate:false});
+       const stage=makeStage(root,true);stage.setBg(bgOf(slideData), slideData);stage.show(slideData,{animate:false});
        // Keep motion effects from altering the still image.
        root.querySelectorAll('*').forEach(n=>{n.style.animation='none';n.style.transition='none';});
        const stageHeight=isA4?prepareFullArtA4(root,slideData):1080;
