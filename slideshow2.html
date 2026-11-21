@@ -306,6 +306,7 @@ body.idle-out{cursor:none}
  .festival-palette{display:flex;gap:4px;align-items:center;font:800 .72rem var(--body);color:white;letter-spacing:.08em}
  .festival-palette i{display:inline-block;width:17px;height:17px;border-radius:50%;border:1px solid #10102B}
  
+.bg.clean-electric{background:radial-gradient(ellipse at 88% 10%,rgba(255,20,147,.25),transparent 37%),radial-gradient(ellipse at 8% 92%,rgba(0,223,255,.14),transparent 45%),linear-gradient(135deg,#10102B 0%,#211335 60%,#2D1249 100%)}
 </style>
 </head>
 <body>
@@ -328,6 +329,7 @@ body.idle-out{cursor:none}
     <button class="btn s w" id="back" type="button">Back to organizer desk</button>
     <button class="btn s y" id="addBtn" type="button">+ Add slide</button>
     <button class="btn s w" id="perfBtn" type="button">Slides for performers</button>
+    <button class="btn s y" id="gameRulesBtn" type="button" title="Insert three simple game-rule slides after the selected slide">+ Game Rules (3 Slides)</button>
     <button class="btn s y" id="exportPdfBtn" type="button">Export / Print PDF</button>
     <button class="btn s w" id="setBtn" type="button">Settings</button><a class="btn s w" href="slides.html" style="text-decoration:none">Slideshow 1</a>
     <span class="sp"></span>
@@ -439,6 +441,7 @@ function hills() {
 }
 const clouds = '<div class="cl c1"></div><div class="cl c2"></div><div class="cl c3"></div>';
 function bgHtml(k) {
+  if(k==='clean-electric')return '<div class="bg clean-electric"></div>';
   if (k === 'party') { let c = ''; const cols = ['#FFF000', '#FF1493', '#FF6B00', '#F5FBFF', '#fff']; for (let i = 0; i < 70; i++) { const w = 10 + Math.random() * 16; c += `<i style="left:${Math.random() * 100}%;width:${w}px;height:${w * 1.5}px;background:${cols[i % 5]};animation-duration:${5 + Math.random() * 7}s;animation-delay:${-Math.random() * 12}s"></i>`; } return `<div class="bg party"><div class="cf">${c}</div></div>`; }
   if (k === 'stage') return '<div class="bg stage"><div class="sbeam" style="left:120px;animation-delay:-1s"></div><div class="sbeam" style="left:700px;animation-delay:-4s;background:linear-gradient(180deg,rgba(255,199,44,.5),rgba(255,199,44,0))"></div><div class="sbeam" style="left:1280px;animation-delay:-6s;background:linear-gradient(180deg,rgba(255,90,70,.5),rgba(255,90,70,0))"></div></div>';
   if (k === 'rays') { let b = ''; for (let i = 0; i < 16; i++) { const z = 60 + Math.random() * 200; b += `<i style="left:${Math.random() * 100}%;width:${z}px;height:${z}px;animation-delay:${-Math.random() * 14}s;animation-duration:${10 + Math.random() * 10}s"></i>`; } return `<div class="bg rays"><div class="raysp"></div><div class="bokeh">${b}</div></div>`; }
@@ -447,7 +450,7 @@ function bgHtml(k) {
   if (k === 'day') return `<div class="bg day"><div class="sunb"></div>${clouds}${hills()}</div>`;
   return `<div class="bg sunset"><div class="sunb"></div>${clouds}${hills()}</div>`;
 }
-const BG_NAMES = { sunset: 'Sunset arches', rays: 'Golden rays', arches: 'Arches pattern', night: 'Night festival', day: 'Blue sky', party: 'Confetti party', stage: 'Stage lights' };
+const BG_NAMES = { 'clean-electric':'Electric minimal (game rules)', sunset: 'Sunset arches', rays: 'Golden rays', arches: 'Arches pattern', night: 'Night festival', day: 'Blue sky', party: 'Confetti party', stage: 'Stage lights' };
 const TRANS = { fade: 'Fade', slide: 'Slide from the right', slideup: 'Slide up', zoom: 'Zoom', flip: 'Flip', spin: 'Twist', blur: 'Blur', wipe: 'Wipe', bounce: 'Bounce in', drop: 'Drop in' };
 
 /* ---------- elements ---------- */
@@ -618,6 +621,188 @@ Object.assign(LAYOUTS, {
   invite: { name: 'Invitation', info: 'Elegant card with participant name, event details and dress code', bg: 'night', d: { kicker: 'Special Invitation', name: 'Participant Name', lead: 'You are warmly invited to celebrate with us at the', event: 'Year End Party', theme: 'Coachella: Beyond the Arches', when: C.when || 'Date and time', where: C.where || 'Venue', dress: 'Festival Chic · Touches of Red & Gold' } },
   scoreboard: { name: 'Scoreboard', info: 'Four teams and their scores', bg: 'stage', d: { title: 'Scoreboard', t1: 'Team Red', s1: '0', t2: 'Team Yellow', s2: '0', t3: 'Team Orange', s3: '0', t4: 'Team Cream', s4: '0' } }
 });
+/* COACHELLA 2026 — game rules. Each piece is an editable slide element. */
+const GAME_RULE_LAYOUTS = ['gameCategoryRules','gameQuickfireRules','gameRonaldRulesA'];
+const GAME_RULE_COLORS = {navy:'#10102B', white:'#F5FBFF', cyan:'#00DFFF', pink:'#FF1493', yellow:'#FFF000', lime:'#39FF14', orange:'#FF6B00'};
+function grBase(label, title, sub, titleSize=118) {
+ const C=GAME_RULE_COLORS;
+ return [
+   shp({x:90,y:74,w:1740,h:8,fill:C.cyan,rad:4,op:.92,anim:'fade'}),
+   tx({x:130,y:108,w:1660,text:label,font:BODY,size:36,color:C.cyan,up:true,ls:10,sh:'none',anim:'fade'}),
+   disp({x:100,y:164,w:1720,text:title,size:titleSize,color:C.white,sh:'hard',anim:'zoom',lh:.95}),
+   tx({x:110,y:295,w:1700,text:sub,font:BODY,size:34,color:C.yellow,up:true,ls:5,sh:'none',anim:'fade'}),
+   shp({x:98,y:1008,w:1724,h:3,fill:C.cyan,op:.65,anim:'fade'}),
+   tx({x:110,y:1026,w:1700,text:'COACHELLA: BEYOND THE ARCHES   •   GAME GUIDE',font:BODY,size:22,color:C.white,ls:4,sh:'none',anim:'fade'})
+ ];
+}
+function grCard(no,title,description,x,stroke,fontsize=37) {
+ const C=GAME_RULE_COLORS;
+ const w=550, y=363, h=612;
+ return [
+   shp({x,y,w,h,shape:'round',fill:C.navy,bw:6,bc:stroke,rad:33,sh:'hard',anim:'rise'}),
+   shp({x:x+23,y:y+29,w:93,h:93,shape:'circle',fill:stroke,bw:4,bc:C.navy,sh:'none',anim:'zoom'}),
+   disp({x:x+27,y:y+55,w:86,text:String(no).padStart(2,'0'),size:56,color:C.navy,sh:'none',anim:'zoom'}),
+   disp({x:x+131,y:y+29,w:394,text:title,size:49,color:C.white,lh:1,sh:'none',al:'left',anim:'rise'}),
+   shp({x:x+30,y:y+185,w:488,h:4,fill:stroke,rad:2,anim:'fade'}),
+   tx({x:x+31,y:y+217,w:485,text:description,font:BODY,size:fontsize,color:C.white,al:'left',lh:1.29,sh:'none',anim:'fade'})
+ ];
+}
+function grCommandRow(y,word,description,tone){
+ const C=GAME_RULE_COLORS;
+ return [
+   shp({x:822,y,w:940,h:93,shape:'round',fill:'#23183D',bw:3,bc:tone,rad:21,sh:'none',anim:'left'}),
+   disp({x:845,y:y+29,w:250,text:word,size:38,color:tone,al:'left',sh:'none',anim:'rise'}),
+   tx({x:1108,y:y+18,w:636,text:description,size:30,font:BODY,color:C.white,al:'left',lh:1.10,sh:'none',anim:'fade'})
+ ];
+}
+Object.assign(TPL,{
+  gameCategoryRules: () => [
+    ...grBase('GAME 01   /   HOW TO PLAY','CATEGORY GAME','THREE RULES • THINK FAST • STAY IN THE GAME',130),
+    ...grCard(1,'LISTEN TO\nTHE CATEGORY','The host will announce a category, and players must think of an answer that fits.',89,'#00DFFF',41),
+    ...grCard(2,'ANSWER WITHIN\n5 SECONDS','Players take turns giving answers. No repeating answers, no wrong answers, and no delays!',685,'#FFF000',40),
+    ...grCard(3,'LAST PLAYER\nSTANDING WINS!','Players who fail to answer within 5 seconds, repeat an answer, or give an incorrect answer are eliminated. The last remaining player wins!',1281,'#FF1493',36)
+  ],
+  gameQuickfireRules: () => [
+    ...grBase('GAME 02   /   HOW TO PLAY','QUICKFIRE CHALLENGE','THREE RULES • FAST HANDS • SMART ANSWERS',123),
+    ...grCard(1,'LISTEN TO\nTHE QUESTION','The host will ask a question. Players must listen carefully and think fast!',89,'#39FF14',40),
+    ...grCard(2,'RAISE YOUR\nHAND!','The first player to raise their hand gets the chance to answer. No shouting answers!',685,'#00DFFF',40),
+    ...grCard(3,'ANSWER\nTO SCORE!','Each correct answer earns 1 point. Wrong answers give other players a chance to steal. The player with the highest score wins!',1281,'#FF6B00',38)
+  ],
+  gameRonaldRulesA: () => {
+    const C=GAME_RULE_COLORS;
+    return [
+      ...grBase('GAME 03   /   HOW TO PLAY   /   PART 1 OF 2','RONALD McDONALD BALLOON SHOWDOWN','TEAM SETUP & THE FOUR COMMANDS',69),
+      shp({x:100,y:365,w:656,h:604,shape:'round',fill:C.navy,bw:6,bc:C.yellow,rad:35,sh:'hard',anim:'rise'}),
+      shp({x:140,y:410,w:92,h:92,shape:'circle',fill:C.yellow,bw:4,bc:C.navy,anim:'zoom'}),
+      disp({x:145,y:434,w:80,text:'01',size:54,color:C.navy,sh:'none'}),
+      disp({x:255,y:414,w:470,text:'FORM THREE\nTEAMS',size:62,color:C.white,sh:'none',al:'left',lh:1.0}),
+      shp({x:135,y:561,w:574,h:4,fill:C.yellow,anim:'fade'}),
+      tx({x:145,y:603,w:555,text:'27 players will be divided into 3 teams with 9 members each. Every player will receive an assigned code number.',size:45,font:BODY,color:C.white,al:'left',lh:1.32,sh:'none'}),
+      shp({x:792,y:365,w:1026,h:604,shape:'round',fill:C.navy,bw:6,bc:C.pink,rad:35,sh:'hard',anim:'rise'}),
+      shp({x:822,y:401,w:79,h:79,shape:'circle',fill:C.pink,bw:4,bc:C.navy,anim:'zoom'}),
+      disp({x:824,y:423,w:76,text:'02',size:45,color:C.white,sh:'none'}),
+      disp({x:912,y:406,w:856,text:'FOLLOW THE COMMANDS',size:57,color:C.white,al:'left',sh:'none'}),
+      tx({x:827,y:491,w:935,text:"Listen carefully and perform the host's commands:",size:33,font:BODY,color:C.white,al:'left',sh:'none'}),
+      ...grCommandRow(554,'DRIBBLE','Dribble your balloon toward the chair.',C.cyan),
+      ...grCommandRow(652,'EXHIBITION','Rotate the balloon around your waist.',C.yellow),
+      ...grCommandRow(750,'OTSO-OTSO','Perform the Otso-Otso dance move.',C.lime),
+      ...grCommandRow(848,'SPAGHETTI','Perform the Spaghetti Pababa dance move.',C.orange)
+    ];
+  },
+  gameRonaldRulesB: () => {
+    const C=GAME_RULE_COLORS;
+    return [
+      ...grBase('GAME 03   /   HOW TO PLAY   /   PART 2 OF 2','RONALD McDONALD BALLOON SHOWDOWN','FINAL COMMAND • POP THE BALLOON • WIN THE MATCH',69),
+      shp({x:124,y:366,w:1670,h:601,shape:'round',fill:C.navy,bw:7,bc:C.orange,rad:45,sh:'hard',anim:'rise'}),
+      shp({x:161,y:397,w:94,h:94,shape:'circle',fill:C.orange,bw:4,bc:C.navy,anim:'zoom'}),
+      disp({x:164,y:424,w:86,text:'03',size:55,color:C.navy,sh:'none'}),
+      disp({x:280,y:398,w:1449,text:'SHOOT THE BALL!',size:108,color:C.yellow,sh:'hard',anim:'zoom'}),
+      shp({x:212,y:546,w:1496,h:5,fill:C.pink,rad:2}),
+      tx({x:253,y:580,w:1410,text:'When the host shouts "SHOOT THE BALL!", the player with the last code number called must race to pop their balloon using their buttocks!',size:53,color:C.white,font:BODY,al:'center',lh:1.24,sh:'none'}),
+      shp({x:285,y:780,w:1350,h:145,shape:'round',fill:C.pink,bw:5,bc:C.yellow,rad:30,sh:'hard',anim:'zoom'}),
+      tx({x:315,y:803,w:1290,text:'The first team to successfully pop their balloon earns 1 point. The first team to reach 3 POINTS WINS!',size:37,color:C.white,font:BODY,al:'center',lh:1.2,sh:'none'})
+    ];
+  }
+});
+Object.assign(LAYOUTS,{
+  gameCategoryRules:{name:'Game Rules 01 — Category Game',info:'Three complete rules; 5-second answers and elimination',bg:'night',d:{}},
+  gameQuickfireRules:{name:'Game Rules 02 — Quickfire Challenge',info:'Three complete rules; raise hands, scores and steals',bg:'rays',d:{}},
+  gameRonaldRulesA:{name:'Game Rules 03A — Balloon Showdown',info:'27 players, three teams, and four commands',bg:'stage',d:{}},
+  gameRonaldRulesB:{name:'Game Rules 03B — Shoot & Win',info:'Shoot the Ball command, 1 point, first to 3 wins',bg:'night',d:{}}
+});
+/* A cleaner game-rules edition: one generous information panel, consistent typography, three steps. */
+const LEGACY_GAME_RULE_TEMPLATES = {
+ gameCategoryRules:TPL.gameCategoryRules,
+ gameQuickfireRules:TPL.gameQuickfireRules,
+ gameRonaldRulesA:TPL.gameRonaldRulesA,
+ gameRonaldRulesB:TPL.gameRonaldRulesB
+};
+const CLEAN_ACCENT='#00DFFF',CLEAN_PAPER='#F5FBFF',CLEAN_DARK='#10102B';
+function cleanRulesHeader(number,title,size,kicker){
+ return [
+   tx({x:155,y:80,w:1610,text:kicker||('COACHELLA  /  GAME '+number+'  /  HOW TO PLAY'),font:BODY,size:30,color:CLEAN_ACCENT,ls:7,sh:'none',anim:'fade'}),
+   disp({x:120,y:150,w:1680,text:title,size,lh:1,color:CLEAN_PAPER,sh:'hard',anim:'fade'}),
+   shp({x:180,y:302,w:1560,h:651,shape:'round',fill:CLEAN_DARK,bw:4,bc:CLEAN_ACCENT,rad:30,op:.96,sh:'none',anim:'fade'}),
+   tx({x:255,y:976,w:1410,text:'BEYOND THE ARCHES  •  YEAR-END CELEBRATION',font:BODY,size:24,color:CLEAN_PAPER,ls:4,sh:'none',anim:'fade'})
+ ];
+}
+function cleanRule(num,heading,description,y,bodySize=37){
+ return [
+   shp({x:235,y:y+4,w:88,h:88,shape:'circle',fill:CLEAN_ACCENT,bw:0,sh:'none',anim:'fade'}),
+   disp({x:241,y:y+24,w:75,text:String(num),size:51,color:CLEAN_DARK,sh:'none',anim:'fade'}),
+   disp({x:356,y:y-4,w:1295,text:heading,size:50,color:CLEAN_PAPER,al:'left',sh:'none',anim:'fade'}),
+   tx({x:356,y:y+66,w:1287,text:description,size:bodySize,font:BODY,color:CLEAN_PAPER,al:'left',lh:1.23,sh:'none',anim:'fade'})
+ ];
+}
+Object.assign(TPL,{
+ gameCategoryRules:()=>[
+   ...cleanRulesHeader('01','CATEGORY GAME',136),
+   ...cleanRule(1,'LISTEN TO THE CATEGORY','The host announces a category. Give an answer that fits.',354,40),
+   shp({x:251,y:522,w:1417,h:2,fill:'#354762',anim:'fade'}),
+   ...cleanRule(2,'ANSWER IN 5 SECONDS','Take turns. No repeated answers, wrong answers, or delays.',540,39),
+   shp({x:251,y:708,w:1417,h:2,fill:'#354762',anim:'fade'}),
+   ...cleanRule(3,'LAST PLAYER STANDING WINS','Miss the 5-second limit, repeat, or answer incorrectly and you are out.\nThe final remaining player wins.',727,37)
+ ],
+ gameQuickfireRules:()=>[
+   ...cleanRulesHeader('02','QUICKFIRE CHALLENGE',128),
+   ...cleanRule(1,'LISTEN TO THE QUESTION','Listen carefully to the host and think quickly.',354,40),
+   shp({x:251,y:522,w:1417,h:2,fill:'#354762',anim:'fade'}),
+   ...cleanRule(2,'RAISE YOUR HAND','The first player to raise a hand answers. No shouting.',540,39),
+   shp({x:251,y:708,w:1417,h:2,fill:'#354762',anim:'fade'}),
+   ...cleanRule(3,'ANSWER TO SCORE','Correct answer = 1 point. Wrong answer = chance to steal.\nThe player with the highest score wins.',727,37)
+ ],
+ gameRonaldRulesA:()=>[
+   ...cleanRulesHeader('03','BALLOON SHOWDOWN',130,'RONALD McDONALD  /  GAME 03  /  HOW TO PLAY'),
+   ...cleanRule(1,'FORM THREE TEAMS','27 players, 3 teams of 9. Each player gets a code number.',331,38),
+   shp({x:251,y:490,w:1417,h:2,fill:'#354762',anim:'fade'}),
+   ...cleanRule(2,'FOLLOW THE COMMANDS','DRIBBLE — balloon to chair  •  EXHIBITION — around waist\nOTSO-OTSO — dance move  •  SPAGHETTI — Spaghetti Pababa',509,34),
+   shp({x:251,y:725,w:1417,h:2,fill:'#354762',anim:'fade'}),
+   ...cleanRule(3,'SHOOT THE BALL!','The last code number called pops their balloon using their buttocks.\nFirst team to pop gets 1 point. First to 3 points wins!',744,34)
+ ]
+});
+Object.assign(LAYOUTS,{
+ gameCategoryRules:{name:'Game 01 — Category Game (Simple)',info:'Three clear rules, one slide',bg:'clean-electric',d:{}},
+ gameQuickfireRules:{name:'Game 02 — Quickfire Challenge (Simple)',info:'Three clear rules, one slide',bg:'clean-electric',d:{}},
+ gameRonaldRulesA:{name:'Game 03 — Balloon Showdown (Simple)',info:'Teams, commands, shoot and score, one slide',bg:'clean-electric',d:{}}
+});
+function elementsMatchLegacy(current,baseline){
+ if(!current||!baseline||current.length!==baseline.length)return false;
+ const clean=a=>a.map(({id,...rest})=>rest);
+ return JSON.stringify(clean(current))===JSON.stringify(clean(baseline));
+}
+function migrateCleanGameRules(savedDeck){
+ if(savedDeck.gameRules2026MinimalV2)return false;
+ let changed=false;
+ for(const s of savedDeck.slides){
+   const old=LEGACY_GAME_RULE_TEMPLATES[s.type];
+   if(!old||!GAME_RULE_LAYOUTS.includes(s.type))continue;
+   if(elementsMatchLegacy(s.els,old())){
+     s.els=TPL[s.type]();s.bg='clean-electric';changed=true;
+   }
+ }
+ // Remove an untouched default Part 2 only; never delete a slide somebody edited.
+ const oldB=LEGACY_GAME_RULE_TEMPLATES.gameRonaldRulesB;
+ if(oldB){
+   for(let i=savedDeck.slides.length-1;i>=0;i--){
+     const s=savedDeck.slides[i];
+     if(s.type==='gameRonaldRulesB'&&elementsMatchLegacy(s.els,oldB())){
+       savedDeck.slides.splice(i,1);changed=true;
+     }
+   }
+ }
+ savedDeck.gameRules2026MinimalV2=true;
+ return true;
+}
+function createGameRulesSlides(){return GAME_RULE_LAYOUTS.map(t=>newSlide(t,LAYOUTS[t].bg));}
+/* One-time addition to the existing online deck; never removes or resets saved slides. */
+function ensureGameRulesSlides(savedDeck){
+ const changed=migrateCleanGameRules(savedDeck);
+ const missing=GAME_RULE_LAYOUTS.filter(t=>!savedDeck.slides.some(s=>s.type===t));
+ if(missing.length)savedDeck.slides.push(...missing.map(t=>newSlide(t,LAYOUTS[t].bg)));
+ savedDeck.gameRules2026V1=true;
+ return changed||!!missing.length;
+}
+
 function newSlide(type, bg, over) { return { id: uid(), type, bg: bg || LAYOUTS[type].bg || 'default', els: TPL[type](Object.assign({}, LAYOUTS[type].d, over || {})) }; }
 function defaultDeck() {
   const L = C.lineup || [];
@@ -708,9 +893,10 @@ async function enter(password) {
   pw = password; SS.set('fest_admin_pw', password);
   deck = g.data && g.data.slides && g.data.slides.length ? g.data : defaultDeck();
   const migrated = migrate(deck);
+  const gameRulesAdded = ensureGameRulesSlides(deck);
   deck.bg = deck.bg || 'sunset'; deck.transition = deck.transition || 'fade'; deck.autoplay = deck.autoplay || 0;
   const l = await sb.rpc('admin_list', { p_password: password }); guests = (l.data || []).filter(x => x.talent_status === 'yes');
-  $('gate').hidden = true; $('app').hidden = false; buildApp(); if (!g.data || migrated) markDirty();
+  $('gate').hidden = true; $('app').hidden = false; buildApp(); if (!g.data || migrated || gameRulesAdded) markDirty();
   return null;
 }
 $('gateForm').addEventListener('submit', async e => { e.preventDefault(); $('gateBtn').disabled = true; $('gateMsg').textContent = ''; const err = await enter($('pw').value); $('gateBtn').disabled = false; if (err) $('gateMsg').textContent = err; });
@@ -979,6 +1165,14 @@ function removeSlide() { if (deck.slides.length <= 1) { $('saveSt').textContent 
 function addSlide(type) { flushHist(); deck.slides.splice(sel + 1, 0, newSlide(type)); $('layoutModal').hidden = true; renderThumbs(); selectSlide(sel + 1, true); commit(); }
 $('addBtn').addEventListener('click', () => { const g = $('lgrid'); g.textContent = ''; Object.entries(LAYOUTS).forEach(([k, v]) => g.appendChild(h('button', { class: 'lc', type: 'button', onclick: () => addSlide(k) }, h('b', {}, v.name), h('span', {}, v.info)))); $('layoutModal').hidden = false; });
 $('lmClose').addEventListener('click', () => { $('layoutModal').hidden = true; });
+$('gameRulesBtn').addEventListener('click',()=>{
+  if(!deck)return;
+  flushHist();
+  const rules=createGameRulesSlides();
+  deck.slides.splice(sel+1,0,...rules);
+  renderThumbs();selectSlide(sel+1,true);commit();
+  $('saveSt').textContent='3 clean game-rules slides added after the selected slide';
+});
 $('perfBtn').addEventListener('click', () => {
   if (!guests.length) { $('saveSt').textContent = 'No performers have signed up yet'; return; }
   flushHist(); const list = guests.slice().sort((a, b) => (a.stage_name || '').localeCompare(b.stage_name || '')).map(g => newSlide('spotlight', 'rays', { stage: g.stage_name || g.nickname, real: g.real_name || '', act: '' }));
