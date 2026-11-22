@@ -872,6 +872,7 @@ function makeStage(root, still) {
 }
 const bgOf = s => (!s.bg || s.bg === 'default') ? deck.bg : s.bg;
 function tickCd() {
+  if (document.hidden && !OUTPUT && !presenting) return;
   const d = EVENT - Date.now(), p = n => String(n).padStart(2, '0');
   document.querySelectorAll('.cd').forEach(c => {
     c.classList.toggle('over', d <= 0); if (d <= 0) return;
@@ -938,27 +939,46 @@ function buildApp() {
   $('sBg').value = deck.bg; $('sTr').value = deck.transition; $('sAuto').value = deck.autoplay;
   hist = [JSON.stringify(deck)]; hpos = 0; updHist(); sel = 0; renderThumbs(); selectSlide(0, true);
 }
-function renderThumbs() {
-  const rail = $('rail'); rail.textContent = ''; thumbs = [];
-  deck.slides.forEach((s, i) => {
-    const box = h('div', { class: 'box' }), root = document.createElement('div'); box.appendChild(root);
-    const st = makeStage(root, true); st.setBg(bgOf(s)); st.show(s);
-    const th = h('div', { class: 'th' + (i === sel ? ' sel' : ''), draggable: 'true', tabindex: '0', role: 'button', 'aria-label': 'Slide ' + (i + 1) }, h('b', {}, String(i + 1)), box);
-    th.addEventListener('click', () => selectSlide(i, true));
-    th.addEventListener('keydown', e => { if (e.key === 'Enter') selectSlide(i, true); });
-    th.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', String(i)); th.classList.add('drag'); });
-    th.addEventListener('dragend', () => th.classList.remove('drag'));
-    th.addEventListener('dragover', e => { e.preventDefault(); th.classList.add('over'); });
-    th.addEventListener('dragleave', () => th.classList.remove('over'));
-    th.addEventListener('drop', e => { e.preventDefault(); const from = +e.dataTransfer.getData('text/plain'); if (isNaN(from) || from === i) { th.classList.remove('over'); return; } flushHist(); const [m] = deck.slides.splice(from, 1); deck.slides.splice(i, 0, m); sel = i; renderThumbs(); selectSlide(i, false); commit(); });
-    rail.appendChild(th); thumbs.push({ th, st });
-  });
+/* Deferred rail thumbnails: rendering 36+ full-size scenes on login caused long main-thread tasks. */
+let thumbObserver = null;
+function renderThumbOnDemand(i) {
+  const t=thumbs[i], s=deck && deck.slides[i];
+  if(!t || !s || t.st) return;
+  const root=document.createElement('div'); t.box.appendChild(root);
+  const st=makeStage(root,true); st.setBg(bgOf(s)); st.show(s);
+  t.st=st;
 }
-function refreshThumb(i) { const t = thumbs[i], s = deck.slides[i]; if (!t) return; t.st.setBg(bgOf(s)); t.st.show(s); }
+function renderThumbs() {
+  if(thumbObserver){thumbObserver.disconnect();thumbObserver=null;}
+  const rail=$('rail'); rail.textContent=''; thumbs=[];
+  deck.slides.forEach((s,i)=>{
+    const box=h('div',{class:'box'});
+    const th=h('div',{class:'th'+(i===sel?' sel':''),draggable:'true',tabindex:'0',role:'button','aria-label':'Slide '+(i+1)},h('b',{},String(i+1)),box);
+    th.addEventListener('click',()=>selectSlide(i,true));
+    th.addEventListener('keydown',e=>{if(e.key==='Enter')selectSlide(i,true);});
+    th.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',String(i));th.classList.add('drag');});
+    th.addEventListener('dragend',()=>th.classList.remove('drag'));
+    th.addEventListener('dragover',e=>{e.preventDefault();th.classList.add('over');});
+    th.addEventListener('dragleave',()=>th.classList.remove('over'));
+    th.addEventListener('drop',e=>{e.preventDefault();const from=+e.dataTransfer.getData('text/plain');if(isNaN(from)||from===i){th.classList.remove('over');return;}flushHist();const [m]=deck.slides.splice(from,1);deck.slides.splice(i,0,m);sel=i;renderThumbs();selectSlide(i,false);commit();});
+    rail.appendChild(th);thumbs.push({th,box,st:null});
+  });
+  if('IntersectionObserver' in window){
+    thumbObserver=new IntersectionObserver(entries=>{
+      entries.forEach(entry=>{if(entry.isIntersecting){
+        const i=Number(entry.target.dataset.thumbIndex);
+        renderThumbOnDemand(i);thumbObserver.unobserve(entry.target);
+      }});
+    },{root:rail,rootMargin:'140px 0px'});
+    thumbs.forEach((t,i)=>{t.th.dataset.thumbIndex=i;thumbObserver.observe(t.th);});
+  } else {thumbs.forEach((_t,i)=>renderThumbOnDemand(i));}
+  renderThumbOnDemand(sel);
+}
+function refreshThumb(i){const t=thumbs[i],s=deck.slides[i];if(!t)return;if(!t.st){if(i===sel)renderThumbOnDemand(i);return;} t.st.setBg(bgOf(s));t.st.show(s);}
 function selectSlide(i, animate) {
   flushHist(); finishEdit(true);
   sel = Math.max(0, Math.min(i, deck.slides.length - 1)); selId = null; thumbs.forEach((t, k) => t.th.classList.toggle('sel', k === sel));
-  renderMain(animate); fitMain(); buildBar(); buildProps(); if (thumbs[sel]) thumbs[sel].th.scrollIntoView({ block: 'nearest' });
+  renderThumbOnDemand(sel); renderMain(animate); fitMain(); buildBar(); buildProps(); if (thumbs[sel]) thumbs[sel].th.scrollIntoView({ block: 'nearest' });
 }
 function renderMain(animate) { const s = slide(); mainStage.setBg(bgOf(s)); mainStage.show(s, { animate: !!animate, transition: s.tr || deck.transition }); placeOverlay(); }
 const nodeOf = id => [...mainStage.root.querySelectorAll('.el')].reverse().find(n => n.dataset.id === id);
