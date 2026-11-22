@@ -121,7 +121,7 @@ const SS = { get: k => { try { return sessionStorage.getItem(k); } catch (e) { r
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const pub = p => sb.storage.from(BUCKET).getPublicUrl(p).data.publicUrl;
-let pw = null, photos = [], seen = new Set(), first = true, slots = [], queue = [], spotBusy = false, mode = 'off', pollT = null;
+let pw = null, photos = [], seen = new Set(), first = true, slots = [], queue = [], spotBusy = false, mode = 'off', pollT = null, swapT = null, pollBusy = false;
 
 function hills() {
   let w = '<circle cx="600" cy="262" r="112"/><circle cx="600" cy="262" r="94" opacity=".6"/>';
@@ -134,7 +134,7 @@ $('party').textContent = C.partyName;
 /* ---------- login ---------- */
 async function enter(password) {
   const r = await sb.rpc('admin_wall_list', { p_password: password }); if (r.error) return r.error.message;
-  pw = password; SS.set('fest_admin_pw', password); $('gate').hidden = true; $('wall').hidden = false; apply(r.data); layoutBoard(); fillInitial(); clearInterval(pollT); pollT = setInterval(poll, 4000); setInterval(swapOne, 5500); return null;
+  pw = password; SS.set('fest_admin_pw', password); $('gate').hidden = true; $('wall').hidden = false; apply(r.data); layoutBoard(); fillInitial(); clearInterval(pollT);clearInterval(swapT);pollT=setInterval(poll,4000);swapT=setInterval(swapOne,5500); return null;
 }
 $('gateForm').addEventListener('submit', async e => { e.preventDefault(); $('gateBtn').disabled = true; $('gateMsg').textContent = ''; const err = await enter($('pw').value); $('gateBtn').disabled = false; if (err) $('gateMsg').textContent = err; });
 $('gateBack').addEventListener('click', () => { location.href = 'index.html#admin'; }); $('backB').addEventListener('click', () => { location.href = 'index.html#admin'; });
@@ -143,9 +143,14 @@ $('gateBack').addEventListener('click', () => { location.href = 'index.html#admi
 const approved = () => photos.filter(p => p.status === 'approved');
 function apply(d) { mode = d.mode; photos = d.photos || []; $('mod').checked = mode === 'on'; $('count').textContent = approved().length + ' photos'; }
 async function poll() {
-  const r = await sb.rpc('admin_wall_list', { p_password: pw }); if (r.error) return; apply(r.data);
-  const ap = approved(), fresh = ap.filter(p => !seen.has(p.id)); ap.forEach(p => seen.add(p.id));
-  fresh.reverse().forEach(p => queue.push(p)); runQueue(); cleanBoard(); renderManage();
+  if(pollBusy||!pw)return;
+  pollBusy=true;
+  try{
+    const r=await sb.rpc('admin_wall_list',{p_password:pw});if(r.error)return;apply(r.data);
+    const ap=approved(),fresh=ap.filter(p=>!seen.has(p.id));ap.forEach(p=>seen.add(p.id));
+    fresh.reverse().forEach(p=>queue.push(p));runQueue();cleanBoard();
+    if(!$('manage').hidden)renderManage();
+  }finally{pollBusy=false;}
 }
 
 /* ---------- board ---------- */
@@ -158,7 +163,7 @@ function layoutBoard() {
 function put(s, p) {
   s.p = p; s.el.textContent = ''; s.el.classList.toggle('empty', !p);
   if (!p) { s.el.textContent = 'Your photo here'; return; }
-  const im = new Image(); im.alt = 'Photo by ' + p.nickname; im.src = pub(p.path); s.el.appendChild(im);
+  const im = new Image(); im.alt = 'Photo by ' + p.nickname; im.decoding = 'async'; im.src = pub(p.path); s.el.appendChild(im);
 }
 const shown = () => new Set(slots.filter(s => s.p).map(s => s.p.id));
 function fillInitial() { const ap = approved(); ap.forEach(p => seen.add(p.id)); slots.forEach((s, i) => put(s, ap[i] || null)); first = false; syncLED(); }
@@ -267,12 +272,23 @@ function outputInit() {
     ledHasState = true;
     $('party').textContent = m.party || '';
     $('count').textContent = (m.count || 0) + ' photos';
-    const b = $('board'); b.style.gridTemplateColumns = `repeat(${m.cols || 6},1fr)`; b.style.gridTemplateRows = `repeat(${m.rows || 2},1fr)`; b.textContent = '';
-    (m.slots || []).forEach(slot => {
-      const el = document.createElement('div'); el.className = 'slot' + (slot.url ? '' : ' empty'); el.style.setProperty('--rot', slot.rot || '0deg');
-      if (slot.url) { const im = new Image(); im.alt = 'Photo by ' + (slot.nickname || 'guest'); im.src = slot.url; el.appendChild(im); }
-      else el.textContent = 'Your photo here';
-      b.appendChild(el);
+    const b=$('board'), incoming=m.slots||[];
+    const columns=m.cols||6,rows=m.rows||2;
+    if(b.dataset.cols!==String(columns)||b.dataset.rows!==String(rows)||b.children.length!==incoming.length){
+      b.style.gridTemplateColumns=`repeat(${columns},1fr)`;
+      b.style.gridTemplateRows=`repeat(${rows},1fr)`;
+      b.dataset.cols=String(columns);b.dataset.rows=String(rows);
+      b.replaceChildren(...incoming.map(()=>{const el=document.createElement('div');el.className='slot empty';return el;}));
+    }
+    incoming.forEach((slot,i)=>{
+      const el=b.children[i],url=slot.url||'';
+      if(el.dataset.photoUrl!==url){
+        el.dataset.photoUrl=url;el.className='slot'+(url?'':' empty');el.replaceChildren();
+        if(url){const im=new Image();im.alt='Photo by '+(slot.nickname||'guest');im.decoding='async';im.src=url;el.appendChild(im);}
+        else el.textContent='Your photo here';
+      }
+      const rotation=slot.rot||'0deg';
+      if(el.dataset.rot!==rotation){el.dataset.rot=rotation;el.style.setProperty('--rot',rotation);}
     });
     const sp = $('spot');
     if (m.spot) { $('spImg').src = m.spot.url; $('spName').textContent = 'by ' + m.spot.nickname; sp.hidden = false; }
