@@ -7,7 +7,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Cormorant+Garamond:wght@500;600&family=Nunito+Sans:wght@400;600;800&family=Anton&family=Bebas+Neue&family=Oswald:wght@400;700&family=Poppins:wght@400;600;800&family=Playfair+Display:wght@400;800&family=DM+Serif+Display&family=Fredoka:wght@400;700&family=Rubik:wght@400;800&family=Bangers&family=Lobster&family=Pacifico&family=Permanent+Marker&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Cormorant+Garamond:wght@500;600&family=Nunito+Sans:wght@400;600;800&family=Anton&family=Bodoni+Moda:ital,wght@1,600&family=Bebas+Neue&family=Oswald:wght@400;700&family=Poppins:wght@400;600;800&family=Playfair+Display:wght@400;800&family=DM+Serif+Display&family=Fredoka:wght@400;700&family=Rubik:wght@400;800&family=Bangers&family=Lobster&family=Pacifico&family=Permanent+Marker&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <style>
@@ -307,6 +307,65 @@ body.idle-out{cursor:none}
  .festival-palette i{display:inline-block;width:17px;height:17px;border-radius:50%;border:1px solid #10102B}
  
 .bg.clean-electric{background:radial-gradient(ellipse at 88% 10%,rgba(255,20,147,.25),transparent 37%),radial-gradient(ellipse at 8% 92%,rgba(0,223,255,.14),transparent 45%),linear-gradient(135deg,#10102B 0%,#211335 60%,#2D1249 100%)}
+
+/* ===== FASHION RAMP: integrated from fashion-ramp-template.html =====
+   Reusable animated LED background. Isolated from regular Electric Festival slides. */
+.stage .bg.fashion-ramp-bg{
+  background:radial-gradient(ellipse 70% 45% at 50% 40%,rgba(255,79,129,.28),transparent 70%),
+             linear-gradient(#0b0612 0%,#1a0b27 42%,#0b0612 43%);
+  isolation:isolate;
+}
+.fashion-ramp-bg .ramp-beam{
+  position:absolute;top:-80px;width:460px;height:900px;transform-origin:50% 0;
+  background:linear-gradient(rgba(255,226,176,.55),rgba(255,226,176,0) 85%);
+  clip-path:polygon(44% 0,56% 0,100% 100%,0 100%);
+  mix-blend-mode:screen;opacity:.6;animation:fashion-sweep 9s ease-in-out infinite alternate;
+}
+.fashion-ramp-bg .ramp-beam:nth-child(1){left:120px;--ramp-a:-22deg;--ramp-b:10deg}
+.fashion-ramp-bg .ramp-beam:nth-child(2){left:700px;--ramp-a:12deg;--ramp-b:-14deg;animation-duration:11s;opacity:.45}
+.fashion-ramp-bg .ramp-beam:nth-child(3){left:1300px;--ramp-a:-8deg;--ramp-b:24deg;animation-duration:8s}
+@keyframes fashion-sweep{from{transform:rotate(var(--ramp-a))}to{transform:rotate(var(--ramp-b))}}
+.fashion-ramp-bg .ramp-runway-wrap{position:absolute;left:0;right:0;bottom:0;height:640px;perspective:760px;perspective-origin:50% 0}
+.fashion-ramp-bg .ramp-runway{position:absolute;left:50%;top:0;width:900px;height:1500px;margin-left:-450px;
+  transform-origin:50% 0;transform:rotateX(68deg);
+  background:linear-gradient(90deg,#120a1c,#1c1028 20%,#2a1840 50%,#1c1028 80%,#120a1c);
+  box-shadow:0 0 120px 30px rgba(255,79,129,.35)}
+.fashion-ramp-bg .ramp-runway::before,.fashion-ramp-bg .ramp-runway::after{
+  content:"";position:absolute;top:0;bottom:0;width:26px;
+  background:radial-gradient(circle at 50% 50%,#fff 0 5px,#ffbc0d 6px 9px,transparent 11px) 0 0/26px 90px;
+  animation:fashion-chase 1.2s linear infinite;filter:drop-shadow(0 0 8px #ffbc0d)}
+.fashion-ramp-bg .ramp-runway::before{left:0}.fashion-ramp-bg .ramp-runway::after{right:0}
+@keyframes fashion-chase{to{background-position:0 90px}}
+.fashion-ramp-bg .ramp-centerline{position:absolute;left:50%;top:0;bottom:0;width:6px;margin-left:-3px;
+  background:repeating-linear-gradient(#ff4f81 0 60px,transparent 60px 140px);
+  animation:fashion-chase 1.2s linear infinite;filter:drop-shadow(0 0 10px #ff4f81)}
+.fashion-ramp-bg .ramp-horizon{position:absolute;left:0;right:0;top:455px;height:3px;
+  background:linear-gradient(90deg,transparent,#ffe2b0,transparent);
+  box-shadow:0 0 40px 8px rgba(255,226,176,.5)}
+.fashion-ramp-bg .ramp-flash{position:absolute;bottom:60px;width:26px;height:26px;border-radius:50%;background:#fff;
+  box-shadow:0 0 70px 40px rgba(255,255,255,.8);opacity:0;animation:fashion-flash 4.5s infinite}
+.fashion-ramp-bg .ramp-flashes .ramp-flash:nth-child(1){left:90px;animation-delay:.4s}
+.fashion-ramp-bg .ramp-flashes .ramp-flash:nth-child(2){left:230px;bottom:150px;animation-delay:2.1s}
+.fashion-ramp-bg .ramp-flashes .ramp-flash:nth-child(3){right:110px;animation-delay:1.3s}
+.fashion-ramp-bg .ramp-flashes .ramp-flash:nth-child(4){right:260px;bottom:170px;animation-delay:3.3s}
+.fashion-ramp-bg .ramp-flashes .ramp-flash:nth-child(5){left:420px;bottom:30px;animation-delay:3.9s}
+.fashion-ramp-bg .ramp-flashes .ramp-flash:nth-child(6){right:430px;bottom:40px;animation-delay:.9s}
+@keyframes fashion-flash{0%,92%,100%{opacity:0}94%{opacity:1}97%{opacity:.15}}
+/* Signature fashion heading: each text layer remains independently editable. */
+.stage .e-text[data-ramp-title="true"] .in{
+  background:linear-gradient(#fff 25%,#ffbc0d 92%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 23px rgba(255,79,129,.6));
+}
+.stage .e-text[data-ramp-title="true"] .in.editing{
+  -webkit-text-fill-color:#ffbc0d;background:rgba(16,8,30,.6);
+}
+@media(prefers-reduced-motion:reduce){
+  .fashion-ramp-bg .ramp-beam,.fashion-ramp-bg .ramp-runway::before,
+  .fashion-ramp-bg .ramp-runway::after,.fashion-ramp-bg .ramp-centerline,
+  .fashion-ramp-bg .ramp-flash{animation:none!important}
+}
 </style>
 </head>
 <body>
@@ -441,6 +500,7 @@ function hills() {
 }
 const clouds = '<div class="cl c1"></div><div class="cl c2"></div><div class="cl c3"></div>';
 function bgHtml(k) {
+  if(k==='fashion-ramp')return '<div class="bg fashion-ramp-bg"><div class="ramp-beam"></div><div class="ramp-beam"></div><div class="ramp-beam"></div><div class="ramp-horizon"></div><div class="ramp-runway-wrap"><div class="ramp-runway"><div class="ramp-centerline"></div></div></div><div class="ramp-flashes"><div class="ramp-flash"></div><div class="ramp-flash"></div><div class="ramp-flash"></div><div class="ramp-flash"></div><div class="ramp-flash"></div><div class="ramp-flash"></div></div></div>';
   if(k==='clean-electric')return '<div class="bg clean-electric"></div>';
   if (k === 'party') { let c = ''; const cols = ['#FFF000', '#FF1493', '#FF6B00', '#F5FBFF', '#fff']; for (let i = 0; i < 70; i++) { const w = 10 + Math.random() * 16; c += `<i style="left:${Math.random() * 100}%;width:${w}px;height:${w * 1.5}px;background:${cols[i % 5]};animation-duration:${5 + Math.random() * 7}s;animation-delay:${-Math.random() * 12}s"></i>`; } return `<div class="bg party"><div class="cf">${c}</div></div>`; }
   if (k === 'stage') return '<div class="bg stage"><div class="sbeam" style="left:120px;animation-delay:-1s"></div><div class="sbeam" style="left:700px;animation-delay:-4s;background:linear-gradient(180deg,rgba(255,199,44,.5),rgba(255,199,44,0))"></div><div class="sbeam" style="left:1280px;animation-delay:-6s;background:linear-gradient(180deg,rgba(255,90,70,.5),rgba(255,90,70,0))"></div></div>';
@@ -450,11 +510,11 @@ function bgHtml(k) {
   if (k === 'day') return `<div class="bg day"><div class="sunb"></div>${clouds}${hills()}</div>`;
   return `<div class="bg sunset"><div class="sunb"></div>${clouds}${hills()}</div>`;
 }
-const BG_NAMES = { 'clean-electric':'Electric minimal (game rules)', sunset: 'Sunset arches', rays: 'Golden rays', arches: 'Arches pattern', night: 'Night festival', day: 'Blue sky', party: 'Confetti party', stage: 'Stage lights' };
+const BG_NAMES = { 'fashion-ramp':'Fashion Ramp — animated runway', 'clean-electric':'Electric minimal (game rules)', sunset: 'Sunset arches', rays: 'Golden rays', arches: 'Arches pattern', night: 'Night festival', day: 'Blue sky', party: 'Confetti party', stage: 'Stage lights' };
 const TRANS = { fade: 'Fade', slide: 'Slide from the right', slideup: 'Slide up', zoom: 'Zoom', flip: 'Flip', spin: 'Twist', blur: 'Blur', wipe: 'Wipe', bounce: 'Bounce in', drop: 'Drop in' };
 
 /* ---------- elements ---------- */
-const FONTS = ['Londrina Solid', 'Nunito Sans', 'Cormorant Garamond', 'Anton', 'Bebas Neue', 'Oswald', 'Poppins', 'Playfair Display', 'DM Serif Display', 'Fredoka', 'Rubik', 'Bangers', 'Lobster', 'Pacifico', 'Permanent Marker', 'Caveat'];
+const FONTS = ['Bodoni Moda', 'Londrina Solid', 'Nunito Sans', 'Cormorant Garamond', 'Anton', 'Bebas Neue', 'Oswald', 'Poppins', 'Playfair Display', 'DM Serif Display', 'Fredoka', 'Rubik', 'Bangers', 'Lobster', 'Pacifico', 'Permanent Marker', 'Caveat'];
 const SHADOWS = { none: 'none', soft: '0 4px 18px rgba(0,0,0,.45)', hard: '0 .07em 0 #10102B,0 .12em .35em rgba(0,0,0,.35)', glow: '0 0 .22em rgba(255,199,44,.95),0 .05em 0 #10102B' };
 const BOXSH = { none: 'none', soft: '0 10px 30px rgba(0,0,0,.4)', hard: '10px 10px 0 #10102B' };
 const SW = ['#00DFFF', '#FF6B00', '#FFF000', '#FF1493', '#39FF14', '#FFFFFF', '#10102B'];
@@ -494,6 +554,12 @@ function badge(text, x, y, size, al) { const w = Math.round(String(text).length 
 const parseItems = s => String(s || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => { const i = l.indexOf('|'); return i < 0 ? { t: '', a: l } : { t: l.slice(0, i).trim(), a: l.slice(i + 1).trim() }; });
 
 const TPL = {
+  fashionRamp: f => [
+    tx({key:'fashionBrand',x:1100,y:39,w:760,text:f.brand,font:'Bodoni Moda',size:34,color:'#FFE2B0',b:true,i:true,al:'right',sh:'soft',anim:'fade',lh:1.2}),
+    tx({key:'fashionKicker',x:170,y:130,w:1580,text:f.kicker,font:'Bodoni Moda',size:76,color:'#FFE2B0',b:true,i:true,al:'center',sh:'soft',anim:'rise',lh:1.18}),
+    tx({key:'fashionTitle',x:125,y:270,w:1670,text:f.title,font:'Anton',size:280,color:'#FFBC0D',b:true,up:true,al:'center',sh:'glow',anim:'zoom',lh:.98,ls:4}),
+    tx({key:'fashionSubtitle',x:160,y:886,w:1600,text:f.subtitle,font:'Bodoni Moda',size:55,color:'#FFFFFF',b:true,i:true,al:'center',sh:'soft',anim:'fade',lh:1.22})
+  ],
   blank: () => [],
   title: f => { const S = fsz((f.title || '').length, [[10, 280], [16, 210], [26, 160], [40, 120], [999, 90]]);
     return col([item(127, y => [arch({ x: 865, y })]), f.kicker && item(46, y => [tx({ y, text: f.kicker, size: 34, up: true, ls: 17, color: '#FFE9A8', lh: 1 })]),
@@ -522,6 +588,7 @@ const TPL = {
     return col([item(127, y => [arch({ x: 865, y })]), item(estH(f.head, S, 1700, .95, .48), y => [disp({ y, text: f.head, size: S })]), f.text && item(70, y => [tx({ y, text: f.text, font: SERIF, size: 52, color: '#F5FBFF' })])], 24); }
 };
 const LAYOUTS = {
+  fashionRamp: { name: 'Fashion Ramp — animated runway', info: 'Spotlights, runway lights & four editable text fields', bg: 'fashion-ramp', d: { brand: "McDonald’s Santa Rosa Bayan", kicker: "It’s time to", title: 'Fashion\nRamp', subtitle: 'Year End Party: Beyond the Arches' } },
   blank: { name: 'Blank slide', info: 'Start from nothing and add your own', d: {} },
   title: { name: 'Title', info: 'Opening slide with the party name', d: { kicker: 'Coachella: Beyond the Arches', title: 'Year End Party', sub: C.partyName, line: C.when + ' · ' + C.where } },
   segment: { name: 'Program segment', info: 'Number, time, title and description', d: { num: '01', time: '6:00 PM', title: 'Segment title', desc: '', host: '' } },
@@ -820,7 +887,7 @@ function timerHtml(e) {
   return `<div class="tmr s-${st}" data-end="${esc(e.end || "TIME'S UP!")}" style="--p:1;transform:scale(${e.w / TDES[st][0]})">${inner}</div>`;
 }
 function elNode(e, i) {
-  const o = document.createElement('div'); o.className = 'el e-' + e.t; o.dataset.id = e.id; o.dataset.anim = e.anim || 'rise'; o.dataset.loop = e.loop || 'none'; o.dataset.step = e.step || 0;
+  const o = document.createElement('div'); o.className = 'el e-' + e.t; o.dataset.id = e.id; if(e.key==='fashionTitle')o.dataset.rampTitle='true'; o.dataset.anim = e.anim || 'rise'; o.dataset.loop = e.loop || 'none'; o.dataset.step = e.step || 0;
   let st = `left:${e.x}px;top:${e.y}px;width:${e.w}px;transform:rotate(${e.r || 0}deg);opacity:${e.op == null ? 1 : e.op};--i:${i};--dl:${e.delay || 0}s;`;
   const lp = document.createElement('div'); lp.className = 'lp'; const n = document.createElement('div'); n.className = 'in';
   if (e.t === 'text') {
@@ -1129,6 +1196,25 @@ function buildProps() {
   const bg = h('select', { 'aria-label': 'Background' }); bg.appendChild(h('option', { value: 'default' }, 'Default (' + BG_NAMES[deck.bg] + ')')); Object.entries(BG_NAMES).forEach(([k, v]) => bg.appendChild(h('option', { value: k }, v))); bg.value = s.bg || 'default';
   bg.addEventListener('change', () => { s.bg = bg.value; renderMain(false); refreshThumb(sel); commit(); });
   p.append(field('Moving background', bg));
+  if(s.type==='fashionRamp'){
+    p.append(h('div',{class:'sec'}),h('h3',{},'Fashion Ramp — editable words'));
+    [
+      ['Top-right brand','fashionBrand','input'],
+      ['Intro line','fashionKicker','input'],
+      ['Main headline','fashionTitle','textarea'],
+      ['Subtitle','fashionSubtitle','input']
+    ].forEach(([label,key,tag])=>{
+      const el=s.els.find(x=>x.key===key);if(!el)return;
+      const inp=h(tag,{'aria-label':label});inp.value=el.text||'';
+      if(tag==='textarea')inp.style.minHeight='70px';
+      inp.addEventListener('input',()=>{
+        el.text=inp.value;
+        renderMain(false);commitSoon();
+      });
+      p.append(field(label,inp));
+    });
+    p.append(h('p',{class:'hint'},'You can also double-click any text directly on the slide. The runway background is available for other slides under Moving background.'));
+  }
   const tsel = h('select', { 'aria-label': 'Slide change effect' }); tsel.appendChild(h('option', { value: '' }, 'Default (' + (TRANS[deck.transition] || 'Fade') + ')')); Object.entries(TRANS).forEach(([k, v]) => tsel.appendChild(h('option', { value: k }, v))); tsel.value = s.tr || '';
   tsel.addEventListener('change', () => { if (tsel.value) s.tr = tsel.value; else delete s.tr; commit(); });
   p.append(field('How this slide appears', tsel));
