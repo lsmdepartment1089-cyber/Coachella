@@ -346,14 +346,63 @@ async function exportBlob() {
 const fname = () => `year-end-party-${(guest.nickname || 'guest').replace(/[^\w]+/g, '_')}-${Date.now().toString(36)}.jpg`;
 async function download() { const b = await exportBlob(), url = URL.createObjectURL(b), a = document.createElement('a'); a.href = url; a.download = fname(); document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 5000); $('revMsg').className = 'msg ok'; $('revMsg').textContent = 'Saved to your device.'; }
 async function share() { const b = await exportBlob(), file = new File([b], fname(), { type: 'image/jpeg' }); try { await navigator.share({ files: [file], title: "McDonald's Year End Party" }); } catch (e) {} }
+/* Avoid uploading the same finished photo twice, even after a refresh or on another device. */
+let wallSending = false;
+async function photoFingerprintPath() {
+  if (!window.crypto || !window.crypto.subtle) return null;
+  const hashHex = buffer => Array.from(new Uint8Array(buffer), b => b.toString(16).padStart(2, '0')).join('');
+  const parts = [String(guest.nickname || '').trim().toLowerCase(), S.frame.id, S.filter.id, S.caption || ''];
+  for (const shot of S.shots) {
+    const cv = document.createElement('canvas'); cv.width = cv.height = 64;
+    const c = cv.getContext('2d', { willReadFrequently: true });
+    c.drawImage(shot.raw, 0, 0, 64, 64);
+    const pixels = c.getImageData(0, 0, 64, 64).data;
+    parts.push(String(shot.zoom || 1));
+    parts.push(hashHex(await crypto.subtle.digest('SHA-256', pixels)));
+  }
+  return 'photo-' + hashHex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(parts.join('|')))) + '.jpg';
+}
+async function wallAlreadyHas(path) {
+  const { data, error } = await sb.rpc('my_wall_photos', { p_nickname: guest.nickname });
+  return !error && Array.isArray(data) && data.some(p => p.path === path);
+}
 async function send() {
-  if (S.sent) return; const btn = $('send'), m = $('revMsg'); btn.disabled = true; m.className = 'msg'; m.textContent = 'Sending your photo...';
-  const blob = await exportBlob(), path = uid() + Date.now().toString(36) + '.jpg';
-  const up = await sb.storage.from(BUCKET).upload(path, blob, { contentType: 'image/jpeg' });
-  if (up.error) { m.className = 'msg err'; m.textContent = 'Upload failed: ' + up.error.message; btn.disabled = false; return; }
-  const r = await sb.rpc('add_wall_photo', { p_nickname: guest.nickname, p_path: path, p_frame: S.frame.id });
-  if (r.error) { m.className = 'msg err'; m.textContent = r.error.message; btn.disabled = false; return; }
-  S.sent = true; btn.textContent = 'Sent!'; m.className = 'msg ok'; m.textContent = r.data.status === 'pending' ? 'Sent! The organizers will approve it, then it shows on the wall.' : 'Sent! Look at the big wall to see your photo.';
+  if (wallSending || S.sent || S.mode !== 'review') return;
+  wallSending = true;
+  const btn = $('send'), m = $('revMsg');
+  btn.disabled = true; m.className = 'msg'; m.textContent = 'Checking and sending your photo...';
+  try {
+    // A deterministic filename lets us detect a repeat upload without a database migration.
+    // If crypto is unsupported, fall back to the original random filename.
+    const path = (await photoFingerprintPath()) || (uid() + Date.now().toString(36) + '.jpg');
+    if (await wallAlreadyHas(path)) {
+      S.sent = true; btn.textContent = 'Already sent'; m.className = 'msg ok';
+      m.textContent = 'This exact photo and design have already been submitted. Take another picture to add a new one.';
+      return;
+    }
+    const blob = await exportBlob();
+    const up = await sb.storage.from(BUCKET).upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+    if (up.error) {
+      const msg = String(up.error.message || '').toLowerCase();
+      const conflict = String(up.error.statusCode || up.error.status || '') === '409' || /already exists|duplicate|conflict/.test(msg);
+      if (!conflict) throw new Error('Upload failed: ' + up.error.message);
+      // A previous attempt may have uploaded the file before the database record was saved.
+      if (await wallAlreadyHas(path)) {
+        S.sent = true; btn.textContent = 'Already sent'; m.className = 'msg ok';
+        m.textContent = 'This exact photo and design have already been submitted. Take another picture to add a new one.';
+        return;
+      }
+    }
+    const r = await sb.rpc('add_wall_photo', { p_nickname: guest.nickname, p_path: path, p_frame: S.frame.id });
+    if (r.error) throw new Error('Could not register photo: ' + r.error.message);
+    S.sent = true; btn.textContent = 'Sent!'; m.className = 'msg ok';
+    m.textContent = r.data.status === 'pending' ? 'Sent! The organizers will approve it, then it shows on the wall.' : 'Sent! Look at the big wall to see your photo.';
+  } catch (e) {
+    m.className = 'msg err'; m.textContent = (e && e.message) || 'Could not send the photo. Please try again.';
+  } finally {
+    wallSending = false;
+    if (!S.sent) btn.disabled = false;
+  }
 }
 async function showMine() {
   $('mineM').hidden = false; const g = $('mineG'); g.textContent = ''; $('mineInfo').textContent = 'Loading...'; const r = await sb.rpc('my_wall_photos', { p_nickname: guest.nickname });
