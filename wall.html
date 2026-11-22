@@ -140,7 +140,17 @@ $('gateForm').addEventListener('submit', async e => { e.preventDefault(); $('gat
 $('gateBack').addEventListener('click', () => { location.href = 'index.html#admin'; }); $('backB').addEventListener('click', () => { location.href = 'index.html#admin'; });
 
 /* ---------- data ---------- */
-const approved = () => photos.filter(p => p.status === 'approved');
+// Each stored photo path should occupy at most one spot. Keep management's raw records intact.
+const approved = () => {
+  const paths = new Set();
+  return photos.filter(p => {
+    if (p.status !== 'approved') return false;
+    const key = p.path || String(p.id);
+    if (paths.has(key)) return false;
+    paths.add(key);
+    return true;
+  });
+};
 function apply(d) { mode = d.mode; photos = d.photos || []; $('mod').checked = mode === 'on'; $('count').textContent = approved().length + ' photos'; }
 async function poll() {
   if(pollBusy||!pw)return;
