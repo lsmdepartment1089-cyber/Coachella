@@ -162,7 +162,10 @@ async function poll() {
   pollBusy=true;
   try{
     const r=await sb.rpc('admin_wall_list',{p_password:pw});if(r.error)return;apply(r.data);
-    const ap=approved(),fresh=ap.filter(p=>!seen.has(p.id));ap.forEach(p=>seen.add(p.id));
+    const ap=approved(), validKeys=new Set(ap.map(photoKey));
+    // A guest can remove a photo at any time. Cancel queued spotlights for removed photos.
+    queue=queue.filter(p=>validKeys.has(photoKey(p)));
+    const fresh=ap.filter(p=>!seen.has(p.id));ap.forEach(p=>seen.add(p.id));
     fresh.reverse().forEach(p=>queue.push(p));runQueue();cleanBoard();
     if(!$('manage').hidden)renderManage();
   }finally{pollBusy=false;}
@@ -260,7 +263,15 @@ async function runQueue() {
 
 /* ---------- manage panel ---------- */
 async function setStatus(id, st) { const r = await sb.rpc('admin_wall_set_status', { p_password: pw, p_id: id, p_status: st }); if (r.error) { $('mMsg').style.color = '#B0170E'; $('mMsg').textContent = r.error.message; return; } $('mMsg').textContent = ''; await poll(); }
-function item(p, btns) { const d = document.createElement('div'), im = document.createElement('img'), row = document.createElement('div'), n = document.createElement('span'); d.className = 'mi'; im.src = pub(p.path); im.alt = 'Photo by ' + p.nickname; n.textContent = p.nickname; row.appendChild(n); btns.forEach(([t, st, cls]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn s ' + cls; b.textContent = t; b.addEventListener('click', () => setStatus(p.id, st)); row.appendChild(b); }); d.append(im, row); return d; }
+// Only authenticated organizers can remove older photo records to free guest slots.
+async function adminRemovePhoto(id) {
+  if (!confirm('Remove this photo entry from the wall and free the guest submission slot? This does not remove the image file from Supabase Storage.')) return;
+  const r = await sb.rpc('admin_remove_wall_photo', { p_password: pw, p_id: id });
+  if (r.error) { $('mMsg').style.color = '#B0170E'; $('mMsg').textContent = r.error.message; return; }
+  $('mMsg').style.color = '#1B7A3D'; $('mMsg').textContent = 'Photo entry removed. The guest has one available slot again.';
+  await poll();
+}
+function item(p, btns) { const d = document.createElement('div'), im = document.createElement('img'), row = document.createElement('div'), n = document.createElement('span'); d.className = 'mi'; im.src = pub(p.path); im.alt = 'Photo by ' + p.nickname; n.textContent = p.nickname; row.appendChild(n); btns.forEach(([t, st, cls]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn s ' + cls; b.textContent = t; b.addEventListener('click', () => setStatus(p.id, st)); row.appendChild(b); }); const rem = document.createElement('button'); rem.type='button';rem.className='btn s w';rem.textContent='Remove entry';rem.title='Remove this photo record to free one of the guest’s 12 slots';rem.addEventListener('click',()=>adminRemovePhoto(p.id));row.appendChild(rem);d.append(im, row); return d; }
 function renderManage() {
   if ($('manage').hidden) return; [['mPend', 'pending', [['Approve', 'approved', 'y'], ['No', 'hidden', 'w']]], ['mOn', 'approved', [['Hide', 'hidden', 'w']]], ['mOff', 'hidden', [['Show', 'approved', 'y']]]].forEach(([id, st, b]) => { const g = $(id); g.textContent = ''; const l = photos.filter(p => p.status === st); if (!l.length) { const e = document.createElement('p'); e.style.cssText = 'font-size:.8rem;opacity:.7'; e.textContent = 'None'; g.appendChild(e); } l.forEach(p => g.appendChild(item(p, b))); });
 }
