@@ -122,6 +122,11 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const pub = p => sb.storage.from(BUCKET).getPublicUrl(p).data.publicUrl;
 let pw = null, photos = [], seen = new Set(), first = true, slots = [], queue = [], spotBusy = false, mode = 'off', pollT = null, swapT = null, pollBusy = false;
+// Reserve a new photo while its image loads and while its spotlight is visible.
+// Otherwise polling can put it on the board before the spotlight, then put it there again.
+let spotlightPending = null;
+const photoKey = p => p ? (p.path || String(p.id)) : null;
+const reservedPhotoKeys = () => new Set([...queue, spotlightPending, activeSpot].filter(Boolean).map(photoKey));
 
 function hills() {
   let w = '<circle cx="600" cy="262" r="112"/><circle cx="600" cy="262" r="94" opacity=".6"/>';
@@ -178,15 +183,34 @@ function put(s, p) {
 const shown = () => new Set(slots.filter(s => s.p).map(s => s.p.id));
 function fillInitial() { const ap = approved(); ap.forEach(p => seen.add(p.id)); slots.forEach((s, i) => put(s, ap[i] || null)); first = false; syncLED(); }
 function cleanBoard() {
-  const ids = new Set(approved().map(p => p.id));
-  slots.forEach(s => { if (s.p && !ids.has(s.p.id)) put(s, null); });
-  const sh = shown(), rest = approved().filter(p => !sh.has(p.id));
-  slots.forEach(s => { if (!s.p && rest.length) put(s, rest.shift()); });
+  const ap = approved();
+  const valid = new Set(ap.map(photoKey));
+  const reserved = reservedPhotoKeys();
+  const occupied = new Set();
+  // Repair pre-existing duplicate slots created by older versions of the wall.
+  slots.forEach(s => {
+    const key = photoKey(s.p);
+    if (!key) return;
+    if (!valid.has(key) || reserved.has(key) || occupied.has(key)) put(s, null);
+    else occupied.add(key);
+  });
+  // Photos waiting for / appearing in the New photo animation must not fill slots yet.
+  const rest = ap.filter(p => !occupied.has(photoKey(p)) && !reserved.has(photoKey(p)));
+  slots.forEach(s => {
+    if (!s.p && rest.length) {
+      const p = rest.shift(); put(s, p); occupied.add(photoKey(p));
+    }
+  });
   syncLED();
 }
 function swapOne() {
-  if (!slots.length || spotBusy) return; const sh = shown(), rest = approved().filter(p => !sh.has(p.id)); if (!rest.length) return;
-  put(slots[Math.floor(Math.random() * slots.length)], rest[Math.floor(Math.random() * rest.length)]); syncLED();
+  if (!slots.length || spotBusy) return;
+  const shownKeys = new Set(slots.filter(s => s.p).map(s => photoKey(s.p)));
+  const reserved = reservedPhotoKeys();
+  const rest = approved().filter(p => !shownKeys.has(photoKey(p)) && !reserved.has(photoKey(p)));
+  if (!rest.length) return;
+  put(slots[Math.floor(Math.random() * slots.length)], rest[Math.floor(Math.random() * rest.length)]);
+  syncLED();
 }
 addEventListener('resize', () => { if (!$('wall').hidden) { const keep = slots.map(s => s.p); layoutBoard(); slots.forEach((s, i) => put(s, keep[i] || null)); syncLED(); } });
 
@@ -199,12 +223,39 @@ function confetti() {
     if (now < end && ps.some(p => p.y < innerHeight + 30)) requestAnimationFrame(f); else c.clearRect(0, 0, cv.width, cv.height); })();
 }
 async function runQueue() {
-  if (spotBusy || !queue.length) return; spotBusy = true; const p = queue.shift(), im = $('spImg');
-  await new Promise(res => { im.onload = res; im.onerror = res; im.src = pub(p.path); setTimeout(res, 2500); });
-  activeSpot = p; $('spName').textContent = 'by ' + p.nickname; const sp = $('spot'); sp.hidden = false; syncLED(); sp.querySelectorAll('.snew,#spImg,#spName').forEach(el => { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; }); confetti();
-  await sleep(7000); sp.hidden = true; activeSpot = null; syncLED();
-  const empty = slots.find(s => !s.p), target = empty || slots[Math.floor(Math.random() * slots.length)]; if (target) put(target, p); syncLED();
-  spotBusy = false; runQueue();
+  if (spotBusy || !queue.length) return;
+  spotBusy = true;
+  const p = queue.shift(), im = $('spImg'), sp = $('spot');
+  spotlightPending = p; // Set immediately: poll() calls cleanBoard() in the same turn.
+  try {
+    await new Promise(res => {
+      let done = false;
+      const finish = () => { if (done) return; done = true; im.onload = null; im.onerror = null; res(); };
+      im.onload = finish; im.onerror = finish; im.src = pub(p.path); setTimeout(finish, 2500);
+    });
+    if (!approved().some(x => photoKey(x) === photoKey(p))) return;
+    activeSpot = p;
+    $('spName').textContent = 'by ' + p.nickname;
+    sp.hidden = false;
+    syncLED();
+    sp.querySelectorAll('.snew,#spImg,#spName').forEach(el => { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; });
+    confetti();
+    await sleep(7000);
+    sp.hidden = true; activeSpot = null;
+    // Once is enough: never place it again if the board already contains this photo.
+    const alreadyShown = slots.some(s => photoKey(s.p) === photoKey(p));
+    if (!alreadyShown && approved().some(x => photoKey(x) === photoKey(p))) {
+      const target = slots.find(s => !s.p) || slots[Math.floor(Math.random() * slots.length)];
+      if (target) put(target, p);
+    }
+  } finally {
+    sp.hidden = true;
+    activeSpot = null;
+    spotlightPending = null;
+    spotBusy = false;
+    cleanBoard(); // Also removes any duplicate positions left by older wall code.
+    runQueue();
+  }
 }
 
 /* ---------- manage panel ---------- */
@@ -301,8 +352,12 @@ function outputInit() {
       if(el.dataset.rot!==rotation){el.dataset.rot=rotation;el.style.setProperty('--rot',rotation);}
     });
     const sp = $('spot');
-    if (m.spot) { $('spImg').src = m.spot.url; $('spName').textContent = 'by ' + m.spot.nickname; sp.hidden = false; }
-    else sp.hidden = true;
+    if (m.spot) {
+      const image = $('spImg');
+      if (image.dataset.photoUrl !== m.spot.url) { image.dataset.photoUrl = m.spot.url; image.src = m.spot.url; }
+      $('spName').textContent = 'by ' + m.spot.nickname;
+      sp.hidden = false;
+    } else sp.hidden = true;
   };
   CH.addEventListener('message', receive);
   const announce = () => { if (!ledHasState) CH.postMessage({ t: 'ready' }); };
