@@ -348,6 +348,29 @@ async function download() { const b = await exportBlob(), url = URL.createObject
 async function share() { const b = await exportBlob(), file = new File([b], fname(), { type: 'image/jpeg' }); try { await navigator.share({ files: [file], title: "McDonald's Year End Party" }); } catch (e) {} }
 /* Avoid uploading the same finished photo twice, even after a refresh or on another device. */
 let wallSending = false;
+// A private, random deletion key is held on the sending device for each new photo.
+// A nickname alone is not proof of ownership and must never authorize deletion.
+const WALL_KEY_PREFIX = 'coachella-wall-removal-v1:';
+const wallDeleteStorageKey = path => WALL_KEY_PREFIX + String(guest?.nickname || '').trim().toLowerCase() + ':' + path;
+function makeWallDeleteToken() {
+  if (!crypto?.getRandomValues) throw new Error('Secure photo removal needs HTTPS and a modern browser.');
+  const bytes = new Uint8Array(32); crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+}
+function tokenForPhoto(path) {
+  try { return localStorage.getItem(wallDeleteStorageKey(path)); } catch (_) { return null; }
+}
+function saveWallDeleteToken(path, token) {
+  try { localStorage.setItem(wallDeleteStorageKey(path), token); return true; } catch (_) { return false; }
+}
+function clearWallDeleteToken(path) {
+  try { localStorage.removeItem(wallDeleteStorageKey(path)); } catch (_) {}
+}
+function missingPhotoRemovalRpc(error) {
+  const msg = String(error?.message || '');
+  return error?.code === 'PGRST202' || /Could not find the function|schema cache|function.*does not exist/i.test(msg);
+}
+
 async function photoFingerprintPath() {
   if (!window.crypto || !window.crypto.subtle) return null;
   const hashHex = buffer => Array.from(new Uint8Array(buffer), b => b.toString(16).padStart(2, '0')).join('');
@@ -393,10 +416,23 @@ async function send() {
         return;
       }
     }
-    const r = await sb.rpc('add_wall_photo', { p_nickname: guest.nickname, p_path: path, p_frame: S.frame.id });
+    // The secured RPC registers a fresh ownership token together with the photo.
+    // If organizers have not yet run the SQL migration, preserve the old send flow.
+    const removeToken = makeWallDeleteToken();
+    let r = await sb.rpc('add_wall_photo_owned', {
+      p_nickname: guest.nickname, p_path: path, p_frame: S.frame.id, p_delete_token: removeToken
+    });
+    let removable = !r.error;
+    if (r.error && missingPhotoRemovalRpc(r.error)) {
+      r = await sb.rpc('add_wall_photo', { p_nickname: guest.nickname, p_path: path, p_frame: S.frame.id });
+      removable = false;
+    }
     if (r.error) throw new Error('Could not register photo: ' + r.error.message);
+    const tokenSaved = removable && saveWallDeleteToken(path, removeToken);
     S.sent = true; btn.textContent = 'Sent!'; m.className = 'msg ok';
     m.textContent = r.data.status === 'pending' ? 'Sent! The organizers will approve it, then it shows on the wall.' : 'Sent! Look at the big wall to see your photo.';
+    if (!removable) m.textContent += ' Ask the organizer to enable guest photo removal.';
+    else if (!tokenSaved) m.textContent += ' Note: This browser could not save your removal key; ask an organizer if you need to remove this photo.';
   } catch (e) {
     m.className = 'msg err'; m.textContent = (e && e.message) || 'Could not send the photo. Please try again.';
   } finally {
@@ -404,11 +440,60 @@ async function send() {
     if (!S.sent) btn.disabled = false;
   }
 }
+async function removeMyPhoto(path, button) {
+  const token = tokenForPhoto(path);
+  if (!token) return;
+  if (!confirm('Remove this photo from the Photo Wall and free one of your 12 slots? This cannot be undone in the gallery.')) return;
+  button.disabled = true;
+  $('mineInfo').textContent = 'Removing your photo from the wall...';
+  const r = await sb.rpc('guest_remove_wall_photo', {
+    p_nickname: guest.nickname, p_path: path, p_delete_token: token
+  });
+  if (r.error) {
+    button.disabled = false;
+    $('mineInfo').textContent = 'Could not remove photo: ' + r.error.message;
+    return;
+  }
+  clearWallDeleteToken(path);
+  await showMine();
+}
 async function showMine() {
-  $('mineM').hidden = false; const g = $('mineG'); g.textContent = ''; $('mineInfo').textContent = 'Loading...'; const r = await sb.rpc('my_wall_photos', { p_nickname: guest.nickname });
-  if (r.error) { $('mineInfo').textContent = r.error.message; return; } const list = r.data || []; $('mineInfo').textContent = list.length ? `You sent ${list.length} of 12 photos.` : 'You have not sent any photos yet.';
+  $('mineM').hidden = false;
+  const g = $('mineG'); g.textContent = '';
+  $('mineInfo').textContent = 'Loading your photos...';
+  const r = await sb.rpc('my_wall_photos', { p_nickname: guest.nickname });
+  if (r.error) { $('mineInfo').textContent = r.error.message; return; }
+  const list = Array.isArray(r.data) ? r.data : [];
+  $('mineInfo').textContent = list.length
+    ? `You sent ${list.length} of 12 photos · ${Math.max(0, 12 - list.length)} slots remaining.`
+    : 'You have not sent any photos yet · 12 slots remaining.';
   const lab = { approved: 'On the wall', pending: 'Waiting for approval', hidden: 'Hidden' };
-  list.forEach(p => { const fg = document.createElement('figure'), im = document.createElement('img'), cp = document.createElement('figcaption'); im.src = sb.storage.from(BUCKET).getPublicUrl(p.path).data.publicUrl; im.alt = 'My photo'; cp.textContent = lab[p.status] || p.status; fg.append(im, cp); g.appendChild(fg); });
+  list.forEach(p => {
+    const fg = document.createElement('figure'), im = document.createElement('img');
+    const cp = document.createElement('figcaption');
+    im.src = sb.storage.from(BUCKET).getPublicUrl(p.path).data.publicUrl;
+    im.alt = 'My Photo Wall submission'; im.loading = 'lazy';
+    cp.textContent = lab[p.status] || p.status;
+    fg.append(im, cp);
+    if (tokenForPhoto(p.path)) {
+      const button = document.createElement('button');
+      button.type = 'button'; button.className = 'btn s w';
+      button.style.cssText = 'display:block;margin:8px auto 2px;font-size:.82rem;padding:5px 10px';
+      button.textContent = 'Remove from wall';
+      button.addEventListener('click', () => removeMyPhoto(p.path, button));
+      fg.appendChild(button);
+    } else {
+      const note = document.createElement('small');
+      note.style.cssText = 'display:block;margin:5px auto 0;max-width:175px;font-size:.7rem;color:#6c655e';
+      note.textContent = 'Earlier photo or different device — ask the organizer to remove.';
+      fg.appendChild(note);
+    }
+    g.appendChild(fg);
+  });
+  const note = document.createElement('p');
+  note.style.cssText = 'font-size:.8rem;line-height:1.45;margin:12px 0 2px;color:#625b50';
+  note.textContent = 'For your protection, only photos sent from this browser after the removal update can be removed here. Removing a photo frees one slot; the organizer may need to separately clear its stored image file.';
+  g.appendChild(note);
 }
 
 /* ---------- wiring ---------- */
