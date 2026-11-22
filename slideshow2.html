@@ -447,7 +447,7 @@ body.idle-out{cursor:none}
         <div class="grp">
           <button class="btn s y" id="addText" type="button">+ Text</button>
           <button class="btn s y" id="addImg" type="button">+ Image</button>
-          <button class="btn s y" id="addVideo" type="button" title="Upload an MP4 or WebM to this slide">+ Video</button>
+          <button class="btn s y" id="addVideo" type="button" title="Upload MP4 or WebM up to 100 MB (Supabase paid plan required above 50 MB)">+ Video</button>
           <select id="addShape" aria-label="Add shape"><option value="">+ Shape</option><option value="rect">Rectangle</option><option value="round">Rounded box</option><option value="circle">Circle</option><option value="pill">Pill</option></select>
           <button class="btn s y" id="addArch" type="button">+ Arch</button>
           <button class="btn s y" id="addCd" type="button">+ Countdown</button>
@@ -1237,8 +1237,69 @@ async function uploadImage(file) {
   $('saveSt').textContent = ''; return sb.storage.from(C.uploadBucket).getPublicUrl(path).data.publicUrl;
 }
 
-/* ---------- video uploads (existing talent-uploads bucket; no database migration) ---------- */
-const VIDEO_MAX_BYTES=Math.min(50,Number(C.maxFileMB)||50)*1024*1024;
+/* ---------- Slideshow 2 video uploads: 100 MB max, resilient resumable transfer. ---------- */
+// Independent from CONFIG.maxFileMB (that 50 MB limit is for talent entries).
+const VIDEO_MAX_BYTES = 100 * 1024 * 1024;
+const VIDEO_TUS_THRESHOLD = 6 * 1024 * 1024;
+const VIDEO_BUCKET = C.uploadBucket || 'talent-uploads';
+let tusLibraryPromise = null;
+function ensureVideoTus() {
+  if (window.tus && window.tus.Upload) return Promise.resolve();
+  if (tusLibraryPromise) return tusLibraryPromise;
+  tusLibraryPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js';
+    script.async = true;
+    script.onload = () => window.tus && window.tus.Upload ? resolve() : reject(new Error('Video uploader could not start. Please check the internet connection.'));
+    script.onerror = () => reject(new Error('Could not load the resumable video uploader. Please check the internet connection.'));
+    document.head.appendChild(script);
+  }).catch(error => { tusLibraryPromise = null; throw error; });
+  return tusLibraryPromise;
+}
+function videoTusEndpoint() {
+  const url = new URL(C.SUPABASE_URL);
+  if (url.hostname.endsWith('.supabase.co') && !url.hostname.endsWith('.storage.supabase.co')) {
+    url.hostname = url.hostname.replace(/\.supabase\.co$/, '.storage.supabase.co');
+  }
+  return url.origin + '/storage/v1/upload/resumable';
+}
+async function storeVideoFile(file, path, progress) {
+  if (file.size <= VIDEO_TUS_THRESHOLD) {
+    const {error} = await sb.storage.from(VIDEO_BUCKET).upload(path, file, {
+      contentType: file.type || 'video/mp4', cacheControl: '3600', upsert: false
+    });
+    if (error) throw new Error(error.message);
+    progress(100);
+    return;
+  }
+  await ensureVideoTus();
+  await new Promise((resolve, reject) => {
+    const uploader = new window.tus.Upload(file, {
+      endpoint: videoTusEndpoint(),
+      retryDelays: [0, 3000, 5000, 10000, 20000],
+      headers: {authorization: 'Bearer ' + C.SUPABASE_ANON_KEY, apikey: C.SUPABASE_ANON_KEY},
+      uploadDataDuringCreation: true,
+      removeFingerprintOnSuccess: true,
+      chunkSize: 6 * 1024 * 1024,
+      metadata: {bucketName: VIDEO_BUCKET, objectName: path, contentType: file.type || 'video/mp4', cacheControl: '3600'},
+      onError: reject,
+      onProgress: (done, total) => progress(total > 0 ? Math.min(100, Math.round(done / total * 100)) : 0),
+      onSuccess: resolve
+    });
+    // Retries are automatic if the connection temporarily drops.
+    uploader.start();
+  });
+}
+function describeVideoUploadError(err) {
+  const msg = String(err?.message || err || 'Unknown upload error');
+  if (/413|payload too large|entity too large|maximum allowed size|file size limit|exceeded.*size|exceeds.*limit/i.test(msg)) {
+    return 'Your Supabase storage limit is still below 100 MB. On paid Supabase, set Storage global and talent-uploads bucket limits to 100 MB. Supabase Free cannot exceed 50 MB.';
+  }
+  if (/row-level security|security policy|not authorized|unauthorized/i.test(msg)) {
+    return 'Storage upload permission was denied. Check the talent-uploads bucket policy.';
+  }
+  return msg;
+}
 let videoTarget=null, videoSlideTarget=null, videoUploading=false;
 function chooseVideo(target=null){
  if(videoUploading)return;
@@ -1259,18 +1320,17 @@ $('videoIn').addEventListener('change',async()=>{
    $('saveSt').textContent='Choose an MP4 or WebM video. Convert MOV files to MP4 first.';return;
  }
  if(file.size>VIDEO_MAX_BYTES){
-   $('saveSt').textContent='Video too large for the existing '+Math.round(VIDEO_MAX_BYTES/1048576)+' MB upload bucket. Compress to MP4 and retry.';return;
+   $('saveSt').textContent='This video exceeds the 100 MB maximum. Please compress it to 100 MB or less.';return;
  }
  const at=deck.slides.find(x=>x.id===videoSlideTarget), vidID=videoTarget;
  if(!at){$('saveSt').textContent='The original slide is no longer available';return;}
  videoUploading=true;const btn=$('addVideo');btn.disabled=true;btn.textContent='Uploading…';
- $('saveSt').textContent='Uploading video… Please keep this page open.';
+ $('saveSt').textContent='Uploading video (0%) — keep this page open.';
  try{
    const name=file.name.replace(/[^\w.-]/g,'_').slice(-70);
    const path='slides2-videos/'+Date.now()+'-'+uid()+'-'+name;
-   const {error}=await sb.storage.from(C.uploadBucket||'talent-uploads').upload(path,file,{contentType:file.type||'video/mp4',cacheControl:'3600',upsert:false});
-   if(error)throw Error(error.message);
-   const result=sb.storage.from(C.uploadBucket||'talent-uploads').getPublicUrl(path);
+   await storeVideoFile(file, path, percent => { $('saveSt').textContent='Uploading video ('+percent+'%) — keep this page open.'; });
+   const result=sb.storage.from(VIDEO_BUCKET).getPublicUrl(path);
    const url=result.data?.publicUrl;
    if(!url)throw Error('Video uploaded but no public URL was returned');
    let element=vidID?at.els.find(x=>x.id===vidID&&x.t==='video'):null;
@@ -1282,7 +1342,7 @@ $('videoIn').addEventListener('change',async()=>{
    if(slide().id===at.id){selId=element.id;renderMain(false);buildBar();buildProps();refreshThumb(sel);}
    commit();$('saveSt').textContent='Video uploaded and saved to this slide';
  }catch(err){
-   $('saveSt').textContent='Video upload failed: '+(err?.message||String(err));
+   $('saveSt').textContent='Video upload failed: '+describeVideoUploadError(err);
  }finally{videoUploading=false;btn.disabled=false;btn.textContent='+ Video';videoSlideTarget=null;videoTarget=null;}
 });
 function playSelectedVideo(){
@@ -1404,6 +1464,7 @@ function buildProps() {
       const u=h('input',{type:'url',placeholder:'https://.../clip.mp4'});
       u.value=e.src||'';u.addEventListener('change',()=>{const v=u.value.trim();if(v&&!/^https?:\/\//i.test(v)){u.setCustomValidity('Enter a direct https:// video URL');u.reportValidity();return;}u.setCustomValidity('');e.src=v;renderMain(false);commit();refreshThumb(sel);});
       p.append(field('Video URL (optional alternative to uploading)',u));
+      p.append(h('p',{class:'hint'},'Video uploads: up to 100 MB. Files above 50 MB require a paid Supabase project with global and bucket limits set to at least 100 MB. You can paste a direct hosted MP4/WebM URL instead.'));
       p.append(h('div',{class:'g2'},field('Screen fit',selIn({contain:'Show entire video',cover:'Fill screen (crop edges)'},()=>e.fit||'contain',v=>e.fit=v)),field('Repeat',selIn({no:'Play once',yes:'Loop continuously'},()=>e.loop?'yes':'no',v=>e.loop=v==='yes'))));
       p.append(field('Audio on the LED',selIn({on:'Play with sound',off:'Mute sound'},()=>e.muted?'off':'on',v=>e.muted=v==='off')));
       p.append(h('p',{class:'hint'},'The LED screen starts the video when this slide appears. If the browser blocks sound, press PLAY VIDEO WITH SOUND on that screen. For PDF export, videos appear as static placeholders.'));
