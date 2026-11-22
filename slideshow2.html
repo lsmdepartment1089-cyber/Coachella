@@ -361,6 +361,34 @@ body.idle-out{cursor:none}
 .stage .e-text[data-ramp-title="true"] .in.editing{
   -webkit-text-fill-color:#ffbc0d;background:rgba(16,8,30,.6);
 }
+
+/* ===== DESERT SEARCH: "Searching for the King & Queen of the Desert" (LED background) ===== */
+.stage .bg.desert-bg{background:linear-gradient(#0b0612 0%,#2a1245 34%,#8b2f6b 56%,#ff6a3d 74%,#ffb347 86%);isolation:isolate}
+.desert-bg .d-stars{position:absolute;left:0;right:0;top:0;height:540px;
+  background:radial-gradient(2px 2px at 12% 18%,#fff,transparent),radial-gradient(2px 2px at 27% 8%,#fff,transparent),
+  radial-gradient(3px 3px at 41% 22%,#ffe2b0,transparent),radial-gradient(2px 2px at 58% 10%,#fff,transparent),
+  radial-gradient(2px 2px at 73% 20%,#fff,transparent),radial-gradient(3px 3px at 88% 12%,#ffe2b0,transparent),
+  radial-gradient(2px 2px at 95% 30%,#fff,transparent),radial-gradient(2px 2px at 6% 36%,#fff,transparent);
+  animation:desert-twinkle 3.5s ease-in-out infinite alternate}
+@keyframes desert-twinkle{from{opacity:.45}to{opacity:1}}
+.desert-bg .d-sun{position:absolute;left:50%;top:700px;width:520px;height:520px;margin-left:-260px;border-radius:50%;
+  background:radial-gradient(circle,#fff6d6 0,#ffbc0d 38%,#ff6a3d 68%,transparent 72%);box-shadow:0 0 220px 90px rgba(255,106,61,.55)}
+.desert-bg .d-search{position:absolute;bottom:150px;width:420px;height:1000px;transform-origin:50% 100%;
+  background:linear-gradient(to top,rgba(255,240,200,.85),rgba(255,240,200,0) 90%);
+  clip-path:polygon(0 0,100% 0,56% 100%,44% 100%);mix-blend-mode:screen;animation:desert-scan 7s ease-in-out infinite alternate}
+.desert-bg .d-search.l{left:230px;--d-a:-28deg;--d-b:22deg}
+.desert-bg .d-search.r{right:230px;--d-a:28deg;--d-b:-22deg;animation-delay:-3s}
+@keyframes desert-scan{from{transform:rotate(var(--d-a))}to{transform:rotate(var(--d-b))}}
+.desert-bg .d-dunes{position:absolute;left:0;bottom:0;width:100%;height:420px}
+.desert-bg .d-cactus{position:absolute;bottom:60px;fill:#1a0b27}
+.desert-bg .d-seek{position:absolute;top:660px;width:300px;text-align:center;font-family:'Anton','Impact',sans-serif;
+  font-size:120px;line-height:1;color:#fff;text-shadow:0 0 30px rgba(255,255,255,.7)}
+.desert-bg .d-seek.k{left:300px}.desert-bg .d-seek.q{right:300px}
+.desert-bg .d-seek svg{display:block;margin:0 auto;width:230px;height:160px;fill:none;stroke:#ffbc0d;stroke-width:6;
+  stroke-dasharray:16 12;stroke-linejoin:round;filter:drop-shadow(0 0 22px rgba(255,188,13,.9));animation:desert-float 3.2s ease-in-out infinite alternate}
+.desert-bg .d-seek.q svg{stroke:#ff4f81;filter:drop-shadow(0 0 22px rgba(255,79,129,.9));animation-delay:-1.6s}
+@keyframes desert-float{from{transform:translateY(0)}to{transform:translateY(-26px)}}
+@media(prefers-reduced-motion:reduce){.desert-bg .d-stars,.desert-bg .d-search,.desert-bg .d-seek svg{animation:none!important}}
 @media(prefers-reduced-motion:reduce){
   .fashion-ramp-bg .ramp-beam,.fashion-ramp-bg .ramp-runway::before,
   .fashion-ramp-bg .ramp-runway::after,.fashion-ramp-bg .ramp-centerline,
@@ -500,6 +528,7 @@ function hills() {
 }
 const clouds = '<div class="cl c1"></div><div class="cl c2"></div><div class="cl c3"></div>';
 function bgHtml(k) {
+  if(k==='desert-search')return '<div class="bg desert-bg"><div class="d-stars"></div><div class="d-sun"></div><div class="d-search l"></div><div class="d-search r"></div><svg class="d-dunes" viewBox="0 0 1920 420" preserveAspectRatio="none"><path d="M0 220 C260 120 520 260 820 190 C1120 120 1420 270 1920 170 L1920 420 L0 420Z" fill="#5a1a4a"/><path d="M0 290 C300 210 600 330 960 260 C1320 190 1600 320 1920 250 L1920 420 L0 420Z" fill="#3b1038"/><path d="M0 360 C340 300 700 390 1040 340 C1400 290 1680 380 1920 330 L1920 420 L0 420Z" fill="#1a0b27"/></svg><svg class="d-cactus" style="left:90px;width:130px;height:260px" viewBox="0 0 130 260"><rect x="50" y="20" width="30" height="240" rx="15"/><rect x="0" y="90" width="26" height="80" rx="13"/><rect x="0" y="150" width="56" height="26" rx="13"/><rect x="104" y="60" width="26" height="80" rx="13"/><rect x="74" y="120" width="56" height="26" rx="13"/></svg><svg class="d-cactus" style="right:110px;width:110px;height:210px" viewBox="0 0 130 260"><rect x="50" y="20" width="30" height="240" rx="15"/><rect x="0" y="90" width="26" height="80" rx="13"/><rect x="0" y="150" width="56" height="26" rx="13"/><rect x="104" y="60" width="26" height="80" rx="13"/><rect x="74" y="120" width="56" height="26" rx="13"/></svg><div class="d-seek k"><svg viewBox="0 0 300 210"><path d="M20 190 L5 50 L80 110 L150 15 L220 110 L295 50 L280 190 Z"/></svg>?</div><div class="d-seek q"><svg viewBox="0 0 300 210"><path d="M25 190 L10 70 L70 120 L110 40 L150 125 L190 40 L230 120 L290 70 L275 190 Z"/></svg>?</div></div>';
   if(k==='fashion-ramp')return '<div class="bg fashion-ramp-bg"><div class="ramp-beam"></div><div class="ramp-beam"></div><div class="ramp-beam"></div><div class="ramp-horizon"></div><div class="ramp-runway-wrap"><div class="ramp-runway"><div class="ramp-centerline"></div></div></div><div class="ramp-flashes"><div class="ramp-flash"></div><div class="ramp-flash"></div><div class="ramp-flash"></div><div class="ramp-flash"></div><div class="ramp-flash"></div><div class="ramp-flash"></div></div></div>';
   if(k==='clean-electric')return '<div class="bg clean-electric"></div>';
   if (k === 'party') { let c = ''; const cols = ['#FFF000', '#FF1493', '#FF6B00', '#F5FBFF', '#fff']; for (let i = 0; i < 70; i++) { const w = 10 + Math.random() * 16; c += `<i style="left:${Math.random() * 100}%;width:${w}px;height:${w * 1.5}px;background:${cols[i % 5]};animation-duration:${5 + Math.random() * 7}s;animation-delay:${-Math.random() * 12}s"></i>`; } return `<div class="bg party"><div class="cf">${c}</div></div>`; }
@@ -510,7 +539,7 @@ function bgHtml(k) {
   if (k === 'day') return `<div class="bg day"><div class="sunb"></div>${clouds}${hills()}</div>`;
   return `<div class="bg sunset"><div class="sunb"></div>${clouds}${hills()}</div>`;
 }
-const BG_NAMES = { 'fashion-ramp':'Fashion Ramp — animated runway', 'clean-electric':'Electric minimal (game rules)', sunset: 'Sunset arches', rays: 'Golden rays', arches: 'Arches pattern', night: 'Night festival', day: 'Blue sky', party: 'Confetti party', stage: 'Stage lights' };
+const BG_NAMES = { 'fashion-ramp':'Fashion Ramp — animated runway', 'desert-search':'Desert searchlights — King & Queen', 'clean-electric':'Electric minimal (game rules)', sunset: 'Sunset arches', rays: 'Golden rays', arches: 'Arches pattern', night: 'Night festival', day: 'Blue sky', party: 'Confetti party', stage: 'Stage lights' };
 const TRANS = { fade: 'Fade', slide: 'Slide from the right', slideup: 'Slide up', zoom: 'Zoom', flip: 'Flip', spin: 'Twist', blur: 'Blur', wipe: 'Wipe', bounce: 'Bounce in', drop: 'Drop in' };
 
 /* ---------- elements ---------- */
@@ -560,6 +589,11 @@ const TPL = {
     tx({key:'fashionTitle',x:125,y:270,w:1670,text:f.title,font:'Anton',size:280,color:'#FFBC0D',b:true,up:true,al:'center',sh:'glow',anim:'zoom',lh:.98,ls:4}),
     tx({key:'fashionSubtitle',x:160,y:886,w:1600,text:f.subtitle,font:'Bodoni Moda',size:55,color:'#FFFFFF',b:true,i:true,al:'center',sh:'soft',anim:'fade',lh:1.22})
   ],
+  desertSearch: f => [
+    tx({key:'desertBrand',x:1100,y:39,w:760,text:f.brand,font:'Bodoni Moda',size:34,color:'#FFE2B0',b:true,i:true,al:'right',sh:'soft',anim:'fade',lh:1.2}),
+    tx({key:'desertKicker',x:170,y:90,w:1580,text:f.kicker,font:'Bodoni Moda',size:84,color:'#FFE2B0',b:true,i:true,al:'center',sh:'soft',anim:'rise',lh:1.18}),
+    tx({key:'desertTitle',x:125,y:205,w:1670,text:f.title,font:'Anton',size:210,color:'#FFBC0D',b:true,up:true,al:'center',sh:'glow',anim:'zoom',lh:1,ls:3})
+  ],
   blank: () => [],
   title: f => { const S = fsz((f.title || '').length, [[10, 280], [16, 210], [26, 160], [40, 120], [999, 90]]);
     return col([item(127, y => [arch({ x: 865, y })]), f.kicker && item(46, y => [tx({ y, text: f.kicker, size: 34, up: true, ls: 17, color: '#FFE9A8', lh: 1 })]),
@@ -589,6 +623,7 @@ const TPL = {
 };
 const LAYOUTS = {
   fashionRamp: { name: 'Fashion Ramp — animated runway', info: 'Spotlights, runway lights & four editable text fields', bg: 'fashion-ramp', d: { brand: "McDonald’s Santa Rosa Bayan", kicker: "It’s time to", title: 'Fashion\nRamp', subtitle: 'Year End Party: Beyond the Arches' } },
+  desertSearch: { name: 'Searching for King & Queen — desert', info: 'Desert sunset, searchlights & three editable text fields', bg: 'desert-search', d: { brand: "McDonald’s Santa Rosa Bayan", kicker: 'Searching for the', title: 'King & Queen\nof the Desert' } },
   blank: { name: 'Blank slide', info: 'Start from nothing and add your own', d: {} },
   title: { name: 'Title', info: 'Opening slide with the party name', d: { kicker: 'Coachella: Beyond the Arches', title: 'Year End Party', sub: C.partyName, line: C.when + ' · ' + C.where } },
   segment: { name: 'Program segment', info: 'Number, time, title and description', d: { num: '01', time: '6:00 PM', title: 'Segment title', desc: '', host: '' } },
@@ -887,7 +922,7 @@ function timerHtml(e) {
   return `<div class="tmr s-${st}" data-end="${esc(e.end || "TIME'S UP!")}" style="--p:1;transform:scale(${e.w / TDES[st][0]})">${inner}</div>`;
 }
 function elNode(e, i) {
-  const o = document.createElement('div'); o.className = 'el e-' + e.t; o.dataset.id = e.id; if(e.key==='fashionTitle')o.dataset.rampTitle='true'; o.dataset.anim = e.anim || 'rise'; o.dataset.loop = e.loop || 'none'; o.dataset.step = e.step || 0;
+  const o = document.createElement('div'); o.className = 'el e-' + e.t; o.dataset.id = e.id; if(e.key==='fashionTitle'||e.key==='desertTitle')o.dataset.rampTitle='true'; o.dataset.anim = e.anim || 'rise'; o.dataset.loop = e.loop || 'none'; o.dataset.step = e.step || 0;
   let st = `left:${e.x}px;top:${e.y}px;width:${e.w}px;transform:rotate(${e.r || 0}deg);opacity:${e.op == null ? 1 : e.op};--i:${i};--dl:${e.delay || 0}s;`;
   const lp = document.createElement('div'); lp.className = 'lp'; const n = document.createElement('div'); n.className = 'in';
   if (e.t === 'text') {
@@ -1214,6 +1249,21 @@ function buildProps() {
       p.append(field(label,inp));
     });
     p.append(h('p',{class:'hint'},'You can also double-click any text directly on the slide. The runway background is available for other slides under Moving background.'));
+  }
+  if(s.type==='desertSearch'){
+    p.append(h('div',{class:'sec'}),h('h3',{},'King & Queen search — editable words'));
+    [
+      ['Top-right brand','desertBrand','input'],
+      ['Intro line','desertKicker','input'],
+      ['Main headline','desertTitle','textarea']
+    ].forEach(([label,key,tag])=>{
+      const el=s.els.find(x=>x.key===key);if(!el)return;
+      const inp=h(tag,{'aria-label':label});inp.value=el.text||'';
+      if(tag==='textarea')inp.style.minHeight='70px';
+      inp.addEventListener('input',()=>{el.text=inp.value;renderMain(false);commitSoon();});
+      p.append(field(label,inp));
+    });
+    p.append(h('p',{class:'hint'},'You can also double-click any text directly on the slide.'));
   }
   const tsel = h('select', { 'aria-label': 'Slide change effect' }); tsel.appendChild(h('option', { value: '' }, 'Default (' + (TRANS[deck.transition] || 'Fade') + ')')); Object.entries(TRANS).forEach(([k, v]) => tsel.appendChild(h('option', { value: k }, v))); tsel.value = s.tr || '';
   tsel.addEventListener('change', () => { if (tsel.value) s.tr = tsel.value; else delete s.tr; commit(); });
