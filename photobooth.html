@@ -373,14 +373,50 @@ const liveSlotIdx = () => B.live == null ? null : B.tpl.layout.map.indexOf(B.liv
 function phShot() { const ph = document.createElement('canvas'); ph.width = ph.height = 240; const px = ph.getContext('2d'), g = px.createLinearGradient(0, 0, 240, 240); g.addColorStop(0, '#f6c28b'); g.addColorStop(1, '#e8758a'); px.fillStyle = g; px.fillRect(0, 0, 240, 240); px.fillStyle = 'rgba(255,255,255,.6)'; px.beginPath(); px.arc(120, 100, 44, 0, TAU); px.fill(); px.fillRect(70, 150, 100, 90); return { raw: ph, zoom: 1 }; }
 let PH = null;
 function thumbOf(tpl, hpx) { PH = PH || phShot(); const L = tpl.layout, k = hpx / L.h, cv = document.createElement('canvas'); cv.width = Math.round(L.w * k); cv.height = hpx; renderBooth(cv.getContext('2d'), tpl, k, { liveSlot: null, shots: [PH, PH, PH, PH], filter: FILTERS[0], caption: B.caption }); return cv; }
+let boothThumbObserver=null;
+let boothThumbGeneration=0;
 function buildHome() {
-  const lc = $('layChips'); lc.textContent = ''; const cats = [['all', 'All templates'], ...Object.keys(LAY).map(k => [k, LAY[k].label])];
-  cats.forEach(([k, lab]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = lab + (k === 'all' ? ' (' + TPLS.length + ')' : ''); b.setAttribute('aria-pressed', B.filterF === k); b.addEventListener('click', () => { B.filterF = k; buildHome(); }); lc.appendChild(b); });
-  const tcs = $('thChips'); tcs.textContent = ''; [['all', 'All themes'], ...Object.keys(TH).map(k => [k, TH[k].name])].forEach(([k, lab]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = lab; b.setAttribute('aria-pressed', B.themeF === k); b.addEventListener('click', () => { B.themeF = k; buildHome(); }); tcs.appendChild(b); });
-  const g = $('tgrid'); g.textContent = '';
-  visT().forEach(t => { const b = document.createElement('button'); b.type = 'button'; b.className = 'tc'; b.setAttribute('aria-pressed', t === B.tpl); b.appendChild(thumbOf(t, 150)); b.append(t.name + ' · ' + t.layout.label); b.addEventListener('click', () => { B.tpl = t; markSel(); }); g.appendChild(b); });
-  const fc = $('fltChips'); fc.textContent = ''; FILTERS.forEach(f => { const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = f.name; b.setAttribute('aria-pressed', f === B.filter); b.addEventListener('click', () => { B.filter = f; [...fc.children].forEach((x, i) => x.setAttribute('aria-pressed', FILTERS[i] === f)); }); fc.appendChild(b); });
-  markSel(); markOpts();
+  // Building all 146 templates synchronously blocks taps and scrolling.
+  if(boothThumbObserver){boothThumbObserver.disconnect();boothThumbObserver=null;}
+  const generation=++boothThumbGeneration;
+  const lc=$('layChips');lc.textContent='';
+  const cats=[['all','All templates'],...Object.keys(LAY).map(k=>[k,LAY[k].label])];
+  cats.forEach(([k,lab])=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=lab+(k==='all'?' ('+TPLS.length+')':'');b.setAttribute('aria-pressed',B.filterF===k);b.addEventListener('click',()=>{B.filterF=k;buildHome();});lc.appendChild(b);});
+  const tcs=$('thChips');tcs.textContent='';
+  [['all','All themes'],...Object.keys(TH).map(k=>[k,TH[k].name])].forEach(([k,lab])=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=lab;b.setAttribute('aria-pressed',B.themeF===k);b.addEventListener('click',()=>{B.themeF=k;buildHome();});tcs.appendChild(b);});
+  const g=$('tgrid');g.textContent='';
+  // Render only thumbnails near the viewport. A small queue avoids blocking one frame.
+  const pending=[];let scheduled=false;
+  function process(){
+    scheduled=false;if(generation!==boothThumbGeneration)return;
+    let done=0;
+    while(pending.length&&done<2){const task=pending.shift();if(!task.cv.isConnected)continue;
+      renderBooth(task.cv.getContext('2d'),task.tpl,task.cv.height/task.tpl.layout.h,{liveSlot:null,shots:[PH,PH,PH,PH],filter:FILTERS[0],caption:B.caption});
+      done++;
+    }
+    if(pending.length){scheduled=true;requestAnimationFrame(process);}
+  }
+  function queue(cv,tpl){pending.push({cv,tpl});if(!scheduled){scheduled=true;requestAnimationFrame(process);}}
+  PH=PH||phShot();
+  const visible=visT();
+  const useObserver='IntersectionObserver' in window;
+  if(useObserver){boothThumbObserver=new IntersectionObserver(entries=>{
+    for(const entry of entries){if(!entry.isIntersecting)continue;
+      boothThumbObserver.unobserve(entry.target);
+      const idx=Number(entry.target.dataset.tplIndex);
+      if(visible[idx])queue(entry.target,visible[idx]);
+    }
+  },{root:null,rootMargin:'220px 0px'});}
+  visible.forEach((t,i)=>{
+    const b=document.createElement('button');b.type='button';b.className='tc';b.setAttribute('aria-pressed',t===B.tpl);
+    const cv=document.createElement('canvas'),k=150/t.layout.h;
+    cv.width=Math.round(t.layout.w*k);cv.height=150;cv.dataset.tplIndex=String(i);
+    b.appendChild(cv);b.append(t.name+' · '+t.layout.label);
+    b.addEventListener('click',()=>{B.tpl=t;markSel();});g.appendChild(b);
+    if(useObserver)boothThumbObserver.observe(cv);else queue(cv,t);
+  });
+  const fc=$('fltChips');fc.textContent='';FILTERS.forEach(f=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=f.name;b.setAttribute('aria-pressed',f===B.filter);b.addEventListener('click',()=>{B.filter=f;[...fc.children].forEach((x,i)=>x.setAttribute('aria-pressed',FILTERS[i]===f));});fc.appendChild(b);});
+  markSel();markOpts();
 }
 function markSel() { [...$('tgrid').children].forEach(b => b.setAttribute('aria-pressed', false)); const vis = visT(), i = vis.indexOf(B.tpl); if (i >= 0) $('tgrid').children[i].setAttribute('aria-pressed', true);
   $('selName').textContent = B.tpl.name + ' · ' + B.tpl.layout.label + ' · ' + B.tpl.layout.shots + (B.tpl.layout.shots > 1 ? ' photos' : ' photo');
@@ -437,21 +473,31 @@ $('guestScreenBtn').addEventListener('click', async () => {
   guestStatus();
   await guestPreviewCamera();guestState();guestDrawFrame();
 });
+let guestDisplayReady=false;
 if (guestChannel) {
-  guestChannel.onmessage=e=>{if(e.data && e.data.type==='ready'){guestState();guestDrawFrame();guestStatus();}};
-  guestFrameTimer=setInterval(()=>{if(B.mode==='home')guestPreviewCamera();guestState();guestDrawFrame();},300);
+  guestChannel.onmessage=e=>{if(!e.data)return;
+    if(e.data.type==='ready'){guestDisplayReady=true;guestState();guestDrawFrame();guestStatus();}
+    if(e.data.type==='offline'){guestDisplayReady=false;guestStatus();}
+  };
+  guestFrameTimer=setInterval(()=>{
+    if(!guestDisplayReady)return;
+    if(B.mode==='home')guestPreviewCamera();
+    guestState();guestDrawFrame();
+  },500);
 }
-addEventListener('pagehide',()=>{guestSend({type:'offline'});if(guestFrameTimer)clearInterval(guestFrameTimer);});
+addEventListener('pagehide',()=>{guestSend({type:'offline'});if(guestFrameTimer)clearInterval(guestFrameTimer);stopCam();});
 
 /* ---------- camera ---------- */
 function demoStream() {
   const cv = document.createElement('canvas'); cv.width = 1280; cv.height = 720; const c = cv.getContext('2d'); let t = 0;
-  (function f() { t += .03; const g = c.createLinearGradient(0, 0, 1280, 720); g.addColorStop(0, `hsl(${(t * 30) % 360},70%,62%)`); g.addColorStop(1, `hsl(${(t * 30 + 80) % 360},70%,45%)`); c.fillStyle = g; c.fillRect(0, 0, 1280, 720);
+  let animationId=null, active=true;
+  B.demoStop=()=>{active=false;if(animationId)cancelAnimationFrame(animationId);};
+  (function f() { if(!active)return; t += .03; const g = c.createLinearGradient(0, 0, 1280, 720); g.addColorStop(0, `hsl(${(t * 30) % 360},70%,62%)`); g.addColorStop(1, `hsl(${(t * 30 + 80) % 360},70%,45%)`); c.fillStyle = g; c.fillRect(0, 0, 1280, 720);
     const dx = Math.sin(t) * 30; c.fillStyle = 'rgba(255,255,255,.9)'; c.beginPath(); c.arc(640 + dx, 290, 120, 0, TAU); c.fill(); c.fillRect(470 + dx, 420, 340, 300); c.fillStyle = '#27251F'; c.beginPath(); c.arc(600 + dx, 270, 12, 0, TAU); c.arc(680 + dx, 270, 12, 0, TAU); c.fill(); c.lineWidth = 8; c.strokeStyle = '#27251F'; c.beginPath(); c.arc(640 + dx, 310, 50, .2, Math.PI - .2); c.stroke();
-    c.font = '800 44px "Nunito Sans"'; c.textAlign = 'center'; c.fillStyle = '#fff'; c.fillText('DEMO CAMERA', 640, 80); requestAnimationFrame(f); })();
+    c.font = '800 44px "Nunito Sans"'; c.textAlign = 'center'; c.fillStyle = '#fff'; c.fillText('DEMO CAMERA', 640, 80); animationId=requestAnimationFrame(f); })();
   return cv.captureStream(30);
 }
-function stopCam() { if (B.stream) B.stream.getTracks().forEach(t => t.stop()); B.stream = null; }
+function stopCam() { if(B.demoStop){B.demoStop();B.demoStop=null;} if (B.stream) B.stream.getTracks().forEach(t => t.stop()); B.stream = null; }
 async function ensureCam() {
   if (B.stream) return true;
   try {
@@ -613,7 +659,7 @@ $('fsBtn').addEventListener('click', () => { if (document.fullscreenElement) doc
 new ResizeObserver(() => { if (B.mode === 'shoot') layoutStage(); }).observe($('stage'));
 
 /* ---------- login + start ---------- */
-async function init() { await loadFonts(); stats(); prStat(); buildHome(); setMode('home'); if(guestChannel) guestPreviewCamera(); if (LSget('booth_qz', '0') === '1') findPrinters(); }
+async function init() { await loadFonts(); stats(); prStat(); buildHome(); setMode('home'); if(guestDisplayReady) guestPreviewCamera(); if (LSget('booth_qz', '0') === '1') findPrinters(); }
 async function enter(pw) { const r = await sb.rpc('admin_list', { p_password: pw }); if (r.error) return r.error.message; SS.set('fest_admin_pw', pw); $('gate').hidden = true; $('app').hidden = false; await init(); return null; }
 $('gateForm').addEventListener('submit', async e => { e.preventDefault(); $('gateBtn').disabled = true; $('gateMsg').textContent = ''; const err = await enter($('pw').value); $('gateBtn').disabled = false; if (err) $('gateMsg').textContent = err; });
 
