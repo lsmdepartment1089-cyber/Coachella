@@ -9,9 +9,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Cormorant+Garamond:wght@500;600&family=Nunito+Sans:wght@400;600;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
 <script src="config.js"></script>
 <style>
 :root{--red:#DA291C;--yellow:#FFC72C;--dark:#27251F;--cream:#FFF4D6;--orange:#FF8A1F;--page:#FFF9EA;
@@ -578,6 +578,20 @@ body.presenting .wactions{display:none}
 
 <script>
 const $ = id => document.getElementById(id);
+/* Load heavier optional libraries only when their tools are opened. */
+const optionalLibraries=new Map();
+function loadOptionalLibrary(key,url,available){
+  if(available())return Promise.resolve();
+  if(optionalLibraries.has(key))return optionalLibraries.get(key);
+  const promise=new Promise((resolve,reject)=>{
+    const s=document.createElement('script');s.src=url;s.async=true;
+    s.onload=()=>available()?resolve():reject(Error(key+' unavailable after load'));
+    s.onerror=()=>reject(Error('Unable to download '+key+'. Check your internet connection.'));
+    document.head.appendChild(s);
+  }).catch(e=>{optionalLibraries.delete(key);throw e;});
+  optionalLibraries.set(key,promise);return promise;
+}
+
 const C = window.CONFIG;
 document.documentElement.classList.add('js');
 const sb = supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY);
@@ -917,7 +931,8 @@ async function handleGuestQr(decodedText) {
   finally { setTimeout(() => { scanBusy = false; }, 1400); }
 }
 $('scanStart').addEventListener('click', async () => {
-  if (!window.Html5Qrcode) { scanMessage('Camera scanner library did not load. Refresh and try again.', 'warn'); return; }
+  try { await loadOptionalLibrary('QR scanner','https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js',()=>!!window.Html5Qrcode); }
+  catch(e){scanMessage(e.message,'warn');return;}
   try {
     if (!qrScanner) qrScanner = new Html5Qrcode('qr-reader');
     await qrScanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 240, height: 240 } },
@@ -1174,7 +1189,10 @@ $('delGo').addEventListener('click', async () => {
   await loadAdmin();
 });
 
-$('xlsx').addEventListener('click', () => {
+$('xlsx').addEventListener('click', async () => {
+  const exportButton=$('xlsx');exportButton.disabled=true;
+  try{await loadOptionalLibrary('Excel export','https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',()=>!!window.XLSX);}catch(e){$('bulkMsg').textContent=e.message;exportButton.disabled=false;return;}
+  try {
   const sorted = [...all].sort((a, b) => (a.raffle_number ?? 999) - (b.raffle_number ?? 999));
   const links = g => (g.talent_files || []).map(fileUrl).join('\n');
   const guests = sorted.map(g => ({ 'Raffle Number': g.raffle_number ?? '', 'Nickname': g.nickname, 'RSVP': LABEL[g.rsvp] || g.rsvp,
@@ -1187,6 +1205,7 @@ $('xlsx').addEventListener('click', () => {
   const ws2 = XLSX.utils.json_to_sheet(perf); ws2['!cols'] = [22, 24, 20, 14, 14, 50].map(w => ({ wch: w }));
   XLSX.utils.book_append_sheet(wb, ws1, 'Guests'); XLSX.utils.book_append_sheet(wb, ws2, 'Performers');
   XLSX.writeFile(wb, 'year-end-party-guests.xlsx');
+  }finally{exportButton.disabled=false;}
 });
 if (true) { // Dedicated organizer-only page
   openAdmin(); let sp = null; try { sp = sessionStorage.getItem('fest_admin_pw'); } catch (e) {}
