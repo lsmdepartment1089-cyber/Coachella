@@ -641,9 +641,12 @@ function showGuest(g) {
   $('who').textContent = g.nickname;
 
   $('rsvp').value = g.rsvp === 'pending' ? 'going' : g.rsvp;
-  $('rsvp').disabled = true;
-  $('saveBtn').disabled = true;
-  $('status').textContent = 'RSVP registration is now closed.';
+  $('rsvp').disabled = false;
+  $('saveBtn').disabled = false;
+  $('saveMsg').textContent = '';
+  $('status').textContent = g.rsvp === 'pending'
+    ? 'Registration is open! Please confirm your RSVP below.'
+    : 'RSVP: ' + ({ going: 'Going', maybe: 'Maybe', no: 'Not attending' }[g.rsvp] || g.rsvp);
   
   $('realName').value = g.real_name || '';
   $('stageName').value = g.stage_name || '';
@@ -682,23 +685,23 @@ function renderPass() {
 
   $('num').textContent = has ? guest.raffle_number : '?';
 
-  // Raffle registration is closed
-  $('getBtn').hidden = true;
-  $('rerollBtn').hidden = true;
+  // Guest registration is open. Existing raffle numbers and one-time reroll status are preserved.
+  $('getBtn').hidden = has;
+  $('rerollBtn').hidden = !has || !!guest.rerolled;
 
   $('mailBtn').disabled = !has;
 
   $('mailHint').textContent = has
     ? 'We will email you a card with your nickname, raffle number and all the party details.'
-    : 'Raffle registration is now closed.';
+    : 'Claim your raffle number first to email your invitation.';
 
   $('rText').textContent = has
     ? 'Your raffle number is locked in. Keep it handy for the draw.'
-    : 'Raffle registration is now closed.';
+    : 'Registration is open! Tap below to get your raffle number.';
 
   $('rNote').textContent = has
-    ? 'Your previously assigned raffle number remains valid. Good luck at the draw!'
-    : 'Thank you for registering. Raffle number drawing is no longer available.';
+    ? (guest.rerolled ? 'Your final raffle number is ready. Good luck at the draw!' : 'You have one optional reroll remaining. Good luck at the draw!')
+    : 'Claim your number to complete your festival pass. One optional reroll is allowed.';
   renderGuestQR();
 }
 function renderGuestQR() {
