@@ -451,23 +451,31 @@ body.idle-out{cursor:none}
 .talent-live-bg .tl-mic{position:absolute;top:405px;left:50%;width:500px;height:500px;transform:translateX(-50%);opacity:.13;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Crect x='88' y='12' width='64' height='130' rx='32' fill='%23FFFFFF'/%3E%3Cpath d='M60 108c0 80 120 80 120 0M120 170v43M88 217h64' stroke='%23FFFFFF' stroke-width='14' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-size:contain;background-repeat:no-repeat}
+/* Website-matched judging criteria: warm Coachella sunset, paper tickets, and Ferris wheel. */
 .stage .bg.talent-judge-bg{
-  background:radial-gradient(ellipse at 50% -15%,#39285b 0%,#191134 58%,#10102b 100%);
+  background:linear-gradient(180deg,#C62D1E 0%,#E94620 22%,#FA7A22 48%,#FFAB29 71%,#FFCB58 100%);
   overflow:hidden;isolation:isolate;
 }
-.talent-judge-bg .tj-accent{position:absolute;top:0;left:0;right:0;height:22px;background:linear-gradient(90deg,#00DFFF,#FFF000,#FF1493)}
-.talent-judge-bg .tj-glow{position:absolute;width:790px;height:650px;border-radius:50%;filter:blur(92px);opacity:.15;
-  background:#FF1493;left:-370px;top:180px}
-.talent-judge-bg .tj-glow.r{left:auto;right:-400px;top:330px;background:#00DFFF}
+.talent-judge-bg .tj-sunglow{position:absolute;left:51%;top:3%;width:1180px;height:780px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,245,188,.85),rgba(255,214,96,.38) 37%,rgba(255,199,44,0) 74%);opacity:.7}
+.talent-judge-bg .tj-sun{position:absolute;right:132px;top:122px;width:410px;height:410px;border-radius:50%;background:radial-gradient(circle,#FFF4D6 0%,#FFE49B 36%,rgba(255,218,116,.28) 68%,transparent 76%);opacity:.65}
+.talent-judge-bg .tj-cloud{position:absolute;left:-120px;top:140px;width:570px;height:102px;background:#FFF3D0;filter:blur(36px);border-radius:50%;opacity:.12;transform:rotate(-9deg)}
+.talent-judge-bg .tj-cloud.b{left:auto;right:-110px;top:335px;width:650px;opacity:.13;transform:rotate(9deg)}
+.talent-judge-bg .tj-ferris{position:absolute;right:17px;bottom:-135px;width:515px;height:515px;opacity:.4;transform-origin:center;animation:tj-wheel-turn 75s linear infinite;filter:drop-shadow(0 6px 0 rgba(68,23,24,.25))}
+@keyframes tj-wheel-turn{to{transform:rotate(360deg)}}
+.talent-judge-bg .tj-hills{position:absolute;left:0;right:0;bottom:0;width:100%;height:240px;opacity:.8}
+.talent-judge-bg .tj-spark{position:absolute;width:13px;height:13px;border-radius:50%;background:#FFF4D6;box-shadow:0 0 19px #FFE7A8;opacity:.65;animation:tj-twinkle 5s ease-in-out infinite alternate}
+@keyframes tj-twinkle{to{opacity:.15;transform:scale(.6)}}
+.talent-judge-bg .tj-spark.a{left:5%;top:24%;animation-delay:-.8s}
+.talent-judge-bg .tj-spark.b{right:12%;top:18%;animation-delay:-2s}
+.talent-judge-bg .tj-spark.c{left:84%;top:60%;animation-delay:-1.4s}
+.talent-judge-bg .tj-spark.d{left:19%;top:79%;animation-delay:-3s}
+@media(prefers-reduced-motion:reduce){.talent-judge-bg .tj-ferris,.talent-judge-bg .tj-spark{animation:none!important}}
+
 @media(prefers-reduced-motion:reduce){
   .talent-live-bg .tl-halo,.talent-live-bg .tl-beam{animation:none!important}
 }
 
 
-/* Score controls in the existing right-side editing panel. */
-.talent-score-edit{margin:11px 0;border:1px solid #aeb5d7;border-radius:10px;padding:10px 12px;background:#f6f8ff}
-.talent-score-edit summary{font:800 15px 'Nunito Sans',sans-serif;color:#21133E;cursor:pointer;padding:3px 0 8px}
-.talent-score-edit input{width:100%;max-width:100%}
 
 </style>
 </head>
@@ -610,7 +618,22 @@ function hills() {
 const clouds = '<div class="cl c1"></div><div class="cl c2"></div><div class="cl c3"></div>';
 function bgHtml(k) {
   if(k==='talent-live')return '<div class="bg talent-live-bg"><div class="tl-halo"></div><div class="tl-beam a"></div><div class="tl-beam b"></div><div class="tl-beam c"></div><div class="tl-mic"></div><div class="tl-stage"></div><div class="tl-floor"></div><div class="tl-bulbs"></div></div>';
-  if(k==='talent-judge')return '<div class="bg talent-judge-bg"><div class="tj-accent"></div><div class="tj-glow"></div><div class="tj-glow r"></div></div>';
+  if(k==='talent-judge')return `<div class="bg talent-judge-bg">
+    <div class="tj-sunglow"></div><div class="tj-sun"></div><div class="tj-cloud"></div><div class="tj-cloud b"></div>
+    <div class="tj-spark a"></div><div class="tj-spark b"></div><div class="tj-spark c"></div><div class="tj-spark d"></div>
+    <svg class="tj-hills" viewBox="0 0 1920 240" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 98 C250 40 390 116 620 79 C820 47 1040 130 1220 70 C1500 5 1700 115 1920 70 L1920 240 L0 240Z" fill="#9A291E"/>
+      <path d="M0 145 C240 120 390 166 640 123 C860 87 1040 194 1250 130 C1470 72 1710 190 1920 126 L1920 240 L0 240Z" fill="#61261F"/>
+      <path d="M0 196 C310 170 495 210 765 172 C1120 127 1320 226 1650 170 C1770 157 1835 193 1920 184 L1920 240 L0 240Z" fill="#27251F"/>
+    </svg>
+    <svg class="tj-ferris" viewBox="0 0 500 500" aria-hidden="true">
+      <g fill="none" stroke="#FFF4D6" stroke-width="9"><circle cx="250" cy="250" r="218"/><circle cx="250" cy="250" r="190" stroke-width="3"/>
+        ${Array.from({length:12},(_,i)=>{const t=i*Math.PI/6;return `<line x1="250" y1="250" x2="${(250+218*Math.cos(t)).toFixed(1)}" y2="${(250+218*Math.sin(t)).toFixed(1)}"/>`}).join('')}
+      </g><g fill="#FFC72C" stroke="#27251F" stroke-width="4">
+        ${Array.from({length:12},(_,i)=>{const t=i*Math.PI/6;return `<circle cx="${(250+218*Math.cos(t)).toFixed(1)}" cy="${(250+218*Math.sin(t)).toFixed(1)}" r="16"/>`}).join('')}
+      </g><circle cx="250" cy="250" r="22" fill="#FFF4D6" stroke="#27251F" stroke-width="5"/>
+    </svg>
+  </div>`;
   if(k==='desert-search')return '<div class="bg desert-bg"><div class="d-stars"></div><div class="d-sun"></div><div class="d-search l"></div><div class="d-search r"></div><svg class="d-dunes" viewBox="0 0 1920 420" preserveAspectRatio="none"><path d="M0 220 C260 120 520 260 820 190 C1120 120 1420 270 1920 170 L1920 420 L0 420Z" fill="#5a1a4a"/><path d="M0 290 C300 210 600 330 960 260 C1320 190 1600 320 1920 250 L1920 420 L0 420Z" fill="#3b1038"/><path d="M0 360 C340 300 700 390 1040 340 C1400 290 1680 380 1920 330 L1920 420 L0 420Z" fill="#1a0b27"/></svg><svg class="d-cactus" style="left:90px;width:130px;height:260px" viewBox="0 0 130 260"><rect x="50" y="20" width="30" height="240" rx="15"/><rect x="0" y="90" width="26" height="80" rx="13"/><rect x="0" y="150" width="56" height="26" rx="13"/><rect x="104" y="60" width="26" height="80" rx="13"/><rect x="74" y="120" width="56" height="26" rx="13"/></svg><svg class="d-cactus" style="right:110px;width:110px;height:210px" viewBox="0 0 130 260"><rect x="50" y="20" width="30" height="240" rx="15"/><rect x="0" y="90" width="26" height="80" rx="13"/><rect x="0" y="150" width="56" height="26" rx="13"/><rect x="104" y="60" width="26" height="80" rx="13"/><rect x="74" y="120" width="56" height="26" rx="13"/></svg><div class="d-seek k"><svg viewBox="0 0 300 210"><path d="M20 190 L5 50 L80 110 L150 15 L220 110 L295 50 L280 190 Z"/></svg>?</div><div class="d-seek q"><svg viewBox="0 0 300 210"><path d="M25 190 L10 70 L70 120 L110 40 L150 125 L190 40 L230 120 L290 70 L275 190 Z"/></svg>?</div></div>';
   if(k==='fashion-ramp')return '<div class="bg fashion-ramp-bg"><div class="ramp-beam"></div><div class="ramp-beam"></div><div class="ramp-beam"></div><div class="ramp-horizon"></div><div class="ramp-runway-wrap"><div class="ramp-runway"><div class="ramp-centerline"></div></div></div><div class="ramp-flashes"><div class="ramp-flash"></div><div class="ramp-flash"></div><div class="ramp-flash"></div><div class="ramp-flash"></div><div class="ramp-flash"></div><div class="ramp-flash"></div></div></div>';
   if(k==='clean-electric')return '<div class="bg clean-electric"></div>';
@@ -622,7 +645,7 @@ function bgHtml(k) {
   if (k === 'day') return `<div class="bg day"><div class="sunb"></div>${clouds}${hills()}</div>`;
   return `<div class="bg sunset"><div class="sunb"></div>${clouds}${hills()}</div>`;
 }
-const BG_NAMES = { 'talent-live':'Sta. Rosa Got Talent — live spotlights', 'talent-judge':'Got Talent — judging sheet', 'desert-search':'Desert searchlights — King & Queen', 'fashion-ramp':'Fashion Ramp — animated runway', 'clean-electric':'Electric minimal (game rules)', sunset: 'Sunset arches', rays: 'Golden rays', arches: 'Arches pattern', night: 'Night festival', day: 'Blue sky', party: 'Confetti party', stage: 'Stage lights' };
+const BG_NAMES = { 'talent-live':'Sta. Rosa Got Talent — live spotlights', 'talent-judge':'Got Talent — Coachella sunset poster', 'desert-search':'Desert searchlights — King & Queen', 'fashion-ramp':'Fashion Ramp — animated runway', 'clean-electric':'Electric minimal (game rules)', sunset: 'Sunset arches', rays: 'Golden rays', arches: 'Arches pattern', night: 'Night festival', day: 'Blue sky', party: 'Confetti party', stage: 'Stage lights' };
 const TRANS = { fade: 'Fade', slide: 'Slide from the right', slideup: 'Slide up', zoom: 'Zoom', flip: 'Flip', spin: 'Twist', blur: 'Blur', wipe: 'Wipe', bounce: 'Bounce in', drop: 'Drop in' };
 
 /* ---------- elements ---------- */
@@ -680,49 +703,38 @@ const TPL = {
     icon('star',{x:238,y:425,w:145,color:'#FFF000',anim:'zoom',loop:'float'}),
     icon('star',{x:1515,y:422,w:145,color:'#FF1493',anim:'zoom',loop:'float'})
   ],
-  /* Printable-style judging columns, adapted to a 1920x1080 LED canvas.
-     Participant names and scores are independent editable native text elements.
-     Scores use the exact weight maxima from the reference sheet. */
+  /* Coachella website-matched poster. Five criteria only, no participant/judge names or scores. */
   gotTalentJudging: f => {
-    const X=[72,158,518,744,970,1196,1422,1648,1848];
-    const criteria=[['TALENT &\nSKILLS','30%'],['CREATIVITY &\nORIGINALITY','20%'],['STAGE PRESENCE &\nCONFIDENCE','20%'],['ENTERTAINMENT\nVALUE','15%'],['OVERALL\nPERFORMANCE','15%']];
-    const headY=305, headH=199, bodyY=504, rowH=85, count=5;
-    const v=[
-      tx({key:'talentJudgeHeading',x:115,y:55,w:1690,text:f.heading,font:'Anton',size:113,color:'#FFF000',b:true,al:'center',ls:6,sh:'glow',anim:'fade'}),
-      tx({key:'talentJudgeEvent',x:120,y:174,w:1350,text:f.event,font:'Nunito Sans',size:47,color:'#F5FBFF',b:true,al:'left',ls:3,sh:'soft',anim:'fade'}),
-      shp({x:1503,y:180,w:345,h:75,shape:'round',rad:25,fill:'#FF1493',bw:3,bc:'#FFF000',anim:'none'}),
-      tx({key:'talentJudgeName',x:1520,y:193,w:310,text:f.judge,font:'Nunito Sans',size:44,color:'#FFFFFF',b:true,al:'center',sh:'none',anim:'fade'}),
-      shp({x:72,y:headY,w:1776,h:headH,fill:'#2E174A',bw:5,bc:'#FFF000',anim:'none'}),
+    const vals=[
+      ['TALENT & SKILLS','30%'],
+      ['CREATIVITY & ORIGINALITY','20%'],
+      ['STAGE PRESENCE & CONFIDENCE','20%'],
+      ['ENTERTAINMENT VALUE','15%'],
+      ['OVERALL PERFORMANCE','15%']
     ];
-    for(let row=0;row<count;row++){
-      const y=bodyY+row*rowH;
-      v.push(shp({x:72,y,w:1776,h:rowH,fill:row%2?'#F2F4FC':'#FFFFFF',bw:0,anim:'none'}));
-      v.push(shp({x:1648,y,w:200,h:rowH,fill:row%2?'#FFF0C6':'#FFF6DC',bw:0,anim:'none'}));
-    }
-    v.push(shp({x:72,y:headY,w:1776,h:headH+count*rowH,fill:'transparent',bw:5,bc:'#FFF000',anim:'none'}));
-    // Clean table grid, sized to match NAME | five weighted criteria | TOTAL.
-    for(let col=1;col<X.length-1;col++)v.push(shp({x:X[col]-2,y:headY,w:4,h:headH+count*rowH,fill:'#27304A',anim:'none'}));
-    for(let row=0;row<count;row++)v.push(shp({x:72,y:bodyY+row*rowH-2,w:1776,h:4,fill:'#27304A',anim:'none'}));
-    v.push(tx({x:72,y:370,w:86,text:'#',size:51,color:'#FFF000',b:true,sh:'none',anim:'none'}));
-    v.push(tx({x:158,y:368,w:360,text:'NAME',size:42,color:'#FFFFFF',b:true,sh:'none',anim:'none'}));
-    for(let col=0;col<5;col++){
-      const [heading,weight]=criteria[col], x=X[col+2];
-      v.push(tx({x:x+11,y:347,w:X[col+3]-x-22,text:heading,size:col===3?22:26,color:'#FFFFFF',b:true,lh:1.12,sh:'none',anim:'none'}));
-      v.push(tx({x:x+11,y:443,w:X[col+3]-x-22,text:weight,size:49,color:'#FFF000',font:'Anton',b:true,sh:'none',anim:'none'}));
-    }
-    v.push(tx({x:1655,y:364,w:186,text:'TOTAL',size:40,color:'#FFFFFF',b:true,sh:'none',anim:'none'}));
-    v.push(tx({x:1655,y:440,w:186,text:'100%',size:51,font:'Anton',color:'#FFF000',b:true,sh:'none',anim:'none'}));
-    for(let row=0;row<count;row++){
-      const y=bodyY+row*rowH;
-      const n=String(row+1);
-      v.push(tx({x:72,y:y+22,w:86,text:n,font:'Anton',size:34,color:'#2E174A',b:true,sh:'none',anim:'none'}));
-      v.push(tx({key:'talentName'+n,x:174,y:y+21,w:330,text:f.names&&f.names[row]!=null?f.names[row]:'PERFORMER '+n,font:'Nunito Sans',size:30,color:'#10102B',b:true,al:'left',sh:'none',anim:'none'}));
-      for(let col=0;col<5;col++){
-        v.push(tx({key:'talentScore'+n+'_'+(col+1),x:X[col+2]+8,y:y+20,w:X[col+3]-X[col+2]-16,text:'—',font:'Nunito Sans',size:39,color:'#343054',b:true,sh:'none',anim:'none'}));
-      }
-      v.push(tx({key:'talentTotal'+n,x:1656,y:y+17,w:186,text:'—',font:'Anton',size:47,color:'#9B166C',b:true,sh:'none',anim:'none'}));
-    }
-    v.push(tx({x:220,y:974,w:1480,text:'TOTAL WEIGHT: 100%  •  SCORES MUST FOLLOW EACH CRITERION’S MAXIMUM',size:28,color:'#DDE5F9',b:true,al:'center',ls:2,sh:'soft',anim:'fade'}));
+    const v=[
+      arch({key:'talentJudgeBrandArch',x:108,y:64,w:124,h:84,color:'#FFC72C',sh:'soft',anim:'fade'}),
+      tx({key:'talentJudgeBrand',x:260,y:47,w:970,text:'COACHELLA',font:'Londrina Solid',size:96,color:'#FFF4D6',b:true,up:true,al:'left',ls:3,sh:'hard',anim:'fade',lh:1.0}),
+      tx({key:'talentJudgeBrandLine',x:268,y:153,w:850,text:'BEYOND THE ARCHES',font:'Nunito Sans',size:29,color:'#FFF4D6',b:true,up:true,al:'left',ls:10,sh:'soft',anim:'fade',lh:1.1}),
+      tx({key:'talentJudgeHeading',x:120,y:229,w:1680,text:f.heading||'CRITERIA OF JUDGING',font:'Londrina Solid',size:116,color:'#FFF4D6',b:true,al:'center',ls:3,sh:'hard',anim:'rise',lh:1.0}),
+      shp({key:'talentJudgeEventRibbon',x:518,y:355,w:884,h:74,shape:'pill',fill:'#FFC72C',bw:5,bc:'#27251F',sh:'hard',anim:'none'}),
+      tx({key:'talentJudgeEvent',x:551,y:370,w:820,text:f.event||'STA. ROSA GOT TALENT',font:'Londrina Solid',size:49,color:'#A42B1C',b:true,al:'center',ls:2,sh:'none',anim:'fade',lh:1.0})
+    ];
+    const positions=[[114,465],[704,465],[1294,465],[280,713],[990,713]];
+    vals.forEach(([defaultName,defaultWeight],i)=>{
+      const [x,y]=positions[i], cardW=i<3?514:650, name=(f.names&&f.names[i])||defaultName, weight=(f.weights&&f.weights[i])||defaultWeight;
+      // Ticket-like cards repeat the website's cream paper, dark outlines, yellow badges and warm red lettering.
+      v.push(shp({key:'talentJudgeShadow'+(i+1),x:x+11,y:y+11,w:cardW,h:204,shape:'round',rad:25,fill:'#27251F',bw:0,bc:'#27251F',sh:'none',anim:'none'}));
+      v.push(shp({key:'talentJudgePaper'+(i+1),x,y,w:cardW,h:204,shape:'round',rad:25,fill:'#FFF4D6',bw:5,bc:'#27251F',sh:'none',anim:'none'}));
+      v.push(shp({key:'talentJudgeStripe'+(i+1),x:x+8,y:y+8,w:cardW-16,h:14,shape:'pill',fill:'#DA291C',bw:0,bc:'#DA291C',sh:'none',anim:'none'}));
+      const labelSize=[51,47,45,53,53][i];
+      v.push(tx({key:'talentCriteriaName'+(i+1),x:x+28,y:y+40,w:cardW-186,text:name,font:'Londrina Solid',size:labelSize,color:'#A42B1C',b:true,up:true,al:'left',lh:1.02,ls:0,sh:'none',anim:'fade'}));
+      v.push(shp({key:'talentJudgeBadge'+(i+1),x:x+cardW-150,y:y+10,w:142,h:184,shape:'round',rad:18,fill:'#FFC72C',bw:0,bc:'#FFC72C',sh:'none',anim:'none'}));
+      v.push(tx({key:'talentCriteriaWeight'+(i+1),x:x+cardW-147,y:y+81,w:135,text:weight,font:'Londrina Solid',size:63,color:'#27251F',b:true,al:'center',lh:1.0,ls:0,sh:'none',anim:'none'}));
+    });
+    v.push(shp({key:'talentJudgeTotalShadow',x:699,y:959,w:522,h:88,shape:'pill',fill:'#27251F',bw:0,bc:'#27251F',anim:'none'}));
+    v.push(shp({key:'talentJudgeTotalPlate',x:689,y:949,w:522,h:88,shape:'pill',fill:'#DA291C',bw:5,bc:'#27251F',anim:'none'}));
+    v.push(tx({key:'talentJudgeTotal',x:704,y:968,w:492,text:'TOTAL 100%',font:'Londrina Solid',size:59,color:'#FFF4D6',b:true,al:'center',lh:1,ls:2,sh:'none',anim:'none'}));
     return v;
   },
   video: f => [videoEl({x:0,y:0,w:1920,h:1080,src:f.src||'',fit:'contain',loop:false,muted:false})],
@@ -766,7 +778,7 @@ const TPL = {
 };
 const LAYOUTS = {
   gotTalentIntro: { name:'STA. ROSA GOT TALENT — segment opener',info:'Full-screen talent show opening with electric stage lights and editable text',bg:'talent-live',d:{eyebrow:'COACHELLA  •  BEYOND THE ARCHES',top:'STA. ROSA',title:'GOT TALENT',tagline:'THE SPOTLIGHT IS YOURS',footer:'YEAR END PARTY 2026'}},
-  gotTalentJudging: { name:'CRITERIA OF JUDGING — Got Talent',info:'Judge 1 score sheet: 30% / 20% / 20% / 15% / 15%. Editable names and auto-total scores',bg:'talent-judge',d:{heading:'CRITERIA OF JUDGING',event:'STA. ROSA GOT TALENT',judge:'JUDGE 1',names:['PERFORMER 1','PERFORMER 2','PERFORMER 3','PERFORMER 4','PERFORMER 5']}},
+  gotTalentJudging: { name:'CRITERIA OF JUDGING — Got Talent',info:'Coachella sunset poster — five criteria only, no judge or contestant names',bg:'talent-judge',d:{heading:'CRITERIA OF JUDGING',event:'STA. ROSA GOT TALENT'}},
   video: {name:'Full-screen video',info:'Upload a video for the LED screen, with sound and playback controls',bg:'night',d:{src:''}},
   desertSearch: { name: 'Searching for King & Queen — desert', info: 'Desert sunset, searchlights & three editable text fields', bg: 'desert-search', d: { brand: 'McDonald’s Santa Rosa Bayan', kicker: 'Searching for the', title: 'King & Queen\nof the Desert' } },
   fashionRamp: { name: 'Fashion Ramp — animated runway', info: 'Spotlights, runway lights & four editable text fields', bg: 'fashion-ramp', d: { brand: "McDonald’s Santa Rosa Bayan", kicker: "It’s time to", title: 'Fashion\nRamp', subtitle: 'Year End Party: Beyond the Arches' } },
@@ -1049,6 +1061,24 @@ function ensureGameRulesSlides(savedDeck){
  if(missing.length)savedDeck.slides.push(...missing.map(t=>newSlide(t,LAYOUTS[t].bg)));
  savedDeck.gameRules2026V1=true;
  return changed||!!missing.length;
+}
+
+/* Replace already-saved old score-sheet slides as well as the Add Slide template.
+   Reuse the slide ID and existing customized heading/event; leave all other slides untouched. */
+function migrateTalentCriteriaOnly(savedDeck){
+  let changed=false;
+  (savedDeck.slides||[]).forEach(s=>{
+    if(s.type!=='gotTalentJudging'||!Array.isArray(s.els))return;
+    // Brand arch marks the website-matched design. Old purple list and scoring versions have no such marker.
+    if(s.els.some(e=>e.key==='talentJudgeBrandArch'))return;
+    const heading=s.els.find(e=>e.key==='talentJudgeHeading')?.text||'CRITERIA OF JUDGING';
+    const event=s.els.find(e=>e.key==='talentJudgeEvent')?.text||'STA. ROSA GOT TALENT';
+    const names=Array.from({length:5},(_,i)=>s.els.find(e=>e.key==='talentCriteriaName'+(i+1))?.text||'');
+    const weights=Array.from({length:5},(_,i)=>s.els.find(e=>e.key==='talentCriteriaWeight'+(i+1))?.text||'');
+    s.els=TPL.gotTalentJudging({heading,event,names,weights});
+    s.bg='talent-judge';changed=true;
+  });
+  return changed;
 }
 
 function newSlide(type, bg, over) { return { id: uid(), type, bg: bg || LAYOUTS[type].bg || 'default', els: TPL[type](Object.assign({}, LAYOUTS[type].d, over || {})) }; }
@@ -1390,9 +1420,10 @@ async function enter(password) {
   deck = g.data && g.data.slides && g.data.slides.length ? g.data : defaultDeck();
   const migrated = migrate(deck);
   const gameRulesAdded = ensureGameRulesSlides(deck);
+  const criteriaSimplified = migrateTalentCriteriaOnly(deck);
   deck.bg = deck.bg || 'sunset'; deck.transition = deck.transition || 'fade'; deck.autoplay = deck.autoplay || 0;
   const l = await sb.rpc('admin_list', { p_password: password }); guests = (l.data || []).filter(x => x.talent_status === 'yes');
-  $('gate').hidden = true; $('app').hidden = false; buildApp(); if (!g.data || migrated || gameRulesAdded) markDirty();
+  $('gate').hidden = true; $('app').hidden = false; buildApp(); if (!g.data || migrated || gameRulesAdded || criteriaSimplified) markDirty();
   return null;
 }
 $('gateForm').addEventListener('submit', async e => { e.preventDefault(); $('gateBtn').disabled = true; $('gateMsg').textContent = ''; const err = await enter($('pw').value); $('gateBtn').disabled = false; if (err) $('gateMsg').textContent = err; });
@@ -1549,13 +1580,6 @@ function startEdit(id) {
 function finishEdit(silent) {
   if (!editing) return; editing = false; const e = curEl(), n = selId && nodeOf(selId);
   if (e && n) { const inn = n.querySelector('.in'); if (inn) e.text = inn.innerText.replace(/\n$/, ''); }
-  if (e && slide().type==='gotTalentJudging' && /^talentScore[1-5]_[1-5]$/.test(e.key||'')) {
-    const row=Number(e.key.slice('talentScore'.length).split('_')[0]);
-    const idx=Number(e.key.split('_')[1])-1;
-    const value=String(e.text||'').trim(), num=Number(value);
-    e.text=(value!==''&&Number.isFinite(num)&&num>=0&&num<=GOT_TALENT_WEIGHTS[idx])?String(num):'—';
-    recalcTalentTotal(slide(),row);
-  }
   renderMain(false); if (!silent) { buildProps(); } commit(); refreshThumb(sel);
 }
 
@@ -1747,23 +1771,6 @@ function field(label, input) { return h('div', {}, h('label', { class: 'l' }, la
 function numIn(id, get, set, min, max, step) { const i = h('input', { type: 'number', id, min, max, step: step || 1 }); i.value = get(); i.addEventListener('input', () => { const v = parseFloat(i.value); if (isNaN(v)) return; set(Math.max(min, Math.min(max, v))); renderMain(false); commitSoon(); }); return i; }
 function selIn(opts, get, set) { const s = h('select', {}); Object.entries(opts).forEach(([k, v]) => s.appendChild(h('option', { value: k }, v))); s.value = get(); s.addEventListener('change', () => { set(s.value); renderMain(false); commit(); refreshThumb(sel); buildBar(); buildProps(); }); return s; }
 
-/* Got Talent score-sheet editor: 5 weighted criteria sum to a maximum of 100. */
-const GOT_TALENT_WEIGHTS=[30,20,20,15,15];
-function recalcTalentTotal(s, row){
-  if(!s||s.type!=='gotTalentJudging')return;
-  let sum=0,complete=true;
-  GOT_TALENT_WEIGHTS.forEach((weight,i)=>{
-    const el=s.els.find(e=>e.key==='talentScore'+row+'_'+(i+1));
-    const value=el&&String(el.text||'').trim();
-    if(!value||value==='—'||!/^\d+(?:\.\d+)?$/.test(value)){complete=false;return;}
-    const n=Number(value);
-    if(!Number.isFinite(n)||n<0||n>weight){complete=false;return;}
-    sum+=n;
-  });
-  const total=s.els.find(e=>e.key==='talentTotal'+row);
-  if(total)total.text=complete?String(Math.round(sum*100)/100):'—';
-}
-
 function buildProps() {
   const p = $('props'), s = slide(), e = curEl(); p.textContent = '';
   p.append(h('h3', {}, 'Slide ' + (sel + 1) + ' of ' + deck.slides.length));
@@ -1811,44 +1818,14 @@ function buildProps() {
     p.append(h('p',{class:'hint'},'This is a separate segment title slide. You can also double-click the words directly.'));
   }
   if(s.type==='gotTalentJudging'){
-    p.append(h('div',{class:'sec'}),h('h3',{},'Got Talent — Criteria of Judging'));
-    [['Heading','talentJudgeHeading'],['Event title','talentJudgeEvent'],['Judge','talentJudgeName']].forEach(([label,key])=>{
+    p.append(h('div',{class:'sec'}),h('h3',{},'Got Talent — Criteria only'));
+    [['Heading','talentJudgeHeading'],['Event title','talentJudgeEvent']].forEach(([label,key])=>{
       const el=s.els.find(e=>e.key===key);if(!el)return;
       const input=h('input',{'aria-label':label,type:'text'});input.value=el.text||'';
       input.addEventListener('input',()=>{el.text=input.value;renderMain(false);commitSoon();});
       p.append(field(label,input));
     });
-    p.append(h('p',{class:'hint'},'Exact reference weights: Talent & Skills 30%, Creativity & Originality 20%, Stage Presence & Confidence 20%, Entertainment Value 15%, Overall Performance 15%. Total 100%. Duplicate this slide and change the judge for Judge 2, Judge 3, etc.'));
-    for(let row=1;row<=5;row++){
-      const details=h('details',{class:'talent-score-edit'});
-      const summary=h('summary',{},'Contestant '+row+' — name and scores');
-      details.append(summary);
-      const el=s.els.find(e=>e.key==='talentName'+row);
-      if(el){
-        const input=h('input',{type:'text','aria-label':'Contestant '+row+' name'});input.value=el.text||'';
-        input.addEventListener('input',()=>{el.text=input.value;renderMain(false);commitSoon();});
-        details.append(field('Name',input));
-      }
-      const labels=['Talent & Skills (max 30)','Creativity & Originality (max 20)','Stage Presence & Confidence (max 20)','Entertainment Value (max 15)','Overall Performance (max 15)'];
-      GOT_TALENT_WEIGHTS.forEach((max,i)=>{
-        const el=s.els.find(e=>e.key==='talentScore'+row+'_'+(i+1));if(!el)return;
-        const input=h('input',{type:'number',min:'0',max:String(max),step:'0.5',placeholder:'Leave blank', 'aria-label':'Contestant '+row+' '+labels[i]});
-        input.value=el.text==='—'?'':el.text||'';
-        input.addEventListener('input',()=>{
-          const raw=input.value.trim(),n=Number(raw);
-          if(raw!==''&&(!Number.isFinite(n)||n<0||n>max)){
-            input.setCustomValidity('Enter a score from 0 to '+max);input.reportValidity();return;
-          }
-          input.setCustomValidity('');
-          el.text=raw===''?'—':String(n);
-          recalcTalentTotal(s,row);
-          renderMain(false);commitSoon();
-        });
-        details.append(field(labels[i],input));
-      });
-      p.append(details);
-    }
-    p.append(h('p',{class:'hint'},'Totals appear automatically after all five valid scores are entered. Scores are saved in this slide, not submitted to a separate judging database.'));
+    p.append(h('p',{class:'hint'},'This slide displays the five judging criteria only: 30%, 20%, 20%, 15%, 15% (total 100%). No judge names, contestant names, or score entry. All text can also be edited directly on the slide.'));
   }
   const tsel = h('select', { 'aria-label': 'Slide change effect' }); tsel.appendChild(h('option', { value: '' }, 'Default (' + (TRANS[deck.transition] || 'Fade') + ')')); Object.entries(TRANS).forEach(([k, v]) => tsel.appendChild(h('option', { value: k }, v))); tsel.value = s.tr || '';
   tsel.addEventListener('change', () => { if (tsel.value) s.tr = tsel.value; else delete s.tr; commit(); });
