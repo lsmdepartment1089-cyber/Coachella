@@ -500,6 +500,7 @@ body.idle-out{cursor:none}
     <button class="btn s y" id="addBtn" type="button">+ Add slide</button>
     <button class="btn s w" id="perfBtn" type="button">Slides for performers</button>
     <button class="btn s y" id="gameRulesBtn" type="button" title="Insert three simple game-rule slides after the selected slide">+ Game Rules (3 Slides)</button>
+    <button class="btn s y" id="awardsBtn" type="button" title="Insert six award slides after the selected slide">+ Awards (6 Slides)</button>
     <button class="btn s y" id="exportPdfBtn" type="button">Export / Print PDF</button>
     <button class="btn s w" id="prepareVideosBtn" type="button" title="Download and save all slideshow videos on this laptop before presenting">⬇ Prepare Videos</button>
     <button class="btn s w" id="setBtn" type="button">Settings</button><button class="btn s w" id="ledRatioBtn" type="button" aria-pressed="true" title="Toggle between 12 × 9 ft (4:3) LED Wall and original 16:9 presentation output">LED: 4:3 ✓</button><a class="btn s w" href="slides.html" style="text-decoration:none">Slideshow 1</a>
@@ -1025,6 +1026,65 @@ Object.assign(LAYOUTS,{
  gameQuickfireRules:{name:'Game 02 — Quickfire Challenge (Simple)',info:'Three clear rules, one slide',bg:'clean-electric',d:{}},
  gameRonaldRulesA:{name:'Game 03 — Balloon Showdown (Simple)',info:'Teams, commands, shoot and score, one slide',bg:'clean-electric',d:{}}
 });
+
+/* ===== AWARDING OF CERTIFICATES & RECOGNITION — award slide templates (same electric Coachella design) ===== */
+const AWARD_LAYOUTS=['awardBestOfBest','awardManagers','awardOfTheYear','awardFashionRamp','awardKingQueen','awardTalentTop3'];
+function awKicker(f,y,fancy){return [
+  tx({x:1100,y:34,w:760,text:"McDonald’s Santa Rosa Bayan",font:'Bodoni Moda',size:30,color:'#FFE2B0',b:true,i:true,al:'right',sh:'soft',anim:'fade',lh:1.2}),
+  tx({x:150,y:y,w:1620,text:f.kicker||'AWARDING OF CERTIFICATES & RECOGNITION',font:fancy?'Bodoni Moda':BODY,size:fancy?44:34,color:'#FFE9A8',b:true,i:!!fancy,up:!fancy,al:'center',ls:fancy?0:12,sh:'soft',anim:'fade',lh:1.1})];}
+function awardSingle(f,opt){
+  opt=opt||{};
+  const lines=String(f.title||'').split('\n'),mx=Math.max(...lines.map(l=>l.length)),S=fsz(mx,[[12,200],[18,170],[26,140],[999,110]]),th=Math.round(lines.length*S*.98);
+  const els=[...awKicker(f,opt.kickY||70,opt.fancy)];
+  els.push(...col([
+    item(150,y=>[icon(opt.icon||'trophy',{x:885,y,w:150,anim:'zoom',loop:'float'})]),
+    item(th,y=>[tx({x:110,y,w:1700,text:f.title,font:opt.fancy?'Anton':DISP,size:S,color:'#FFF000',b:true,up:true,al:'center',lh:.98,ls:opt.fancy?4:2,sh:'glow',anim:'zoom'})]),
+    item(100,y=>badge(f.presented||'PRESENTED TO',960,y,46)),
+    item(150,y=>[disp({x:110,y,w:1700,text:f.name,size:fsz(String(f.name||'').length,[[18,150],[28,120],[999,90]]),color:'#FFFFFF',anim:'rise'})]),
+    f.note&&item(60,y=>[tx({x:200,y,w:1520,text:f.note,font:SERIF,size:48,color:'#F5FBFF',anim:'fade'})])
+  ],20));
+  return els;}
+function awardCard(x,y,w,h,label,name,sub,accent,big){
+  const nm=String(name||'');
+  return [
+    shp({x:x+10,y:y+10,w,h,shape:'round',rad:30,fill:'#10102B',bw:0,anim:'none'}),
+    shp({x,y,w,h,shape:'round',rad:30,fill:'#1A1A45',bw:6,bc:accent,rad:30,sh:'none',anim:'rise'}),
+    disp({x,y:y+22,w,text:label,size:big?150:120,color:accent,sh:'hard',anim:'zoom'}),
+    shp({x:x+Math.round(w/2)-110,y:y+(big?190:160),w:220,h:7,shape:'pill',fill:'#FF1493',anim:'fade'}),
+    disp({x:x+20,y:y+(big?230:200),w:w-40,text:nm,size:fsz(nm.length,[[12,86],[20,66],[999,52]]),color:'#FFFFFF',lh:1,anim:'rise'}),
+    tx({x:x+30,y:y+h-100,w:w-60,text:sub||'',size:34,color:'#00DFFF',b:true,al:'center',lh:1.2,sh:'none',anim:'fade'})];}
+Object.assign(TPL,{
+  awardBestOfBest:f=>awardSingle(f,{icon:'trophy'}),
+  awardManagers:f=>awardSingle(f,{icon:'star'}),
+  awardOfTheYear:f=>awardSingle(f,{icon:'trophy'}),
+  awardFashionRamp:f=>awardSingle(f,{icon:'camera',fancy:true,kickY:80}),
+  awardKingQueen:f=>{
+    const els=[...awKicker(f,70,true),
+      tx({x:110,y:150,w:1700,text:f.title,font:'Anton',size:190,color:'#FFBC0D',b:true,up:true,al:'center',lh:1,ls:4,sh:'glow',anim:'zoom'}),
+      icon('star',{x:150,y:215,w:120,anim:'zoom',loop:'float'}),icon('star',{x:1650,y:215,w:120,color:'#FF1493',anim:'zoom',loop:'float'})];
+    [[170,f.king,'KING',f.kingSub,'#00DFFF'],[1010,f.queen,'QUEEN',f.queenSub,'#FF1493']].forEach(([x,n,l,s,c])=>{
+      els.push(...awardCard(x,430,740,520,l,n,s,c,true));});
+    return els;},
+  awardTalentTop3:f=>{
+    const els=[...awKicker(f,70,true),
+      tx({x:110,y:140,w:1700,text:f.title,font:'Anton',size:150,color:'#FFF000',b:true,up:true,al:'center',lh:1,ls:4,sh:'glow',anim:'zoom'}),
+      tx({x:150,y:320,w:1620,text:f.event||'STA. ROSA GOT TALENT',font:'Londrina Solid',size:60,color:'#F5FBFF',b:true,up:true,al:'center',ls:6,sh:'hard',anim:'fade'})];
+    els.push(...awardCard(100,460,520,470,'2ND',f.p2,f.a2,'#F5FBFF',false));
+    els.push(...awardCard(700,410,520,520,'1ST',f.p1,f.a1,'#FFF000',true));
+    els.push(...awardCard(1300,490,520,440,'3RD',f.p3,f.a3,'#FF6B00',false));
+    return els;}
+});
+const AW_BASE={kicker:'AWARDING OF CERTIFICATES & RECOGNITION',presented:'PRESENTED TO',name:'Name of Awardee',note:'Department / Crew'};
+Object.assign(LAYOUTS,{
+  awardBestOfBest:{name:'AWARD — Best of the Best',info:'Trophy, award title, awardee name',bg:'stage',d:Object.assign({},AW_BASE,{title:'BEST OF THE BEST\nAWARD'})},
+  awardManagers:{name:"AWARD — Manager’s Appreciation",info:'Star, award title, awardee name',bg:'rays',d:Object.assign({},AW_BASE,{title:"MANAGER’S\nAPPRECIATION"})},
+  awardOfTheYear:{name:'AWARD — Of the Year',info:'Trophy, award title, awardee name',bg:'night',d:Object.assign({},AW_BASE,{title:'OF THE YEAR\nAWARD'})},
+  awardFashionRamp:{name:'AWARD — Fashion Ramp',info:'Runway spotlights, awardee name',bg:'fashion-ramp',d:Object.assign({},AW_BASE,{kicker:'Awarding of Certificates & Recognition',title:'FASHION RAMP\nAWARD'})},
+  awardKingQueen:{name:'AWARD — King and Queen',info:'Desert sunset, two winner cards',bg:'desert-search',d:{kicker:'Awarding of Certificates & Recognition',title:'KING & QUEEN',king:'King Name',kingSub:'Department / Crew',queen:'Queen Name',queenSub:'Department / Crew'}},
+  awardTalentTop3:{name:'AWARD — Santa Rosa Got Talent Top 3',info:'Podium with 1st, 2nd and 3rd place',bg:'talent-live',d:{kicker:'Awarding of Certificates & Recognition',title:'GOT TALENT TOP 3',event:'STA. ROSA GOT TALENT',p1:'1st Place Name',a1:'Act / Performance',p2:'2nd Place Name',a2:'Act / Performance',p3:'3rd Place Name',a3:'Act / Performance'}}
+});
+function createAwardSlides(){return AWARD_LAYOUTS.map(t=>newSlide(t,LAYOUTS[t].bg));}
+
 function elementsMatchLegacy(current,baseline){
  if(!current||!baseline||current.length!==baseline.length)return false;
  const clean=a=>a.map(({id,...rest})=>rest);
@@ -1921,6 +1981,13 @@ $('gameRulesBtn').addEventListener('click',()=>{
   deck.slides.splice(sel+1,0,...rules);
   renderThumbs();selectSlide(sel+1,true);commit();
   $('saveSt').textContent='3 clean game-rules slides added after the selected slide';
+});
+$('awardsBtn').addEventListener('click',()=>{
+  if(!deck)return;
+  flushHist();
+  deck.slides.splice(sel+1,0,...createAwardSlides());
+  renderThumbs();selectSlide(sel+1,true);commit();
+  $('saveSt').textContent='6 award slides added after the selected slide';
 });
 $('perfBtn').addEventListener('click', () => {
   if (!guests.length) { $('saveSt').textContent = 'No performers have signed up yet'; return; }
