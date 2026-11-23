@@ -438,6 +438,7 @@ body.idle-out{cursor:none}
     <button class="btn s w" id="perfBtn" type="button">Slides for performers</button>
     <button class="btn s y" id="gameRulesBtn" type="button" title="Insert three simple game-rule slides after the selected slide">+ Game Rules (3 Slides)</button>
     <button class="btn s y" id="exportPdfBtn" type="button">Export / Print PDF</button>
+    <button class="btn s w" id="prepareVideosBtn" type="button" title="Download and save all slideshow videos on this laptop before presenting">⬇ Prepare Videos</button>
     <button class="btn s w" id="setBtn" type="button">Settings</button><button class="btn s w" id="ledRatioBtn" type="button" aria-pressed="true" title="Toggle between 12 × 9 ft (4:3) LED Wall and original 16:9 presentation output">LED: 4:3 ✓</button><a class="btn s w" href="slides.html" style="text-decoration:none">Slideshow 1</a>
     <span class="sp"></span>
     <span class="festival-palette" title="Electric Festival Palette">ELECTRIC <i style="background:#00DFFF"></i><i style="background:#FF6B00"></i><i style="background:#FFF000"></i><i style="background:#FF1493"></i><i style="background:#39FF14"></i></span><span id="saveSt" role="status"></span>
@@ -482,6 +483,7 @@ body.idle-out{cursor:none}
   </div>
   <input type="file" id="imgIn" accept="image/*" hidden>
   <input type="file" id="videoIn" accept="video/mp4,video/webm,.mp4,.webm,.m4v" hidden>
+  <input type="file" id="offlineVideoIn" accept="video/mp4,video/webm,.mp4,.webm,.m4v" hidden>
 </div>
 
 <div class="modal" id="layoutModal" hidden>
@@ -972,7 +974,7 @@ function elNode(e, i, still = false) {
     }else{
       const v=document.createElement('video');
       v.preload='none';v.playsInline=true;v.setAttribute('playsinline','');
-      v.src=e.src;v.loop=!!e.loop;v.muted=!!e.muted;v.volume=1;
+      v.dataset.videoUrl=e.src;v.src=e.src;v.loop=!!e.loop;v.muted=!!e.muted;v.volume=1;
       v.controls=false;v.disablePictureInPicture=true;
       v.style.objectFit=e.fit==='cover'?'cover':'contain';
       v.setAttribute('aria-label','Video: '+(e.name||'Slideshow 2'));
@@ -989,6 +991,75 @@ function elNode(e, i, still = false) {
   }
   o.style.cssText = st; lp.appendChild(n); o.appendChild(lp); return o;
 }
+/* Offline-on-this-laptop video cache. Each uploaded video URL is the cache key.
+   Stored in IndexedDB so the LED presenter and the controller share cached copies.
+   This does not modify Supabase, your slideshow deck or the uploaded media. */
+const VIDEO_OFFLINE_DATABASE = 'coachella-slides2-offline-video-v1';
+const VIDEO_OFFLINE_STORE = 'video-files';
+function openVideoOfflineDB(){
+  return new Promise((resolve,reject)=>{
+    if(!('indexedDB' in window)){reject(new Error('Browser storage is unavailable'));return;}
+    const req=indexedDB.open(VIDEO_OFFLINE_DATABASE,1);
+    req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(VIDEO_OFFLINE_STORE))req.result.createObjectStore(VIDEO_OFFLINE_STORE);};
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error||new Error('Cannot access local browser storage'));
+    req.onblocked=()=>reject(new Error('Close other Coachella slideshow tabs and retry'));
+  });
+}
+async function getOfflineVideo(url){
+  if(!url)return null;
+  const db=await openVideoOfflineDB();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(VIDEO_OFFLINE_STORE,'readonly');
+    const req=tx.objectStore(VIDEO_OFFLINE_STORE).get(url);
+    let value=null;
+    req.onsuccess=()=>{value=req.result||null;};
+    tx.oncomplete=()=>{db.close();resolve(value?.blob instanceof Blob?value:null);};
+    tx.onerror=()=>{const err=tx.error;db.close();reject(err||new Error('Unable to read stored video'));};
+    tx.onabort=()=>{db.close();reject(new Error('Local video read was canceled'));};
+  });
+}
+async function saveOfflineVideo(url,blob,name){
+  if(!url||!(blob instanceof Blob)||blob.size>VIDEO_MAX_BYTES||blob.size===0)throw Error('Choose a video no larger than 50 MB');
+  const db=await openVideoOfflineDB();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(VIDEO_OFFLINE_STORE,'readwrite');
+    tx.objectStore(VIDEO_OFFLINE_STORE).put({blob,name:name||'Video',date:Date.now()},url);
+    tx.oncomplete=()=>{db.close();resolve();};
+    tx.onerror=()=>{const err=tx.error;db.close();reject(err||new Error('Unable to save video on this laptop'));};
+    tx.onabort=()=>{const err=tx.error;db.close();reject(err||new Error('Video could not be stored: browser storage may be full'));};
+  });
+}
+async function deleteOfflineVideo(url){
+  const db=await openVideoOfflineDB();
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(VIDEO_OFFLINE_STORE,'readwrite');
+    tx.objectStore(VIDEO_OFFLINE_STORE).delete(url);
+    tx.oncomplete=()=>{db.close();resolve();};
+    tx.onerror=()=>{const err=tx.error;db.close();reject(err||new Error('Could not remove offline copy'));};
+    tx.onabort=()=>{db.close();reject(new Error('Could not remove offline copy'));};
+  });
+}
+async function fetchVideoBlob(url,onProgress=()=>{},signal=undefined){
+  const response=await fetch(url,{signal,cache:'no-store'});
+  if(!response.ok)throw Error('Video download failed (HTTP '+response.status+')');
+  const length=Number(response.headers.get('content-length'))||0;
+  if(length>VIDEO_MAX_BYTES)throw Error('Video file exceeds 50 MB');
+  const chunks=[];let loaded=0;
+  if(response.body?.getReader){
+    const reader=response.body.getReader();
+    while(true){const {done,value}=await reader.read();if(done)break;
+      loaded+=value.byteLength;if(loaded>VIDEO_MAX_BYTES){await reader.cancel();throw Error('Video file exceeds 50 MB');}
+      chunks.push(value);onProgress(loaded,length);
+    }
+  }else{
+    const buf=await response.arrayBuffer();loaded=buf.byteLength;
+    if(loaded>VIDEO_MAX_BYTES)throw Error('Video file exceeds 50 MB');
+    chunks.push(buf);onProgress(loaded,length);
+  }
+  return new Blob(chunks,{type:response.headers.get('content-type')||'video/mp4'});
+}
+
 /* Reliable playback: download the finished video once before starting it.
    This avoids a streaming stall after the first seconds on unstable Wi-Fi.
    It does not change the uploaded file or require a new storage service. */
@@ -1032,67 +1103,59 @@ function playReadyVideo(video){
 async function prepareSmoothVideo(video) {
   if(video._coachellaPreparing)return;
   video._coachellaPreparing=true;
-  const original=video.currentSrc||video.src;
-  if(!original)return;
+  const original=video.dataset.videoUrl||video.currentSrc||video.src;
+  if(!original){video._coachellaPreparing=false;return;}
   const controller=new AbortController();video._coachellaAbort=controller;
   const stillCurrent=()=>video.isConnected&&!controller.signal.aborted;
-  smoothVideoMessage(video,'PREPARING VIDEO','Loading before playback to avoid freezing…');
-  video.addEventListener('waiting',()=>{if(video._coachellaReady&&stillCurrent())smoothVideoMessage(video,'BUFFERING VIDEO','Checking playback readiness…');});
+  smoothVideoMessage(video,'PREPARING VIDEO','Checking for a video saved on this computer…');
+  video.addEventListener('waiting',()=>{
+    if(video._coachellaReady&&stillCurrent())smoothVideoMessage(video,'PREPARING PLAYBACK','If this continues, convert the video to H.264 MP4.');
+  });
   video.addEventListener('playing',()=>{const b=mediaStatusBox(video);if(b)b.hidden=true;});
   video.addEventListener('error',()=>{
     if(!stillCurrent())return;
-    smoothVideoMessage(video,'VIDEO CANNOT PLAY','Convert to MP4 (H.264 video + AAC audio), then upload again.',true);
+    smoothVideoMessage(video,'VIDEO CANNOT PLAY','Try MP4 with H.264 video and AAC sound.',true);
   });
   try{
-    const response=await fetch(original,{signal:controller.signal,cache:'default'});
-    if(!response.ok)throw new Error('HTTP '+response.status);
-    const length=Number(response.headers.get('content-length'))||0;
-    if(length>VIDEO_MAX_BYTES)throw new Error('Video exceeds 50 MB buffering limit');
-    const chunks=[];let loaded=0;
-    if(response.body&&response.body.getReader){
-      const reader=response.body.getReader();
-      while(true){const {done,value}=await reader.read();if(done)break;
-        loaded+=value.byteLength;
-        if(loaded>VIDEO_MAX_BYTES){reader.cancel();throw new Error('Video exceeds 50 MB buffering limit');}
-        chunks.push(value);
-        if(stillCurrent())smoothVideoMessage(video,'PREPARING VIDEO',length?'Downloaded '+Math.min(100,Math.round(100*loaded/length))+'%':'Loaded '+(loaded/1048576).toFixed(1)+' MB');
-      }
-    }else{
-      const bytes=await response.arrayBuffer();loaded=bytes.byteLength;
-      if(loaded>VIDEO_MAX_BYTES)throw new Error('Video exceeds 50 MB buffering limit');
-      chunks.push(bytes);
+    let cached=null;
+    try{cached=await getOfflineVideo(original);}catch(err){console.warn('Local video storage is unavailable:',err);}
+    let blob=cached?.blob||null;
+    if(!blob){
+      if(!stillCurrent())return;
+      smoothVideoMessage(video,'DOWNLOADING VIDEO','A local copy is not prepared. Loading from the internet…');
+      blob=await fetchVideoBlob(original,(loaded,total)=>{
+        if(stillCurrent())smoothVideoMessage(video,'DOWNLOADING VIDEO',total?'Downloaded '+Math.min(100,Math.round(loaded/total*100))+'%':'Downloaded '+(loaded/1048576).toFixed(1)+' MB');
+      },controller.signal);
+      if(!stillCurrent())return;
+      try{await saveOfflineVideo(original,blob,'Downloaded video');}
+      catch(err){console.warn('Could not save local video copy:',err);}
     }
     if(!stillCurrent())return;
-    const blob=new Blob(chunks,{type:response.headers.get('content-type')||'video/mp4'});
     const local=URL.createObjectURL(blob);
     if(!stillCurrent()){URL.revokeObjectURL(local);return;}
     video._coachellaBlobUrl=local;
-    video.src=local;
-    video.preload='auto';
-    video.load();
-    smoothVideoMessage(video,'STARTING VIDEO','Full video downloaded — preparing playback…');
+    video.src=local;video.preload='auto';video.load();
+    smoothVideoMessage(video,'STARTING VIDEO',cached?'Playing saved local video — no streaming required':'Video is fully downloaded and ready.');
     await new Promise((resolve,reject)=>{
       if(video.readyState>=HTMLMediaElement.HAVE_FUTURE_DATA){resolve();return;}
       const done=()=>{clearTimeout(timeout);video.removeEventListener('canplay',ready);video.removeEventListener('error',failed);controller.signal.removeEventListener('abort',cancel);};
       const ready=()=>{done();resolve();};
-      const failed=()=>{done();reject(new Error('Unsupported video codec'));};
+      const failed=()=>{done();reject(Error('Video codec is unsupported'));};
       const cancel=()=>{done();reject(new DOMException('Canceled','AbortError'));};
-      const timeout=setTimeout(()=>{done();reject(new Error('Video decode timeout'));},15000);
+      const timeout=setTimeout(()=>{done();reject(Error('Video decoding timed out'));},15000);
       video.addEventListener('canplay',ready,{once:true});video.addEventListener('error',failed,{once:true});controller.signal.addEventListener('abort',cancel,{once:true});
     });
     if(!stillCurrent())return;
-    video._coachellaReady=true;video.currentTime=0;
-    playReadyVideo(video);
+    video._coachellaReady=true;video.currentTime=0;playReadyVideo(video);
   }catch(err){
     if(err?.name==='AbortError'||!stillCurrent())return;
-    // A third-party video URL may not permit cross-origin fetching even though
-    // it allows regular browser playback. Fallback rather than a blank screen.
-    console.warn('Full video preparation unavailable; trying normal streaming',err);
-    const box=mediaStatusBox(video);if(box)box.hidden=true;
+    console.warn('Offline video loading failed',err);
+    // Keep an online-streaming fallback in case the laptop has no storage space
+    // or Supabase blocks cross-origin downloads. A local file avoids this.
     if(video._coachellaBlobUrl){URL.revokeObjectURL(video._coachellaBlobUrl);video._coachellaBlobUrl=null;}
     video.src=original;video.preload='auto';video.load();
     video._coachellaReady=true;
-    smoothVideoMessage(video,'STREAMING VIDEO','If playback pauses, check your connection or convert the file to H.264 MP4.');
+    smoothVideoMessage(video,'STREAMING FALLBACK','Prepare this video from a local MP4 to prevent Wi-Fi interruptions.');
     playReadyVideo(video);
   }finally{video._coachellaPreparing=false;}
 }
@@ -1355,6 +1418,49 @@ function describeVideoUploadError(err) {
   }
   return msg;
 }
+/* Save all online videos ahead of the program, while internet is available. */
+$('prepareVideosBtn').addEventListener('click',async()=>{
+  if(!deck)return;
+  const urls=[...new Set(deck.slides.flatMap(s=>s.els||[]).filter(e=>e.t==='video'&&/^https?:\/\//i.test(e.src||'')).map(e=>e.src))];
+  if(!urls.length){$('saveSt').textContent='Add a video first';return;}
+  const btn=$('prepareVideosBtn');btn.disabled=true;let done=0;
+  try{
+    for(let i=0;i<urls.length;i++){
+      const url=urls[i];let saved=await getOfflineVideo(url).catch(()=>null);
+      if(!saved){
+        $('saveSt').textContent='Preparing video '+(i+1)+' of '+urls.length+'…';
+        const blob=await fetchVideoBlob(url,(loaded,total)=>{
+          $('saveSt').textContent='Video '+(i+1)+'/'+urls.length+': '+(total?Math.floor(100*loaded/total)+'%':(loaded/1048576).toFixed(1)+' MB');
+        });
+        await saveOfflineVideo(url,blob,'Offline prepared video');
+      }
+      done++;
+    }
+    $('saveSt').textContent=done+' video(s) saved on this laptop — ready for LED playback';
+  }catch(err){
+    $('saveSt').textContent='Prepared '+done+'/'+urls.length+'. For the rest, select local MP4 in Video settings.';
+    console.warn('Video preloading failed:',err);
+  }finally{btn.disabled=false;}
+});
+let offlineFileTarget=null;
+$('offlineVideoIn').addEventListener('change',async ev=>{
+  const f=ev.target.files?.[0];ev.target.value='';if(!f||!offlineFileTarget)return;
+  const target=offlineFileTarget;offlineFileTarget=null;
+  if(!/\.(mp4|webm|m4v)$/i.test(f.name)||!f.size||f.size>VIDEO_MAX_BYTES){
+    $('saveSt').textContent='Select an MP4/WebM video no larger than 50 MB';return;
+  }
+  const active=deck.slides.find(sl=>sl.id===target.slideId)?.els.find(el=>el.id===target.elementId);
+  if(!active||active.src!==target.url){$('saveSt').textContent='Video slide changed. Select it again.';return;}
+  if(active.name&&active.name!==f.name&&!confirm('This file has a different name from the uploaded video. Use it as the offline copy for this slide?'))return;
+  $('saveSt').textContent='Saving '+f.name+' on this laptop…';
+  try{
+    await navigator.storage?.persist?.().catch(()=>{});
+    await saveOfflineVideo(target.url,f,f.name);
+    $('saveSt').textContent='Offline video READY: '+f.name+'. It will play without streaming.';
+    if(slide().id===target.slideId)buildProps();
+  }catch(err){$('saveSt').textContent='Could not save offline video: '+(err?.message||String(err));}
+});
+
 let videoTarget=null, videoSlideTarget=null, videoUploading=false;
 function chooseVideo(target=null){
  if(videoUploading)return;
@@ -1519,10 +1625,29 @@ function buildProps() {
       const upload=h('button',{class:'btn s y',type:'button',onclick:()=>chooseVideo(e.id)},e.src?'Replace uploaded video':'Upload MP4 / WebM');
       const preview=h('button',{class:'btn s w',type:'button',onclick:playSelectedVideo},'▶ Play / Pause preview (muted)');
       p.append(h('div',{class:'row'},upload,preview));
+      if(e.src){
+        const localButton=h('button',{class:'btn s y',type:'button'},'📁 Use local MP4 (no buffering)');
+        localButton.addEventListener('click',()=>{
+          offlineFileTarget={url:e.src,slideId:slide().id,elementId:e.id};
+          $('offlineVideoIn').click();
+        });
+        const offlineInfo=h('p',{class:'hint'},'Checking offline copy on this computer…');
+        getOfflineVideo(e.src).then(v=>{
+          if(offlineInfo.isConnected)offlineInfo.textContent=v?'✓ OFFLINE READY — '+v.name+'. Playback uses this laptop, not Wi-Fi.':'Not prepared offline. Select the original MP4 above or click Prepare Videos before your event.';
+        }).catch(()=>{
+          if(offlineInfo.isConnected)offlineInfo.textContent='Local browser storage is unavailable. Try Chrome or Edge (normal window).';
+        });
+        const clearLocal=h('button',{class:'btn s w',type:'button'},'Remove offline copy');
+        clearLocal.addEventListener('click',async()=>{
+          try{await deleteOfflineVideo(e.src);buildProps();$('saveSt').textContent='Offline copy removed; online video remains saved';}
+          catch(err){$('saveSt').textContent='Could not remove offline copy: '+err.message;}
+        });
+        p.append(h('div',{class:'row'},localButton,clearLocal),offlineInfo);
+      }
       const u=h('input',{type:'url',placeholder:'https://.../clip.mp4'});
       u.value=e.src||'';u.addEventListener('change',()=>{const v=u.value.trim();if(v&&!/^https?:\/\//i.test(v)){u.setCustomValidity('Enter a direct https:// video URL');u.reportValidity();return;}u.setCustomValidity('');e.src=v;renderMain(false);commit();refreshThumb(sel);});
       p.append(field('Video URL (optional alternative to uploading)',u));
-      p.append(h('p',{class:'hint'},'Video uploads: maximum 50 MB. For smooth playback use MP4 (H.264 video + AAC audio). The presentation prepares the full video before starting; you can also paste a direct MP4/WebM URL.'));
+      p.append(h('p',{class:'hint'},'Video uploads: maximum 50 MB. For smooth playback use MP4 (H.264 video + AAC audio). Use “Prepare Videos” before your program, or select the original MP4 from the presentation laptop. Videos saved offline play without streaming. You can also paste a direct MP4/WebM URL.'));
       p.append(h('div',{class:'g2'},field('Screen fit',selIn({contain:'Show entire video',cover:'Fill screen (crop edges)'},()=>e.fit||'contain',v=>e.fit=v)),field('Repeat',selIn({no:'Play once',yes:'Loop continuously'},()=>e.loop?'yes':'no',v=>e.loop=v==='yes'))));
       p.append(field('Audio on the LED',selIn({on:'Play with sound',off:'Mute sound'},()=>e.muted?'off':'on',v=>e.muted=v==='off')));
       p.append(h('p',{class:'hint'},'The LED screen starts the video when this slide appears. If the browser blocks sound, press PLAY VIDEO WITH SOUND on that screen. For PDF export, videos appear as static placeholders.'));
