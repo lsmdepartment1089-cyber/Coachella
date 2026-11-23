@@ -418,6 +418,57 @@ body.idle-out{cursor:none}
 #pfit .stage.led-43 .cwrap,#ofit .stage.led-43 .cwrap{top:180px!important;bottom:auto!important;height:1080px!important}
 /* The backdrop stretches naturally to 4:3; artwork and text retain their own dimensions. */
 #pfit .stage.led-43 .bgwrap,#ofit .stage.led-43 .bgwrap{height:1440px}
+
+
+/* ==============================================================
+   STA. ROSA GOT TALENT — new native slide templates
+   Score sheet borrows the precise weights and columns from the
+   organizer-supplied Criteria of Judging reference.
+   All content is made of existing editable slide elements.
+   ============================================================== */
+.stage .bg.talent-live-bg{
+  background:radial-gradient(ellipse at 50% 47%,#5f236e 0%,#251442 42%,#0c1029 78%,#090a21 100%);
+  overflow:hidden;isolation:isolate;
+}
+.talent-live-bg .tl-halo{position:absolute;left:50%;top:45%;width:1240px;height:840px;transform:translate(-50%,-50%);
+  background:radial-gradient(ellipse,rgba(248,60,191,.3),rgba(80,33,148,.13) 48%,transparent 72%);border-radius:50%;
+  animation:tl-glow 5s ease-in-out infinite alternate}
+@keyframes tl-glow{to{opacity:.42;transform:translate(-50%,-50%) scale(1.11)}}
+.talent-live-bg .tl-beam{position:absolute;top:-150px;height:1250px;width:440px;transform-origin:50% 0;
+  clip-path:polygon(48% 0,52% 0,100% 100%,0 100%);opacity:.28;mix-blend-mode:screen;animation:tl-sweep 8s ease-in-out infinite alternate}
+.talent-live-bg .tl-beam.a{left:160px;background:linear-gradient(#e5fbff,transparent);--a:18deg;--b:-20deg}
+.talent-live-bg .tl-beam.b{right:160px;background:linear-gradient(#fff0c9,transparent);--a:-18deg;--b:18deg;animation-delay:-2.9s}
+.talent-live-bg .tl-beam.c{left:740px;background:linear-gradient(#eaa0ff,transparent);--a:-11deg;--b:13deg;opacity:.17;animation-delay:-1.1s}
+@keyframes tl-sweep{from{transform:rotate(var(--a))}to{transform:rotate(var(--b))}}
+.talent-live-bg .tl-stage{position:absolute;left:0;right:0;bottom:0;height:195px;
+  background:linear-gradient(#36123f,#121026 58%,#0d0c20);border-top:5px solid #FF1493;
+  box-shadow:0 -20px 100px rgba(255,20,147,.16)}
+.talent-live-bg .tl-floor{position:absolute;bottom:35px;left:50%;width:1450px;height:190px;transform:translateX(-50%) perspective(700px) rotateX(66deg);
+  border:6px solid rgba(255,240,0,.4);border-radius:48%;box-shadow:0 0 48px 10px rgba(255,20,147,.27),inset 0 0 34px rgba(255,240,0,.2)}
+.talent-live-bg .tl-bulbs{position:absolute;left:90px;right:90px;top:78px;height:18px;
+  background:repeating-linear-gradient(90deg,#FFF000 0 17px,transparent 18px 102px);
+  opacity:.85;filter:drop-shadow(0 0 12px #FFF000);border-radius:50%}
+.talent-live-bg .tl-mic{position:absolute;top:405px;left:50%;width:500px;height:500px;transform:translateX(-50%);opacity:.13;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Crect x='88' y='12' width='64' height='130' rx='32' fill='%23FFFFFF'/%3E%3Cpath d='M60 108c0 80 120 80 120 0M120 170v43M88 217h64' stroke='%23FFFFFF' stroke-width='14' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size:contain;background-repeat:no-repeat}
+.stage .bg.talent-judge-bg{
+  background:radial-gradient(ellipse at 50% -15%,#39285b 0%,#191134 58%,#10102b 100%);
+  overflow:hidden;isolation:isolate;
+}
+.talent-judge-bg .tj-accent{position:absolute;top:0;left:0;right:0;height:22px;background:linear-gradient(90deg,#00DFFF,#FFF000,#FF1493)}
+.talent-judge-bg .tj-glow{position:absolute;width:790px;height:650px;border-radius:50%;filter:blur(92px);opacity:.15;
+  background:#FF1493;left:-370px;top:180px}
+.talent-judge-bg .tj-glow.r{left:auto;right:-400px;top:330px;background:#00DFFF}
+@media(prefers-reduced-motion:reduce){
+  .talent-live-bg .tl-halo,.talent-live-bg .tl-beam{animation:none!important}
+}
+
+
+/* Score controls in the existing right-side editing panel. */
+.talent-score-edit{margin:11px 0;border:1px solid #aeb5d7;border-radius:10px;padding:10px 12px;background:#f6f8ff}
+.talent-score-edit summary{font:800 15px 'Nunito Sans',sans-serif;color:#21133E;cursor:pointer;padding:3px 0 8px}
+.talent-score-edit input{width:100%;max-width:100%}
+
 </style>
 </head>
 <body>
@@ -558,6 +609,8 @@ function hills() {
 }
 const clouds = '<div class="cl c1"></div><div class="cl c2"></div><div class="cl c3"></div>';
 function bgHtml(k) {
+  if(k==='talent-live')return '<div class="bg talent-live-bg"><div class="tl-halo"></div><div class="tl-beam a"></div><div class="tl-beam b"></div><div class="tl-beam c"></div><div class="tl-mic"></div><div class="tl-stage"></div><div class="tl-floor"></div><div class="tl-bulbs"></div></div>';
+  if(k==='talent-judge')return '<div class="bg talent-judge-bg"><div class="tj-accent"></div><div class="tj-glow"></div><div class="tj-glow r"></div></div>';
   if(k==='desert-search')return '<div class="bg desert-bg"><div class="d-stars"></div><div class="d-sun"></div><div class="d-search l"></div><div class="d-search r"></div><svg class="d-dunes" viewBox="0 0 1920 420" preserveAspectRatio="none"><path d="M0 220 C260 120 520 260 820 190 C1120 120 1420 270 1920 170 L1920 420 L0 420Z" fill="#5a1a4a"/><path d="M0 290 C300 210 600 330 960 260 C1320 190 1600 320 1920 250 L1920 420 L0 420Z" fill="#3b1038"/><path d="M0 360 C340 300 700 390 1040 340 C1400 290 1680 380 1920 330 L1920 420 L0 420Z" fill="#1a0b27"/></svg><svg class="d-cactus" style="left:90px;width:130px;height:260px" viewBox="0 0 130 260"><rect x="50" y="20" width="30" height="240" rx="15"/><rect x="0" y="90" width="26" height="80" rx="13"/><rect x="0" y="150" width="56" height="26" rx="13"/><rect x="104" y="60" width="26" height="80" rx="13"/><rect x="74" y="120" width="56" height="26" rx="13"/></svg><svg class="d-cactus" style="right:110px;width:110px;height:210px" viewBox="0 0 130 260"><rect x="50" y="20" width="30" height="240" rx="15"/><rect x="0" y="90" width="26" height="80" rx="13"/><rect x="0" y="150" width="56" height="26" rx="13"/><rect x="104" y="60" width="26" height="80" rx="13"/><rect x="74" y="120" width="56" height="26" rx="13"/></svg><div class="d-seek k"><svg viewBox="0 0 300 210"><path d="M20 190 L5 50 L80 110 L150 15 L220 110 L295 50 L280 190 Z"/></svg>?</div><div class="d-seek q"><svg viewBox="0 0 300 210"><path d="M25 190 L10 70 L70 120 L110 40 L150 125 L190 40 L230 120 L290 70 L275 190 Z"/></svg>?</div></div>';
   if(k==='fashion-ramp')return '<div class="bg fashion-ramp-bg"><div class="ramp-beam"></div><div class="ramp-beam"></div><div class="ramp-beam"></div><div class="ramp-horizon"></div><div class="ramp-runway-wrap"><div class="ramp-runway"><div class="ramp-centerline"></div></div></div><div class="ramp-flashes"><div class="ramp-flash"></div><div class="ramp-flash"></div><div class="ramp-flash"></div><div class="ramp-flash"></div><div class="ramp-flash"></div><div class="ramp-flash"></div></div></div>';
   if(k==='clean-electric')return '<div class="bg clean-electric"></div>';
@@ -569,7 +622,7 @@ function bgHtml(k) {
   if (k === 'day') return `<div class="bg day"><div class="sunb"></div>${clouds}${hills()}</div>`;
   return `<div class="bg sunset"><div class="sunb"></div>${clouds}${hills()}</div>`;
 }
-const BG_NAMES = { 'desert-search':'Desert searchlights — King & Queen', 'fashion-ramp':'Fashion Ramp — animated runway', 'clean-electric':'Electric minimal (game rules)', sunset: 'Sunset arches', rays: 'Golden rays', arches: 'Arches pattern', night: 'Night festival', day: 'Blue sky', party: 'Confetti party', stage: 'Stage lights' };
+const BG_NAMES = { 'talent-live':'Sta. Rosa Got Talent — live spotlights', 'talent-judge':'Got Talent — judging sheet', 'desert-search':'Desert searchlights — King & Queen', 'fashion-ramp':'Fashion Ramp — animated runway', 'clean-electric':'Electric minimal (game rules)', sunset: 'Sunset arches', rays: 'Golden rays', arches: 'Arches pattern', night: 'Night festival', day: 'Blue sky', party: 'Confetti party', stage: 'Stage lights' };
 const TRANS = { fade: 'Fade', slide: 'Slide from the right', slideup: 'Slide up', zoom: 'Zoom', flip: 'Flip', spin: 'Twist', blur: 'Blur', wipe: 'Wipe', bounce: 'Bounce in', drop: 'Drop in' };
 
 /* ---------- elements ---------- */
@@ -614,6 +667,64 @@ function badge(text, x, y, size, al) { const w = Math.round(String(text).length 
 const parseItems = s => String(s || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => { const i = l.indexOf('|'); return i < 0 ? { t: '', a: l } : { t: l.slice(0, i).trim(), a: l.slice(i + 1).trim() }; });
 
 const TPL = {
+
+  /* Santa Rosa Got Talent: separate program-segment title card. */
+  gotTalentIntro: f => [
+    shp({x:0,y:0,w:1920,h:10,fill:'#FF1493',anim:'none'}),
+    tx({key:'talentIntroEyebrow',x:220,y:144,w:1480,text:f.eyebrow,font:'Nunito Sans',size:35,color:'#FFF000',b:true,al:'center',ls:10,sh:'soft',anim:'fade'}),
+    tx({key:'talentIntroTop',x:190,y:275,w:1540,text:f.top,font:'Anton',size:176,color:'#FFF000',b:true,up:true,al:'center',lh:1.03,ls:7,sh:'glow',anim:'rise'}),
+    tx({key:'talentIntroTitle',x:108,y:458,w:1704,text:f.title,font:'Anton',size:248,color:'#F5FBFF',b:true,up:true,al:'center',lh:1,ls:7,sh:'hard',anim:'zoom'}),
+    shp({x:682,y:745,w:556,h:13,shape:'pill',fill:'#FF1493',anim:'fade'}),
+    tx({key:'talentIntroTagline',x:220,y:793,w:1480,text:f.tagline,font:'Nunito Sans',size:52,color:'#00DFFF',b:true,al:'center',ls:6,sh:'soft',anim:'fade'}),
+    tx({key:'talentIntroFooter',x:240,y:917,w:1440,text:f.footer,font:'Nunito Sans',size:35,color:'#F5FBFF',b:true,al:'center',ls:3,sh:'soft',anim:'fade'}),
+    icon('star',{x:238,y:425,w:145,color:'#FFF000',anim:'zoom',loop:'float'}),
+    icon('star',{x:1515,y:422,w:145,color:'#FF1493',anim:'zoom',loop:'float'})
+  ],
+  /* Printable-style judging columns, adapted to a 1920x1080 LED canvas.
+     Participant names and scores are independent editable native text elements.
+     Scores use the exact weight maxima from the reference sheet. */
+  gotTalentJudging: f => {
+    const X=[72,158,518,744,970,1196,1422,1648,1848];
+    const criteria=[['TALENT &\nSKILLS','30%'],['CREATIVITY &\nORIGINALITY','20%'],['STAGE PRESENCE &\nCONFIDENCE','20%'],['ENTERTAINMENT\nVALUE','15%'],['OVERALL\nPERFORMANCE','15%']];
+    const headY=305, headH=199, bodyY=504, rowH=85, count=5;
+    const v=[
+      tx({key:'talentJudgeHeading',x:115,y:55,w:1690,text:f.heading,font:'Anton',size:113,color:'#FFF000',b:true,al:'center',ls:6,sh:'glow',anim:'fade'}),
+      tx({key:'talentJudgeEvent',x:120,y:174,w:1350,text:f.event,font:'Nunito Sans',size:47,color:'#F5FBFF',b:true,al:'left',ls:3,sh:'soft',anim:'fade'}),
+      shp({x:1503,y:180,w:345,h:75,shape:'round',rad:25,fill:'#FF1493',bw:3,bc:'#FFF000',anim:'none'}),
+      tx({key:'talentJudgeName',x:1520,y:193,w:310,text:f.judge,font:'Nunito Sans',size:44,color:'#FFFFFF',b:true,al:'center',sh:'none',anim:'fade'}),
+      shp({x:72,y:headY,w:1776,h:headH,fill:'#2E174A',bw:5,bc:'#FFF000',anim:'none'}),
+    ];
+    for(let row=0;row<count;row++){
+      const y=bodyY+row*rowH;
+      v.push(shp({x:72,y,w:1776,h:rowH,fill:row%2?'#F2F4FC':'#FFFFFF',bw:0,anim:'none'}));
+      v.push(shp({x:1648,y,w:200,h:rowH,fill:row%2?'#FFF0C6':'#FFF6DC',bw:0,anim:'none'}));
+    }
+    v.push(shp({x:72,y:headY,w:1776,h:headH+count*rowH,fill:'transparent',bw:5,bc:'#FFF000',anim:'none'}));
+    // Clean table grid, sized to match NAME | five weighted criteria | TOTAL.
+    for(let col=1;col<X.length-1;col++)v.push(shp({x:X[col]-2,y:headY,w:4,h:headH+count*rowH,fill:'#27304A',anim:'none'}));
+    for(let row=0;row<count;row++)v.push(shp({x:72,y:bodyY+row*rowH-2,w:1776,h:4,fill:'#27304A',anim:'none'}));
+    v.push(tx({x:72,y:370,w:86,text:'#',size:51,color:'#FFF000',b:true,sh:'none',anim:'none'}));
+    v.push(tx({x:158,y:368,w:360,text:'NAME',size:42,color:'#FFFFFF',b:true,sh:'none',anim:'none'}));
+    for(let col=0;col<5;col++){
+      const [heading,weight]=criteria[col], x=X[col+2];
+      v.push(tx({x:x+11,y:347,w:X[col+3]-x-22,text:heading,size:col===3?22:26,color:'#FFFFFF',b:true,lh:1.12,sh:'none',anim:'none'}));
+      v.push(tx({x:x+11,y:443,w:X[col+3]-x-22,text:weight,size:49,color:'#FFF000',font:'Anton',b:true,sh:'none',anim:'none'}));
+    }
+    v.push(tx({x:1655,y:364,w:186,text:'TOTAL',size:40,color:'#FFFFFF',b:true,sh:'none',anim:'none'}));
+    v.push(tx({x:1655,y:440,w:186,text:'100%',size:51,font:'Anton',color:'#FFF000',b:true,sh:'none',anim:'none'}));
+    for(let row=0;row<count;row++){
+      const y=bodyY+row*rowH;
+      const n=String(row+1);
+      v.push(tx({x:72,y:y+22,w:86,text:n,font:'Anton',size:34,color:'#2E174A',b:true,sh:'none',anim:'none'}));
+      v.push(tx({key:'talentName'+n,x:174,y:y+21,w:330,text:f.names&&f.names[row]!=null?f.names[row]:'PERFORMER '+n,font:'Nunito Sans',size:30,color:'#10102B',b:true,al:'left',sh:'none',anim:'none'}));
+      for(let col=0;col<5;col++){
+        v.push(tx({key:'talentScore'+n+'_'+(col+1),x:X[col+2]+8,y:y+20,w:X[col+3]-X[col+2]-16,text:'—',font:'Nunito Sans',size:39,color:'#343054',b:true,sh:'none',anim:'none'}));
+      }
+      v.push(tx({key:'talentTotal'+n,x:1656,y:y+17,w:186,text:'—',font:'Anton',size:47,color:'#9B166C',b:true,sh:'none',anim:'none'}));
+    }
+    v.push(tx({x:220,y:974,w:1480,text:'TOTAL WEIGHT: 100%  •  SCORES MUST FOLLOW EACH CRITERION’S MAXIMUM',size:28,color:'#DDE5F9',b:true,al:'center',ls:2,sh:'soft',anim:'fade'}));
+    return v;
+  },
   video: f => [videoEl({x:0,y:0,w:1920,h:1080,src:f.src||'',fit:'contain',loop:false,muted:false})],
   desertSearch: f => [
     tx({key:'desertBrand',x:1100,y:39,w:760,text:f.brand,font:'Bodoni Moda',size:34,color:'#FFE2B0',b:true,i:true,al:'right',sh:'soft',anim:'fade',lh:1.2}),
@@ -654,6 +765,8 @@ const TPL = {
     return col([item(127, y => [arch({ x: 865, y })]), item(estH(f.head, S, 1700, .95, .48), y => [disp({ y, text: f.head, size: S })]), f.text && item(70, y => [tx({ y, text: f.text, font: SERIF, size: 52, color: '#F5FBFF' })])], 24); }
 };
 const LAYOUTS = {
+  gotTalentIntro: { name:'STA. ROSA GOT TALENT — segment opener',info:'Full-screen talent show opening with electric stage lights and editable text',bg:'talent-live',d:{eyebrow:'COACHELLA  •  BEYOND THE ARCHES',top:'STA. ROSA',title:'GOT TALENT',tagline:'THE SPOTLIGHT IS YOURS',footer:'YEAR END PARTY 2026'}},
+  gotTalentJudging: { name:'CRITERIA OF JUDGING — Got Talent',info:'Judge 1 score sheet: 30% / 20% / 20% / 15% / 15%. Editable names and auto-total scores',bg:'talent-judge',d:{heading:'CRITERIA OF JUDGING',event:'STA. ROSA GOT TALENT',judge:'JUDGE 1',names:['PERFORMER 1','PERFORMER 2','PERFORMER 3','PERFORMER 4','PERFORMER 5']}},
   video: {name:'Full-screen video',info:'Upload a video for the LED screen, with sound and playback controls',bg:'night',d:{src:''}},
   desertSearch: { name: 'Searching for King & Queen — desert', info: 'Desert sunset, searchlights & three editable text fields', bg: 'desert-search', d: { brand: 'McDonald’s Santa Rosa Bayan', kicker: 'Searching for the', title: 'King & Queen\nof the Desert' } },
   fashionRamp: { name: 'Fashion Ramp — animated runway', info: 'Spotlights, runway lights & four editable text fields', bg: 'fashion-ramp', d: { brand: "McDonald’s Santa Rosa Bayan", kicker: "It’s time to", title: 'Fashion\nRamp', subtitle: 'Year End Party: Beyond the Arches' } },
@@ -1436,6 +1549,13 @@ function startEdit(id) {
 function finishEdit(silent) {
   if (!editing) return; editing = false; const e = curEl(), n = selId && nodeOf(selId);
   if (e && n) { const inn = n.querySelector('.in'); if (inn) e.text = inn.innerText.replace(/\n$/, ''); }
+  if (e && slide().type==='gotTalentJudging' && /^talentScore[1-5]_[1-5]$/.test(e.key||'')) {
+    const row=Number(e.key.slice('talentScore'.length).split('_')[0]);
+    const idx=Number(e.key.split('_')[1])-1;
+    const value=String(e.text||'').trim(), num=Number(value);
+    e.text=(value!==''&&Number.isFinite(num)&&num>=0&&num<=GOT_TALENT_WEIGHTS[idx])?String(num):'—';
+    recalcTalentTotal(slide(),row);
+  }
   renderMain(false); if (!silent) { buildProps(); } commit(); refreshThumb(sel);
 }
 
@@ -1626,6 +1746,24 @@ const labelOf = e => (e.t === 'text' ? (e.text || 'Empty text').replace(/\s+/g, 
 function field(label, input) { return h('div', {}, h('label', { class: 'l' }, label), input); }
 function numIn(id, get, set, min, max, step) { const i = h('input', { type: 'number', id, min, max, step: step || 1 }); i.value = get(); i.addEventListener('input', () => { const v = parseFloat(i.value); if (isNaN(v)) return; set(Math.max(min, Math.min(max, v))); renderMain(false); commitSoon(); }); return i; }
 function selIn(opts, get, set) { const s = h('select', {}); Object.entries(opts).forEach(([k, v]) => s.appendChild(h('option', { value: k }, v))); s.value = get(); s.addEventListener('change', () => { set(s.value); renderMain(false); commit(); refreshThumb(sel); buildBar(); buildProps(); }); return s; }
+
+/* Got Talent score-sheet editor: 5 weighted criteria sum to a maximum of 100. */
+const GOT_TALENT_WEIGHTS=[30,20,20,15,15];
+function recalcTalentTotal(s, row){
+  if(!s||s.type!=='gotTalentJudging')return;
+  let sum=0,complete=true;
+  GOT_TALENT_WEIGHTS.forEach((weight,i)=>{
+    const el=s.els.find(e=>e.key==='talentScore'+row+'_'+(i+1));
+    const value=el&&String(el.text||'').trim();
+    if(!value||value==='—'||!/^\d+(?:\.\d+)?$/.test(value)){complete=false;return;}
+    const n=Number(value);
+    if(!Number.isFinite(n)||n<0||n>weight){complete=false;return;}
+    sum+=n;
+  });
+  const total=s.els.find(e=>e.key==='talentTotal'+row);
+  if(total)total.text=complete?String(Math.round(sum*100)/100):'—';
+}
+
 function buildProps() {
   const p = $('props'), s = slide(), e = curEl(); p.textContent = '';
   p.append(h('h3', {}, 'Slide ' + (sel + 1) + ' of ' + deck.slides.length));
@@ -1660,6 +1798,57 @@ function buildProps() {
       inp.addEventListener('input',()=>{el.text=inp.value;renderMain(false);commitSoon();});p.append(field(label,inp));
     });
     p.append(h('p',{class:'hint'},'You can also double-click any text directly on the slide.'));
+  }
+
+  if(s.type==='gotTalentIntro'){
+    p.append(h('div',{class:'sec'}),h('h3',{},'Sta. Rosa Got Talent — opener'));
+    [['Festival eyebrow','talentIntroEyebrow'],['Top title','talentIntroTop'],['Big headline','talentIntroTitle'],['Tagline','talentIntroTagline'],['Footer','talentIntroFooter']].forEach(([label,key])=>{
+      const el=s.els.find(e=>e.key===key);if(!el)return;
+      const input=h('input',{'aria-label':label,type:'text'});input.value=el.text||'';
+      input.addEventListener('input',()=>{el.text=input.value;renderMain(false);commitSoon();});
+      p.append(field(label,input));
+    });
+    p.append(h('p',{class:'hint'},'This is a separate segment title slide. You can also double-click the words directly.'));
+  }
+  if(s.type==='gotTalentJudging'){
+    p.append(h('div',{class:'sec'}),h('h3',{},'Got Talent — Criteria of Judging'));
+    [['Heading','talentJudgeHeading'],['Event title','talentJudgeEvent'],['Judge','talentJudgeName']].forEach(([label,key])=>{
+      const el=s.els.find(e=>e.key===key);if(!el)return;
+      const input=h('input',{'aria-label':label,type:'text'});input.value=el.text||'';
+      input.addEventListener('input',()=>{el.text=input.value;renderMain(false);commitSoon();});
+      p.append(field(label,input));
+    });
+    p.append(h('p',{class:'hint'},'Exact reference weights: Talent & Skills 30%, Creativity & Originality 20%, Stage Presence & Confidence 20%, Entertainment Value 15%, Overall Performance 15%. Total 100%. Duplicate this slide and change the judge for Judge 2, Judge 3, etc.'));
+    for(let row=1;row<=5;row++){
+      const details=h('details',{class:'talent-score-edit'});
+      const summary=h('summary',{},'Contestant '+row+' — name and scores');
+      details.append(summary);
+      const el=s.els.find(e=>e.key==='talentName'+row);
+      if(el){
+        const input=h('input',{type:'text','aria-label':'Contestant '+row+' name'});input.value=el.text||'';
+        input.addEventListener('input',()=>{el.text=input.value;renderMain(false);commitSoon();});
+        details.append(field('Name',input));
+      }
+      const labels=['Talent & Skills (max 30)','Creativity & Originality (max 20)','Stage Presence & Confidence (max 20)','Entertainment Value (max 15)','Overall Performance (max 15)'];
+      GOT_TALENT_WEIGHTS.forEach((max,i)=>{
+        const el=s.els.find(e=>e.key==='talentScore'+row+'_'+(i+1));if(!el)return;
+        const input=h('input',{type:'number',min:'0',max:String(max),step:'0.5',placeholder:'Leave blank', 'aria-label':'Contestant '+row+' '+labels[i]});
+        input.value=el.text==='—'?'':el.text||'';
+        input.addEventListener('input',()=>{
+          const raw=input.value.trim(),n=Number(raw);
+          if(raw!==''&&(!Number.isFinite(n)||n<0||n>max)){
+            input.setCustomValidity('Enter a score from 0 to '+max);input.reportValidity();return;
+          }
+          input.setCustomValidity('');
+          el.text=raw===''?'—':String(n);
+          recalcTalentTotal(s,row);
+          renderMain(false);commitSoon();
+        });
+        details.append(field(labels[i],input));
+      });
+      p.append(details);
+    }
+    p.append(h('p',{class:'hint'},'Totals appear automatically after all five valid scores are entered. Scores are saved in this slide, not submitted to a separate judging database.'));
   }
   const tsel = h('select', { 'aria-label': 'Slide change effect' }); tsel.appendChild(h('option', { value: '' }, 'Default (' + (TRANS[deck.transition] || 'Fade') + ')')); Object.entries(TRANS).forEach(([k, v]) => tsel.appendChild(h('option', { value: k }, v))); tsel.value = s.tr || '';
   tsel.addEventListener('change', () => { if (tsel.value) s.tr = tsel.value; else delete s.tr; commit(); });
