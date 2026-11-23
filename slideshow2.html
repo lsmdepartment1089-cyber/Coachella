@@ -397,6 +397,13 @@ body.idle-out{cursor:none}
 #videoIn{display:none}
 #videoUploadStatus{display:none}
 
+
+/* Playback feedback: real loading progress prevents a frozen first-frame impression. */
+.stage .video-prepare-status{position:absolute;z-index:700;left:50%;top:50%;transform:translate(-50%,-50%);max-width:85%;min-width:700px;padding:25px 35px;border:4px solid #FFF000;border-radius:18px;background:rgba(8,9,27,.94);color:#FFF000;box-shadow:0 12px 55px rgba(0,0,0,.5);font:600 39px/1.28 'Nunito Sans',sans-serif;text-align:center;pointer-events:none}
+.stage .video-prepare-status strong{display:block;font:58px 'Londrina Solid',sans-serif;margin-bottom:7px}
+.stage .video-prepare-status.error{background:#301020;border-color:#FF1493;color:#fff;pointer-events:auto}
+.stage .video-prepare-status small{font-size:26px;color:#e8faff}
+
 /* LED wall 12 ft wide × 9 ft high (4:3) — no stretched or cropped slide items.
    The native slideshow editing canvas stays 1920 × 1080; only the presentation
    stage becomes 1920 × 1440, with the existing 16:9 content centered.
@@ -447,7 +454,7 @@ body.idle-out{cursor:none}
         <div class="grp">
           <button class="btn s y" id="addText" type="button">+ Text</button>
           <button class="btn s y" id="addImg" type="button">+ Image</button>
-          <button class="btn s y" id="addVideo" type="button" title="Upload MP4 or WebM up to 100 MB (Supabase paid plan required above 50 MB)">+ Video</button>
+          <button class="btn s y" id="addVideo" type="button" title="Upload an MP4 or WebM video up to 50 MB">+ Video</button>
           <select id="addShape" aria-label="Add shape"><option value="">+ Shape</option><option value="rect">Rectangle</option><option value="round">Rounded box</option><option value="circle">Circle</option><option value="pill">Pill</option></select>
           <button class="btn s y" id="addArch" type="button">+ Arch</button>
           <button class="btn s y" id="addCd" type="button">+ Countdown</button>
@@ -964,7 +971,7 @@ function elNode(e, i, still = false) {
       n.innerHTML='<div class="video-still">▶ VIDEO</div>';
     }else{
       const v=document.createElement('video');
-      v.preload='metadata';v.playsInline=true;v.setAttribute('playsinline','');
+      v.preload='none';v.playsInline=true;v.setAttribute('playsinline','');
       v.src=e.src;v.loop=!!e.loop;v.muted=!!e.muted;v.volume=1;
       v.controls=false;v.disablePictureInPicture=true;
       v.style.objectFit=e.fit==='cover'?'cover':'contain';
@@ -982,6 +989,114 @@ function elNode(e, i, still = false) {
   }
   o.style.cssText = st; lp.appendChild(n); o.appendChild(lp); return o;
 }
+/* Reliable playback: download the finished video once before starting it.
+   This avoids a streaming stall after the first seconds on unstable Wi-Fi.
+   It does not change the uploaded file or require a new storage service. */
+function mediaStatusBox(video) {
+  const host = video.closest('.el');
+  if (!host) return null;
+  let box = host.querySelector('.video-prepare-status');
+  if (!box) { box = document.createElement('div'); box.className='video-prepare-status'; host.appendChild(box); }
+  return box;
+}
+function smoothVideoMessage(video, message, detail='', error=false) {
+  const box=mediaStatusBox(video);if(!box)return;
+  box.classList.toggle('error',!!error);
+  box.innerHTML='';
+  const main=document.createElement('strong');main.textContent=message;box.appendChild(main);
+  if(detail){const caption=document.createElement('small');caption.textContent=detail;box.appendChild(caption);}
+  box.hidden=false;
+}
+function cleanupSmoothVideo(video) {
+  if(video._coachellaAbort){video._coachellaAbort.abort();video._coachellaAbort=null;}
+  try{video.pause();}catch(_e){}
+  if(video._coachellaBlobUrl){URL.revokeObjectURL(video._coachellaBlobUrl);video._coachellaBlobUrl=null;}
+}
+function playReadyVideo(video){
+  if(!video.isConnected)return;
+  const p=video.play();
+  if(p&&p.catch)p.catch(err=>{
+    if(!video.isConnected)return;
+    const host=video.closest('.el');if(!host)return;
+    let button=host.querySelector('.video-sound-prompt');
+    if(!button){button=document.createElement('button');button.type='button';button.className='video-sound-prompt';host.appendChild(button);}
+    button.textContent='▶ PLAY VIDEO WITH SOUND';
+    button.onclick=ev=>{ev.stopPropagation();video.muted=false;
+      const attempt=video.play();
+      if(attempt&&attempt.then)attempt.then(()=>button.remove()).catch(()=>{button.textContent='Tap again to play video';});
+      else button.remove();
+    };
+    const box=host.querySelector('.video-prepare-status');if(box)box.hidden=true;
+  });
+}
+async function prepareSmoothVideo(video) {
+  if(video._coachellaPreparing)return;
+  video._coachellaPreparing=true;
+  const original=video.currentSrc||video.src;
+  if(!original)return;
+  const controller=new AbortController();video._coachellaAbort=controller;
+  const stillCurrent=()=>video.isConnected&&!controller.signal.aborted;
+  smoothVideoMessage(video,'PREPARING VIDEO','Loading before playback to avoid freezing…');
+  video.addEventListener('waiting',()=>{if(video._coachellaReady&&stillCurrent())smoothVideoMessage(video,'BUFFERING VIDEO','Checking playback readiness…');});
+  video.addEventListener('playing',()=>{const b=mediaStatusBox(video);if(b)b.hidden=true;});
+  video.addEventListener('error',()=>{
+    if(!stillCurrent())return;
+    smoothVideoMessage(video,'VIDEO CANNOT PLAY','Convert to MP4 (H.264 video + AAC audio), then upload again.',true);
+  });
+  try{
+    const response=await fetch(original,{signal:controller.signal,cache:'default'});
+    if(!response.ok)throw new Error('HTTP '+response.status);
+    const length=Number(response.headers.get('content-length'))||0;
+    if(length>VIDEO_MAX_BYTES)throw new Error('Video exceeds 50 MB buffering limit');
+    const chunks=[];let loaded=0;
+    if(response.body&&response.body.getReader){
+      const reader=response.body.getReader();
+      while(true){const {done,value}=await reader.read();if(done)break;
+        loaded+=value.byteLength;
+        if(loaded>VIDEO_MAX_BYTES){reader.cancel();throw new Error('Video exceeds 50 MB buffering limit');}
+        chunks.push(value);
+        if(stillCurrent())smoothVideoMessage(video,'PREPARING VIDEO',length?'Downloaded '+Math.min(100,Math.round(100*loaded/length))+'%':'Loaded '+(loaded/1048576).toFixed(1)+' MB');
+      }
+    }else{
+      const bytes=await response.arrayBuffer();loaded=bytes.byteLength;
+      if(loaded>VIDEO_MAX_BYTES)throw new Error('Video exceeds 50 MB buffering limit');
+      chunks.push(bytes);
+    }
+    if(!stillCurrent())return;
+    const blob=new Blob(chunks,{type:response.headers.get('content-type')||'video/mp4'});
+    const local=URL.createObjectURL(blob);
+    if(!stillCurrent()){URL.revokeObjectURL(local);return;}
+    video._coachellaBlobUrl=local;
+    video.src=local;
+    video.preload='auto';
+    video.load();
+    smoothVideoMessage(video,'STARTING VIDEO','Full video downloaded — preparing playback…');
+    await new Promise((resolve,reject)=>{
+      if(video.readyState>=HTMLMediaElement.HAVE_FUTURE_DATA){resolve();return;}
+      const done=()=>{clearTimeout(timeout);video.removeEventListener('canplay',ready);video.removeEventListener('error',failed);controller.signal.removeEventListener('abort',cancel);};
+      const ready=()=>{done();resolve();};
+      const failed=()=>{done();reject(new Error('Unsupported video codec'));};
+      const cancel=()=>{done();reject(new DOMException('Canceled','AbortError'));};
+      const timeout=setTimeout(()=>{done();reject(new Error('Video decode timeout'));},15000);
+      video.addEventListener('canplay',ready,{once:true});video.addEventListener('error',failed,{once:true});controller.signal.addEventListener('abort',cancel,{once:true});
+    });
+    if(!stillCurrent())return;
+    video._coachellaReady=true;video.currentTime=0;
+    playReadyVideo(video);
+  }catch(err){
+    if(err?.name==='AbortError'||!stillCurrent())return;
+    // A third-party video URL may not permit cross-origin fetching even though
+    // it allows regular browser playback. Fallback rather than a blank screen.
+    console.warn('Full video preparation unavailable; trying normal streaming',err);
+    const box=mediaStatusBox(video);if(box)box.hidden=true;
+    if(video._coachellaBlobUrl){URL.revokeObjectURL(video._coachellaBlobUrl);video._coachellaBlobUrl=null;}
+    video.src=original;video.preload='auto';video.load();
+    video._coachellaReady=true;
+    smoothVideoMessage(video,'STREAMING VIDEO','If playback pauses, check your connection or convert the file to H.264 MP4.');
+    playReadyVideo(video);
+  }finally{video._coachellaPreparing=false;}
+}
+
 function makeStage(root, still) {
   root.classList.add('stage'); if (still) root.classList.add('still');
   const bgw = document.createElement('div'), cw = document.createElement('div'); bgw.className = 'bgwrap'; cw.className = 'cwrap'; cw.style.cssText = 'position:absolute;inset:0'; root.append(bgw, cw);
@@ -999,30 +1114,11 @@ function makeStage(root, still) {
       const layer = document.createElement('div'); layer.className = 'els t-' + (opt.transition || 'fade') + (opt.animate ? ' anim' : '');
       slide.els.forEach((e, i) => { const n = elNode(e, i, still); if (opt.step != null && (e.step || 0) > opt.step) n.classList.add('stephid'); layer.appendChild(n); });
       const olds=[...cw.children];
-      olds.forEach(old=>old.querySelectorAll('video').forEach(v=>{v.pause();v.removeAttribute('autoplay');}));
+      olds.forEach(old=>old.querySelectorAll('video').forEach(cleanupSmoothVideo));
       cw.appendChild(layer);
-      if(opt.playVideo && !still) {
-        const onScreenVideos=[...layer.querySelectorAll('video')];
-        onScreenVideos.forEach(v=>{
-          v.currentTime=0;
-          const playResult=v.play();
-          if(playResult&&playResult.catch)playResult.catch(()=>{
-            // Autoplay with audio may be blocked on a freshly opened LED window.
-            // Rather than hiding that failure, display a large one-tap sound prompt.
-            const host=v.closest('.el');if(!host||!host.isConnected)return;
-            const button=document.createElement('button');button.type='button';
-            button.className='video-sound-prompt';button.textContent=v.error?'VIDEO UNAVAILABLE — CHECK FORMAT':'▶ PLAY VIDEO WITH SOUND';
-            host.appendChild(button);
-            button.addEventListener('click',ev=>{
-              ev.stopPropagation();v.muted=false;
-              const attempt=v.play();
-              if(attempt&&attempt.then)attempt.then(()=>button.remove()).catch(()=>{button.textContent='Tap to play video';});
-              else button.remove();
-            });
-          });
-        });
+      if(opt.playVideo && !still){
+        layer.querySelectorAll('video').forEach(prepareSmoothVideo);
       }
-
       if (opt.animate && olds.length) olds.forEach(o => { o.classList.remove('anim'); o.classList.add('leave'); o.style.pointerEvents = 'none'; setTimeout(() => o.remove(), 700); }); else olds.forEach(o => o.remove());
       tickCd();
     },
@@ -1237,63 +1333,22 @@ async function uploadImage(file) {
   $('saveSt').textContent = ''; return sb.storage.from(C.uploadBucket).getPublicUrl(path).data.publicUrl;
 }
 
-/* ---------- Slideshow 2 video uploads: 100 MB max, resilient resumable transfer. ---------- */
-// Independent from CONFIG.maxFileMB (that 50 MB limit is for talent entries).
-const VIDEO_MAX_BYTES = 100 * 1024 * 1024;
-const VIDEO_TUS_THRESHOLD = 6 * 1024 * 1024;
+/* ---------- Video uploads: 50 MB maximum, original Supabase upload path. ---------- */
+const VIDEO_MAX_BYTES = 50 * 1024 * 1024;
 const VIDEO_BUCKET = C.uploadBucket || 'talent-uploads';
-let tusLibraryPromise = null;
-function ensureVideoTus() {
-  if (window.tus && window.tus.Upload) return Promise.resolve();
-  if (tusLibraryPromise) return tusLibraryPromise;
-  tusLibraryPromise = new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js';
-    script.async = true;
-    script.onload = () => window.tus && window.tus.Upload ? resolve() : reject(new Error('Video uploader could not start. Please check the internet connection.'));
-    script.onerror = () => reject(new Error('Could not load the resumable video uploader. Please check the internet connection.'));
-    document.head.appendChild(script);
-  }).catch(error => { tusLibraryPromise = null; throw error; });
-  return tusLibraryPromise;
-}
-function videoTusEndpoint() {
-  const url = new URL(C.SUPABASE_URL);
-  if (url.hostname.endsWith('.supabase.co') && !url.hostname.endsWith('.storage.supabase.co')) {
-    url.hostname = url.hostname.replace(/\.supabase\.co$/, '.storage.supabase.co');
-  }
-  return url.origin + '/storage/v1/upload/resumable';
-}
 async function storeVideoFile(file, path, progress) {
-  if (file.size <= VIDEO_TUS_THRESHOLD) {
-    const {error} = await sb.storage.from(VIDEO_BUCKET).upload(path, file, {
-      contentType: file.type || 'video/mp4', cacheControl: '3600', upsert: false
-    });
-    if (error) throw new Error(error.message);
-    progress(100);
-    return;
-  }
-  await ensureVideoTus();
-  await new Promise((resolve, reject) => {
-    const uploader = new window.tus.Upload(file, {
-      endpoint: videoTusEndpoint(),
-      retryDelays: [0, 3000, 5000, 10000, 20000],
-      headers: {authorization: 'Bearer ' + C.SUPABASE_ANON_KEY, apikey: C.SUPABASE_ANON_KEY},
-      uploadDataDuringCreation: true,
-      removeFingerprintOnSuccess: true,
-      chunkSize: 6 * 1024 * 1024,
-      metadata: {bucketName: VIDEO_BUCKET, objectName: path, contentType: file.type || 'video/mp4', cacheControl: '3600'},
-      onError: reject,
-      onProgress: (done, total) => progress(total > 0 ? Math.min(100, Math.round(done / total * 100)) : 0),
-      onSuccess: resolve
-    });
-    // Retries are automatic if the connection temporarily drops.
-    uploader.start();
+  // Restore the simple Supabase upload; no TUS library, 100-MB override,
+  // custom upload endpoint, or chunk-resume metadata is required.
+  const { error } = await sb.storage.from(VIDEO_BUCKET).upload(path, file, {
+    contentType: file.type || 'video/mp4', cacheControl: '3600', upsert: false
   });
+  if (error) throw new Error(error.message);
+  progress(100);
 }
 function describeVideoUploadError(err) {
   const msg = String(err?.message || err || 'Unknown upload error');
-  if (/413|payload too large|entity too large|maximum allowed size|file size limit|exceeded.*size|exceeds.*limit/i.test(msg)) {
-    return 'Your Supabase storage limit is still below 100 MB. On paid Supabase, set Storage global and talent-uploads bucket limits to 100 MB. Supabase Free cannot exceed 50 MB.';
+  if (/413|payload too large|entity too large|file size limit|maximum allowed size|exceeded.*size|exceeds.*limit/i.test(msg)) {
+    return 'Your video exceeds the Supabase bucket limit. Please use an MP4 under 50 MB.';
   }
   if (/row-level security|security policy|not authorized|unauthorized/i.test(msg)) {
     return 'Storage upload permission was denied. Check the talent-uploads bucket policy.';
@@ -1320,16 +1375,16 @@ $('videoIn').addEventListener('change',async()=>{
    $('saveSt').textContent='Choose an MP4 or WebM video. Convert MOV files to MP4 first.';return;
  }
  if(file.size>VIDEO_MAX_BYTES){
-   $('saveSt').textContent='This video exceeds the 100 MB maximum. Please compress it to 100 MB or less.';return;
+   $('saveSt').textContent='This video exceeds the 50 MB maximum. Please compress it below 50 MB.';return;
  }
  const at=deck.slides.find(x=>x.id===videoSlideTarget), vidID=videoTarget;
  if(!at){$('saveSt').textContent='The original slide is no longer available';return;}
  videoUploading=true;const btn=$('addVideo');btn.disabled=true;btn.textContent='Uploading…';
- $('saveSt').textContent='Uploading video (0%) — keep this page open.';
+ $('saveSt').textContent='Uploading video (up to 50 MB) — keep this page open.';
  try{
    const name=file.name.replace(/[^\w.-]/g,'_').slice(-70);
    const path='slides2-videos/'+Date.now()+'-'+uid()+'-'+name;
-   await storeVideoFile(file, path, percent => { $('saveSt').textContent='Uploading video ('+percent+'%) — keep this page open.'; });
+   await storeVideoFile(file, path, percent => { $('saveSt').textContent=percent===100?'Video transferred; saving slide…':'Uploading video — keep this page open.'; });
    const result=sb.storage.from(VIDEO_BUCKET).getPublicUrl(path);
    const url=result.data?.publicUrl;
    if(!url)throw Error('Video uploaded but no public URL was returned');
@@ -1349,7 +1404,10 @@ function playSelectedVideo(){
  const video=mainStage.root.querySelector('.cw .els:last-child .e-video video');
  if(!video){$('saveSt').textContent='Upload a video to preview it';return;}
  if(!video.paused){video.pause();$('saveSt').textContent='Video paused';}
- else{video.muted=true;const req=video.play();if(req&&req.catch)req.catch(()=>{$('saveSt').textContent='Could not preview video';});$('saveSt').textContent='Preview playing silently';}
+ else{video.muted=true;
+   if(!video._coachellaReady){prepareSmoothVideo(video);$('saveSt').textContent='Preparing full video for smooth preview…';}
+   else{const req=video.play();if(req&&req.catch)req.catch(()=>{$('saveSt').textContent='Could not preview video';});$('saveSt').textContent='Preview playing silently';}
+ }
 }
 
 let imgTarget = null;
@@ -1464,7 +1522,7 @@ function buildProps() {
       const u=h('input',{type:'url',placeholder:'https://.../clip.mp4'});
       u.value=e.src||'';u.addEventListener('change',()=>{const v=u.value.trim();if(v&&!/^https?:\/\//i.test(v)){u.setCustomValidity('Enter a direct https:// video URL');u.reportValidity();return;}u.setCustomValidity('');e.src=v;renderMain(false);commit();refreshThumb(sel);});
       p.append(field('Video URL (optional alternative to uploading)',u));
-      p.append(h('p',{class:'hint'},'Video uploads: up to 100 MB. Files above 50 MB require a paid Supabase project with global and bucket limits set to at least 100 MB. You can paste a direct hosted MP4/WebM URL instead.'));
+      p.append(h('p',{class:'hint'},'Video uploads: maximum 50 MB. For smooth playback use MP4 (H.264 video + AAC audio). The presentation prepares the full video before starting; you can also paste a direct MP4/WebM URL.'));
       p.append(h('div',{class:'g2'},field('Screen fit',selIn({contain:'Show entire video',cover:'Fill screen (crop edges)'},()=>e.fit||'contain',v=>e.fit=v)),field('Repeat',selIn({no:'Play once',yes:'Loop continuously'},()=>e.loop?'yes':'no',v=>e.loop=v==='yes'))));
       p.append(field('Audio on the LED',selIn({on:'Play with sound',off:'Mute sound'},()=>e.muted?'off':'on',v=>e.muted=v==='off')));
       p.append(h('p',{class:'hint'},'The LED screen starts the video when this slide appears. If the browser blocks sound, press PLAY VIDEO WITH SOUND on that screen. For PDF export, videos appear as static placeholders.'));
@@ -1562,7 +1620,7 @@ function makePlayer(stage, o) {
   P.add = s => { if (o.mirror || !P.tm.dur) return; if (P.tm.run) { P.endAt += s * 1000; tick(); } else { P.tm.rem = Math.max(0, P.tm.rem + s); P.tm.dur = Math.max(P.tm.dur, P.tm.rem); P.tm.done = false; sync(); emit(); } };
   P.applyTm = t => { P.tm = Object.assign({}, P.tm, t); sync(); };
   function auto() { if (o.mirror) return; const t = timerOf(sl()); if (t && t.auto && (t.step || 0) === P.step) setTimeout(() => { if (P.tm.has && !P.tm.run && !P.tm.done && P.tm.rem === P.tm.dur) P.start(); }, 900); }
-  function arm() { clearTimeout(P.autoT); if (o.mirror || !(deck.autoplay > 0)) return; P.autoT = setTimeout(() => { if (!P.next()) P.go(0, 0, true); }, deck.autoplay * 1000); }
+  function arm() { clearTimeout(P.autoT); if (o.mirror || !(deck.autoplay > 0) || sl().els.some(e => e.t === 'video' && e.src)) return; P.autoT = setTimeout(() => { if (!P.next()) P.go(0, 0, true); }, deck.autoplay * 1000); }
   P.go = (i, step, animate) => { P.i = clampI(i, deck.slides.length); const s = sl(); P.step = Math.min(step || 0, stepsOf(s)); stage.setBg(bgOf(s)); stage.show(s, { animate: animate !== false, transition: s.tr || deck.transition, step: P.step, playVideo: !o.mirror }); load(); auto(); arm(); if (o.onChange) o.onChange(P.i, P.step); };
   P.setStepTo = (st, animate) => { P.step = st; stage.setStep(st, animate !== false); auto(); if (o.onChange) o.onChange(P.i, P.step); };
   P.next = () => { if (P.step < stepsOf(sl())) { P.setStepTo(P.step + 1, true); arm(); return true; } if (P.i < deck.slides.length - 1) { P.go(P.i + 1, 0, true); return true; } return false; };
@@ -1583,6 +1641,7 @@ function activeStageVideo(stage) {
 }
 function toggleStageVideo(stage) {
   const v=activeStageVideo(stage);if(!v)return false;
+  if(v._coachellaPreparing) {smoothVideoMessage(v,'PREPARING VIDEO','The video will start when downloading finishes…');return true;}
   if(v.paused){
     const p=v.play();if(p&&p.catch)p.catch(()=>{ const b=v.closest('.el')?.querySelector('.video-sound-prompt'); if(b)b.hidden=false; });
   }else v.pause();
