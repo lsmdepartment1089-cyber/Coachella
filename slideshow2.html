@@ -477,6 +477,24 @@ body.idle-out{cursor:none}
 
 
 
+
+/* Classic Coachella palette from Slideshow 1. Only the selected slide is restyled;
+   the editor, saved element colors, and other slides remain unchanged. */
+#classicBtn[aria-pressed="true"]{background:linear-gradient(120deg,#FFF4D6,#FFC72C);color:#27251F;border-color:#DA291C;box-shadow:0 0 0 2px #DA291C,2px 2px 0 #27251F}
+.th.classic-thumb::after{content:"🏜";position:absolute;top:3px;right:3px;z-index:3;background:#FFF4D6;color:#DA291C;border:2px solid #DA291C;border-radius:5px;padding:0 4px;font-size:13px;line-height:20px}
+.stage.classic-festival{--red:#DA291C;--yellow:#FFC72C;--dark:#27251F;--cream:#FFF4D6;--orange:#FF8A1F;color:#FFF4D6;background:#27251F}
+.stage.classic-festival .bg.sunset{background:linear-gradient(180deg,#DA291C 0%,#F25C1F 38%,#FF9E1B 68%,#FFC72C 100%)}
+.stage.classic-festival .bg.day{background:linear-gradient(180deg,#3C8DD6 0%,#7CC0EA 55%,#DDF1FA 100%)}
+.stage.classic-festival .bg.night{background:linear-gradient(180deg,#07071E 0%,#1E0F33 55%,#5A1B2A 100%)}
+.stage.classic-festival .bg.rays{background:radial-gradient(ellipse at 50% 50%,#FF8A1F 0%,#DA291C 55%,#7A0D08 100%)}
+.stage.classic-festival .bg.arches{background:linear-gradient(135deg,#DA291C,#A8150E)}
+.stage.classic-festival .bg.stage{background:linear-gradient(180deg,#581C10,#B52B16 56%,#F3A024)}
+.stage.classic-festival .bg.party{background:radial-gradient(circle at 50% 30%,#FFAF36,#DA291C 70%,#651C0D)}
+.stage.classic-festival .bg.clean-electric{background:radial-gradient(ellipse at 87% 12%,rgba(255,199,44,.3),transparent 38%),radial-gradient(ellipse at 10% 90%,rgba(255,244,214,.16),transparent 48%),linear-gradient(135deg,#581C10,#A8301F 60%,#DA291C)}
+.stage.classic-festival .raysp{background:repeating-conic-gradient(rgba(255,199,44,.2) 0 6deg,transparent 6deg 12deg)}
+.stage.classic-festival .bg.arches::before{filter:none}
+.stage.classic-festival .e-text[data-ramp-title="true"] .in{-webkit-text-fill-color:initial;background:none;color:#FFC72C;filter:none}
+
 </style>
 </head>
 <body>
@@ -498,6 +516,7 @@ body.idle-out{cursor:none}
     <h2>Slide show</h2>
     <button class="btn s w" id="back" type="button">Back to organizer desk</button>
     <button class="btn s y" id="addBtn" type="button">+ Add slide</button>
+    <button class="btn s w" id="classicBtn" type="button" aria-pressed="false" title="Use the original warm Coachella design from Slideshow 1 on this slide only">🏜️ Classic: OFF</button>
     <button class="btn s w" id="perfBtn" type="button">Slides for performers</button>
     <button class="btn s y" id="gameRulesBtn" type="button" title="Insert three simple game-rule slides after the selected slide">+ Game Rules (3 Slides)</button>
     <button class="btn s y" id="awardsBtn" type="button" title="Insert six award slides after the selected slide">+ Awards (6 Slides)</button>
@@ -1026,8 +1045,7 @@ Object.assign(LAYOUTS,{
  gameQuickfireRules:{name:'Game 02 — Quickfire Challenge (Simple)',info:'Three clear rules, one slide',bg:'clean-electric',d:{}},
  gameRonaldRulesA:{name:'Game 03 — Balloon Showdown (Simple)',info:'Teams, commands, shoot and score, one slide',bg:'clean-electric',d:{}}
 });
-
-/* ===== AWARDING OF CERTIFICATES & RECOGNITION — award slide templates (same electric Coachella design) ===== */
+/* ===== AWARDING OF CERTIFICATES & RECOGNITION — six award templates ===== */
 const AWARD_LAYOUTS=['awardBestOfBest','awardManagers','awardOfTheYear','awardFashionRamp','awardKingQueen','awardTalentTop3'];
 function awKicker(f,y,fancy){return [
   tx({x:1100,y:34,w:760,text:"McDonald’s Santa Rosa Bayan",font:'Bodoni Moda',size:30,color:'#FFE2B0',b:true,i:true,al:'right',sh:'soft',anim:'fade',lh:1.2}),
@@ -1084,6 +1102,20 @@ Object.assign(LAYOUTS,{
   awardTalentTop3:{name:'AWARD — Santa Rosa Got Talent Top 3',info:'Podium with 1st, 2nd and 3rd place',bg:'talent-live',d:{kicker:'Awarding of Certificates & Recognition',title:'GOT TALENT TOP 3',event:'STA. ROSA GOT TALENT',p1:'1st Place Name',a1:'Act / Performance',p2:'2nd Place Name',a2:'Act / Performance',p3:'3rd Place Name',a3:'Act / Performance'}}
 });
 function createAwardSlides(){return AWARD_LAYOUTS.map(t=>newSlide(t,LAYOUTS[t].bg));}
+
+/* A separate intro slide in the exact warm Coachella website design. */
+TPL.awardIntro=f=>[
+  shp({x:270,y:137,w:1380,h:783,shape:'round',rad:56,fill:'#27251F',bw:0,anim:'none'}),
+  shp({x:244,y:112,w:1432,h:785,shape:'round',rad:50,fill:'#FFF4D6',bw:11,bc:'#DA291C',anim:'zoom',sh:'soft'}),
+  shp({x:300,y:146,w:1320,h:720,shape:'round',rad:28,fill:'#FFF9EA',bw:3,bc:'#FFC72C',anim:'fade'}),
+  arch({x:907,y:192,w:106,h:76,color:'#FFC72C',anim:'zoom'}),
+  tx({key:'awardEyebrow',x:335,y:306,w:1250,text:f.eyebrow,font:'Nunito Sans',size:40,color:'#DA291C',b:true,up:true,al:'center',ls:10,sh:'none',anim:'fade'}),
+  tx({key:'awardTitle',x:325,y:374,w:1270,text:f.title,font:'Londrina Solid',size:143,color:'#DA291C',b:true,up:true,al:'center',lh:0.92,ls:2,sh:'none',anim:'zoom'}),
+  shp({x:725,y:674,w:470,h:7,shape:'pill',fill:'#FFC72C',anim:'fade'}),
+  tx({key:'awardSubtitle',x:320,y:716,w:1280,text:f.subtitle,font:'Cormorant Garamond',size:59,color:'#27251F',b:true,i:false,al:'center',lh:1.15,sh:'none',anim:'rise'}),
+  tx({key:'awardFooter',x:360,y:824,w:1200,text:f.footer,font:'Nunito Sans',size:25,color:'#A8301F',b:true,up:true,al:'center',ls:3,sh:'none',anim:'fade'})
+];
+LAYOUTS.awardIntro={name:'AWARDING — Certificates & Recognition (Coachella classic)',info:'Cream festival-poster award ceremony title; no names; editable headings',bg:'talent-judge',d:{eyebrow:'COACHELLA  •  BEYOND THE ARCHES',title:'AWARDING OF\nCERTIFICATES',subtitle:'& Recognition Awards',footer:'McDonald’s Santa Rosa Bayan  •  YEAR END PARTY 2026'}};
 
 function elementsMatchLegacy(current,baseline){
  if(!current||!baseline||current.length!==baseline.length)return false;
@@ -1420,22 +1452,45 @@ async function prepareSmoothVideo(video) {
   }finally{video._coachellaPreparing=false;}
 }
 
+
+const CLASSIC_COLORS={
+  '#FF1493':'#DA291C','#FFF000':'#FFC72C','#FF6B00':'#FF8A1F',
+  '#10102B':'#27251F','#E9FAFF':'#FFF4D6','#F5FBFF':'#FFF4D6',
+  '#00DFFF':'#7CC0EA','#39FF14':'#8DBB4B','#5E0A6A':'#7A0D08',
+  '#1A1A45':'#672D21','#354762':'#805845','#FFBC0D':'#FFC72C'
+};
+const classicOn=slideData=>!!(slideData&&slideData.festivalTheme==='classic');
+const classicColor=v=>typeof v==='string'?v.replace(/#[0-9a-fA-F]{6}/g,c=>CLASSIC_COLORS[c.toUpperCase()]||c):v;
+function classicThemedElement(e,i,still,enabled){
+  if(!enabled)return elNode(e,i,still);
+  const copy=Object.assign({},e);
+  ['color','fill','bc'].forEach(k=>{if(copy[k])copy[k]=classicColor(copy[k]);});
+  const n=elNode(copy,i,still);
+  if(e.t==='icon'||e.t==='timer'){
+    const inner=n.querySelector('.in');if(inner)inner.innerHTML=classicColor(inner.innerHTML);
+  }
+  return n;
+}
+
 function makeStage(root, still) {
   root.classList.add('stage'); if (still) root.classList.add('still');
   const bgw = document.createElement('div'), cw = document.createElement('div'); bgw.className = 'bgwrap'; cw.className = 'cwrap'; cw.style.cssText = 'position:absolute;inset:0'; root.append(bgw, cw);
   let kind = null;
   return {
     root, cw,
-    setBg(k) {
-      if (k === kind) return; kind = k;
+    setBg(k,slideData) {
+      const classic=classicOn(slideData);root.classList.toggle('classic-festival',classic);
+      const key=k+'|'+(classic?'classic':'electric');
+      if (key === kind) return; kind = key;
       const t = document.createElement('div'); t.innerHTML = bgHtml(k); const nb = t.firstElementChild; const olds = [...bgw.children]; bgw.appendChild(nb);
       if (still) { olds.forEach(o => o.remove()); return; }
       requestAnimationFrame(() => { nb.classList.add('on'); setTimeout(() => olds.forEach(o => o.remove()), 1300); });
     },
     show(slide, opt) {
       opt = opt || {};
+      root.classList.toggle('classic-festival',classicOn(slide));
       const layer = document.createElement('div'); layer.className = 'els t-' + (opt.transition || 'fade') + (opt.animate ? ' anim' : '');
-      slide.els.forEach((e, i) => { const n = elNode(e, i, still); if (opt.step != null && (e.step || 0) > opt.step) n.classList.add('stephid'); layer.appendChild(n); });
+      slide.els.forEach((e, i) => { const n = classicThemedElement(e, i, still,classicOn(slide)); if (opt.step != null && (e.step || 0) > opt.step) n.classList.add('stephid'); layer.appendChild(n); });
       // Video playback gets a lightweight stage: animated backgrounds otherwise
       // compete with decoding and can cause dropped frames on external LED outputs.
       root.classList.toggle('video-performance',slide.els.some(e=>e.t==='video'&&e.src));
@@ -1472,6 +1527,22 @@ let pw = null, deck = null, sel = 0, selId = null, editing = false, guests = [],
 let mainScale = .5, hist = [], hpos = -1, histTimer = null, clip = null, ovl = null, selBox = null, gv = null, gh = null;
 const slide = () => deck.slides[sel];
 const curEl = () => slide().els.find(e => e.id === selId) || null;
+
+
+function syncClassicButton(){
+  const b=$('classicBtn');if(!b||!deck||!deck.slides.length)return;
+  const on=classicOn(slide());b.setAttribute('aria-pressed',String(on));
+  b.textContent=on?'🏜️ Classic: ON':'🏜️ Classic: OFF';
+  b.title=on?'Switch this slide back to the Electric Festival style':'Apply the original red, gold & cream design from Slideshow 1 to this slide only';
+}
+$('classicBtn').addEventListener('click',()=>{
+  if(!deck||!deck.slides.length)return;
+  finishEdit(true);flushHist();
+  const current=slide();
+  if(classicOn(current))delete current.festivalTheme;
+  else current.festivalTheme='classic';
+  renderMain(false);refreshThumb(sel);syncClassicButton();commit();
+});
 
 async function enter(password) {
   const g = await sb.rpc('admin_get_deck_2', { p_password: password });
@@ -1531,7 +1602,7 @@ function renderThumbOnDemand(i) {
   const t=thumbs[i], s=deck && deck.slides[i];
   if(!t || !s || t.st) return;
   const root=document.createElement('div'); t.box.appendChild(root);
-  const st=makeStage(root,true); st.setBg(bgOf(s)); st.show(s);
+  const st=makeStage(root,true); st.setBg(bgOf(s),s); st.show(s);
   t.st=st;
 }
 function renderThumbs() {
@@ -1539,7 +1610,7 @@ function renderThumbs() {
   const rail=$('rail'); rail.textContent=''; thumbs=[];
   deck.slides.forEach((s,i)=>{
     const box=h('div',{class:'box'});
-    const th=h('div',{class:'th'+(i===sel?' sel':''),draggable:'true',tabindex:'0',role:'button','aria-label':'Slide '+(i+1)},h('b',{},String(i+1)),box);
+    const th=h('div',{class:'th'+(i===sel?' sel':'')+(classicOn(s)?' classic-thumb':''),draggable:'true',tabindex:'0',role:'button','aria-label':'Slide '+(i+1)},h('b',{},String(i+1)),box);
     th.addEventListener('click',()=>selectSlide(i,true));
     th.addEventListener('keydown',e=>{if(e.key==='Enter')selectSlide(i,true);});
     th.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',String(i));th.classList.add('drag');});
@@ -1560,13 +1631,13 @@ function renderThumbs() {
   } else {thumbs.forEach((_t,i)=>renderThumbOnDemand(i));}
   renderThumbOnDemand(sel);
 }
-function refreshThumb(i){const t=thumbs[i],s=deck.slides[i];if(!t)return;if(!t.st){if(i===sel)renderThumbOnDemand(i);return;} t.st.setBg(bgOf(s));t.st.show(s);}
+function refreshThumb(i){const t=thumbs[i],s=deck.slides[i];if(!t)return;t.th.classList.toggle('classic-thumb',classicOn(s));if(!t.st){if(i===sel)renderThumbOnDemand(i);return;} t.st.setBg(bgOf(s),s);t.st.show(s);}
 function selectSlide(i, animate) {
   flushHist(); finishEdit(true);
-  sel = Math.max(0, Math.min(i, deck.slides.length - 1)); selId = null; thumbs.forEach((t, k) => t.th.classList.toggle('sel', k === sel));
+  sel = Math.max(0, Math.min(i, deck.slides.length - 1)); selId = null; thumbs.forEach((t, k) => t.th.classList.toggle('sel', k === sel)); syncClassicButton();
   renderThumbOnDemand(sel); renderMain(animate); fitMain(); buildBar(); buildProps(); if (thumbs[sel]) thumbs[sel].th.scrollIntoView({ block: 'nearest' });
 }
-function renderMain(animate) { const s = slide(); mainStage.setBg(bgOf(s)); mainStage.show(s, { animate: !!animate, transition: s.tr || deck.transition }); placeOverlay(); }
+function renderMain(animate) { const s = slide(); syncClassicButton(); mainStage.setBg(bgOf(s),s); mainStage.show(s, { animate: !!animate, transition: s.tr || deck.transition }); placeOverlay(); }
 const nodeOf = id => [...mainStage.root.querySelectorAll('.el')].reverse().find(n => n.dataset.id === id);
 
 /* ---------- selection overlay ---------- */
@@ -1650,7 +1721,7 @@ $('addArch').addEventListener('click', () => addEl(arch({ x: 865, y: 420 })));
 $('addCd').addEventListener('click', () => addEl(cdEl({ x: 246, y: 390, w: 1428 })));
 $('addTmr').addEventListener('click', () => addEl(tmr({ x: 760, y: 340, w: 400, dur: 30 })));
 $('addIcon').addEventListener('change', e => { const k = e.target.value; e.target.value = ''; if (k) addEl(icon(k, { x: 860, y: 440, w: 200 })); });
-$('playB').addEventListener('click', () => { finishEdit(true); const s = slide(); mainStage.setBg(bgOf(s)); mainStage.show(s, { animate: true, transition: s.tr || deck.transition }); placeOverlay(); });
+$('playB').addEventListener('click', () => { finishEdit(true); const s = slide(); mainStage.setBg(bgOf(s),s); mainStage.show(s, { animate: true, transition: s.tr || deck.transition }); placeOverlay(); });
 $('addShape').addEventListener('change', e => { const k = e.target.value; e.target.value = ''; if (!k) return; addEl(shp({ x: 700, y: 380, w: 520, h: k === 'circle' ? 520 : 300, shape: k, fill: '#FFF000', bw: 6, bc: '#10102B', sh: 'hard' })); });
 async function uploadImage(file) {
   $('saveSt').textContent = 'Uploading picture...';
@@ -1834,6 +1905,9 @@ function selIn(opts, get, set) { const s = h('select', {}); Object.entries(opts)
 function buildProps() {
   const p = $('props'), s = slide(), e = curEl(); p.textContent = '';
   p.append(h('h3', {}, 'Slide ' + (sel + 1) + ' of ' + deck.slides.length));
+  const theme=h('button',{class:'btn s '+(classicOn(s)?'y':'w'),type:'button'},classicOn(s)?'🏜️ Classic Coachella: ON':'🏜️ Classic Coachella: OFF');
+  theme.addEventListener('click',()=>{$('classicBtn').click();buildProps();});
+  p.append(field('Design from Slideshow 1 (this slide only)',theme));
   const bg = h('select', { 'aria-label': 'Background' }); bg.appendChild(h('option', { value: 'default' }, 'Default (' + BG_NAMES[deck.bg] + ')')); Object.entries(BG_NAMES).forEach(([k, v]) => bg.appendChild(h('option', { value: k }, v))); bg.value = s.bg || 'default';
   bg.addEventListener('change', () => { s.bg = bg.value; renderMain(false); refreshThumb(sel); commit(); });
   p.append(field('Moving background', bg));
@@ -1984,10 +2058,9 @@ $('gameRulesBtn').addEventListener('click',()=>{
 });
 $('awardsBtn').addEventListener('click',()=>{
   if(!deck)return;
-  flushHist();
-  deck.slides.splice(sel+1,0,...createAwardSlides());
-  renderThumbs();selectSlide(sel+1,true);commit();
-  $('saveSt').textContent='6 award slides added after the selected slide';
+  flushHist();const awards=createAwardSlides();
+  deck.slides.splice(sel+1,0,...awards);renderThumbs();selectSlide(sel+1,true);commit();
+  $('saveSt').textContent='Six recognition award slides added after the selected slide';
 });
 $('perfBtn').addEventListener('click', () => {
   if (!guests.length) { $('saveSt').textContent = 'No performers have signed up yet'; return; }
@@ -2039,7 +2112,7 @@ function makePlayer(stage, o) {
   P.applyTm = t => { P.tm = Object.assign({}, P.tm, t); sync(); };
   function auto() { if (o.mirror) return; const t = timerOf(sl()); if (t && t.auto && (t.step || 0) === P.step) setTimeout(() => { if (P.tm.has && !P.tm.run && !P.tm.done && P.tm.rem === P.tm.dur) P.start(); }, 900); }
   function arm() { clearTimeout(P.autoT); if (o.mirror || !(deck.autoplay > 0) || sl().els.some(e => e.t === 'video' && e.src)) return; P.autoT = setTimeout(() => { if (!P.next()) P.go(0, 0, true); }, deck.autoplay * 1000); }
-  P.go = (i, step, animate) => { P.i = clampI(i, deck.slides.length); const s = sl(); P.step = Math.min(step || 0, stepsOf(s)); stage.setBg(bgOf(s)); stage.show(s, { animate: animate !== false, transition: s.tr || deck.transition, step: P.step, playVideo: !o.mirror }); load(); auto(); arm(); if (o.onChange) o.onChange(P.i, P.step); };
+  P.go = (i, step, animate) => { P.i = clampI(i, deck.slides.length); const s = sl(); P.step = Math.min(step || 0, stepsOf(s)); stage.setBg(bgOf(s),s); stage.show(s, { animate: animate !== false, transition: s.tr || deck.transition, step: P.step, playVideo: !o.mirror }); load(); auto(); arm(); if (o.onChange) o.onChange(P.i, P.step); };
   P.setStepTo = (st, animate) => { P.step = st; stage.setStep(st, animate !== false); auto(); if (o.onChange) o.onChange(P.i, P.step); };
   P.next = () => { if (P.step < stepsOf(sl())) { P.setStepTo(P.step + 1, true); arm(); return true; } if (P.i < deck.slides.length - 1) { P.go(P.i + 1, 0, true); return true; } return false; };
   P.prev = () => { if (P.step > 0) { P.setStepTo(P.step - 1, false); arm(); return true; } if (P.i > 0) { const j = P.i - 1; P.go(j, stepsOf(deck.slides[j]), true); return true; } return false; };
@@ -2204,13 +2277,13 @@ function buildPview() {
   const mkStage = (box, still) => { box.textContent = ''; const r = document.createElement('div'); box.appendChild(r); return makeStage(r, still); };
   SH.curBox = $('pvCurBox'); SH.nxtBox = $('pvNextBox'); SH.cur = mkStage(SH.curBox, false); SH.nxt = mkStage(SH.nxtBox, true); SH.mir = makePlayer(SH.cur, { mirror: true });
   const strip = $('pvStrip'); strip.textContent = ''; SH.ths = [];
-  deck.slides.forEach((sl, i) => { const box = h('div', { class: 'box' }), r = document.createElement('div'); box.appendChild(r); const st = makeStage(r, true); st.setBg(bgOf(sl)); st.show(sl);
+  deck.slides.forEach((sl, i) => { const box = h('div', { class: 'box' }), r = document.createElement('div'); box.appendChild(r); const st = makeStage(r, true); st.setBg(bgOf(sl),sl); st.show(sl);
     const th = h('div', { class: 'pvth', role: 'button', tabindex: '0', 'aria-label': 'Go to slide ' + (i + 1) }, h('em', {}, String(i + 1)), box); th.addEventListener('click', () => cmd('goto', { i })); th.addEventListener('keydown', e => { if (e.key === 'Enter') cmd('goto', { i }); }); strip.appendChild(th); SH.ths.push(th); });
 }
 function uiAt(i, step) {
   if (!SH) return; i = clampI(i, deck.slides.length); const sl = deck.slides[i], nx = deck.slides[i + 1], tot = stepsOf(sl);
   if (SH.i !== i || !SH.shown) { SH.shown = true; SH.mir.go(i, step, true); } else SH.mir.setStepTo(step, true);
-  SH.i = i; SH.step = step; const nn = nx || sl; SH.nxt.setBg(bgOf(nn)); SH.nxt.show(nn); SH.nxtBox.classList.toggle('end', !nx);
+  SH.i = i; SH.step = step; const nn = nx || sl; SH.nxt.setBg(bgOf(nn),nn); SH.nxt.show(nn); SH.nxtBox.classList.toggle('end', !nx);
   $('pvNotes').textContent = sl.notes || 'No notes for this slide.'; $('pvCount').textContent = (i + 1) + ' / ' + deck.slides.length; $('pvStep').textContent = tot ? 'Click ' + step + ' of ' + tot : '';
   $('pvTmBox').hidden = !timerOf(sl);$('pvVideo').hidden=!sl.els.some(e=>e.t==='video'&&e.src);$('pvVideo').textContent='Play / Pause video (V)'; SH.ths.forEach((t, k) => t.classList.toggle('on', k === i)); SH.ths[i].scrollIntoView({ block: 'nearest', inline: 'center' }); fitBoxes();
 }
@@ -2394,7 +2467,7 @@ if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if 
           holder.replaceChildren();
           const root=document.createElement('div');holder.appendChild(root);
           const stage=makeStage(root,true);const s=deck.slides[i];
-          stage.setBg(bgOf(s));stage.show(s,{animate:false});
+          stage.setBg(bgOf(s),s);stage.show(s,{animate:false});
           root.querySelectorAll('*').forEach(n=>{n.style.animation='none';n.style.transition='none'});
           await settleImages(root);
           pages.push(root.outerHTML);
@@ -2445,7 +2518,7 @@ if (OUTPUT) oMain(); else (async () => { const sp = SS.get('fest_admin_pw'); if 
      for(let j=0;j<indices.length;j++){
        const i=indices[j], slideData=deck.slides[i]; status.textContent='Rendering slide '+(i+1)+' ('+(j+1)+'/'+indices.length+')…';
        holder.replaceChildren();const root=document.createElement('div');holder.appendChild(root);
-       const stage=makeStage(root,true);stage.setBg(bgOf(slideData));stage.show(slideData,{animate:false});
+       const stage=makeStage(root,true);stage.setBg(bgOf(slideData),slideData);stage.show(slideData,{animate:false});
        // Keep motion effects from altering the still image.
        root.querySelectorAll('*').forEach(n=>{n.style.animation='none';n.style.transition='none';});
        await settleImages(root);
