@@ -386,6 +386,10 @@ body.idle-out{cursor:none}
 @media(prefers-reduced-motion:reduce){.desert-bg .d-stars,.desert-bg .d-search,.desert-bg .d-seek svg{animation:none!important}}
 
 /* VIDEO SLIDES: GPU-friendly full-stage playback. No preview downloads in thumbnails. */
+/* Keep animated festival backdrops from competing with HD video decoding on LED laptops. */
+.stage.video-performance .bgwrap *, .stage.video-performance .bgwrap{animation:none!important;transition:none!important}
+.stage.video-performance .e-video video{will-change:contents}
+
 .stage .e-video>.lp,.stage .e-video .in{height:100%}
 .stage .e-video video{display:block;width:100%;height:100%;background:#07091A;object-fit:contain}
 .stage .video-blank{width:100%;height:100%;display:flex;align-items:center;justify-content:center;gap:26px;flex-direction:column;color:#FFF000;background:linear-gradient(145deg,#10102B,#23113A);border:3px dashed rgba(255,240,0,.48);font:56px 'Londrina Solid',sans-serif;text-align:center}
@@ -1067,7 +1071,7 @@ function mediaStatusBox(video) {
   const host = video.closest('.el');
   if (!host) return null;
   let box = host.querySelector('.video-prepare-status');
-  if (!box) { box = document.createElement('div'); box.className='video-prepare-status'; host.appendChild(box); }
+  if (!box) { box = document.createElement('div'); box.className='video-prepare-status'; box.addEventListener('click',ev=>ev.stopPropagation()); host.appendChild(box); }
   return box;
 }
 function smoothVideoMessage(video, message, detail='', error=false) {
@@ -1080,6 +1084,10 @@ function smoothVideoMessage(video, message, detail='', error=false) {
 }
 function cleanupSmoothVideo(video) {
   if(video._coachellaAbort){video._coachellaAbort.abort();video._coachellaAbort=null;}
+  clearTimeout(video._coachellaStallTimer);
+  clearInterval(video._coachellaWatchTimer);
+  video._coachellaStallTimer=null;
+  video._coachellaWatchTimer=null;
   try{video.pause();}catch(_e){}
   if(video._coachellaBlobUrl){URL.revokeObjectURL(video._coachellaBlobUrl);video._coachellaBlobUrl=null;}
 }
@@ -1108,14 +1116,63 @@ async function prepareSmoothVideo(video) {
   const controller=new AbortController();video._coachellaAbort=controller;
   const stillCurrent=()=>video.isConnected&&!controller.signal.aborted;
   smoothVideoMessage(video,'PREPARING VIDEO','Checking for a video saved on this computer…');
-  video.addEventListener('waiting',()=>{
-    if(video._coachellaReady&&stillCurrent())smoothVideoMessage(video,'PREPARING PLAYBACK','If this continues, convert the video to H.264 MP4.');
+  // A transient HTML5 "waiting" event is normal while the decoder catches up.
+  // The old code immediately showed PREPARING PLAYBACK over a video that had started.
+  // Only report a real stall if playback stops advancing for several seconds.
+  video._coachellaRecoveries=0;
+  let lastTime=-1,progressAt=Date.now(),watchPrimed=false;
+  const hideStatus=()=>{const b=mediaStatusBox(video);if(b)b.hidden=true;};
+  const resetWatch=()=>{progressAt=Date.now();lastTime=video.currentTime;};
+  const stallNow=()=>{
+    if(!stillCurrent()||!video._coachellaReady||video.paused||video.ended||video.seeking)return;
+    if(video._coachellaRecoveries===0){
+      video._coachellaRecoveries=1;
+      smoothVideoMessage(video,'RESUMING VIDEO','Recovering from a playback stall…');
+      try{
+        // Seeking past a problematic buffered frame can restore decoding on some GPUs.
+        // Attempt this once only; never endlessly restart or repeatedly skip the show.
+        const duration=Number.isFinite(video.duration)?video.duration:Infinity;
+        video.currentTime=Math.min(video.currentTime+0.15,duration-0.05);
+        const play=video.play();if(play?.catch)play.catch(()=>{});
+      }catch(err){console.warn('Video recovery seek was unavailable',err);}
+      resetWatch();
+    }else{
+      smoothVideoMessage(video,'VIDEO STALLED','The file is already downloaded. Use MP4, H.264, AAC, 1080p / 30 fps. Re-encode the ORIGINAL video and upload it again.',true);
+      // Offer native media controls on the presentation so an organizer can seek/replay.
+      video.controls=true;
+      video.style.pointerEvents='auto';
+    }
+  };
+  video.addEventListener('playing',()=>{
+    if(!stillCurrent())return;
+    watchPrimed=true;resetWatch();hideStatus();
   });
-  video.addEventListener('playing',()=>{const b=mediaStatusBox(video);if(b)b.hidden=true;});
+  video.addEventListener('timeupdate',()=>{
+    if(!stillCurrent()||!video._coachellaReady||!watchPrimed)return;
+    if(Math.abs(video.currentTime-lastTime)>0.08){resetWatch();hideStatus();}
+  });
+  video.addEventListener('waiting',()=>{
+    // Do not obscure video immediately on every browser buffering notification.
+    // The interval below handles stalls only after playback has genuinely stopped.
+  });
+  video.addEventListener('pause',()=>{if(stillCurrent())resetWatch();});
   video.addEventListener('error',()=>{
     if(!stillCurrent())return;
-    smoothVideoMessage(video,'VIDEO CANNOT PLAY','Try MP4 with H.264 video and AAC sound.',true);
+    const err=video.error;
+    const reason=err?.code===3?'The video decoder failed. Convert the ORIGINAL file to H.264 MP4 / AAC.':
+      err?.code===4?'Your browser does not support this video codec. Convert it to H.264 MP4 / AAC.':
+      'Try an MP4 with H.264 video, AAC sound, 1080p, 30 fps.';
+    smoothVideoMessage(video,'VIDEO CANNOT PLAY',reason,true);
   });
+  video.addEventListener('click',event=>event.stopPropagation());
+  video._coachellaWatchTimer=setInterval(()=>{
+    if(!stillCurrent()){
+      clearInterval(video._coachellaWatchTimer);video._coachellaWatchTimer=null;return;
+    }
+    if(!video._coachellaReady||!watchPrimed||video.paused||video.ended||video.seeking){progressAt=Date.now();return;}
+    if(Math.abs(video.currentTime-lastTime)>0.08){resetWatch();hideStatus();return;}
+    if(Date.now()-progressAt>3300){resetWatch();stallNow();}
+  },550);
   try{
     let cached=null;
     try{cached=await getOfflineVideo(original);}catch(err){console.warn('Local video storage is unavailable:',err);}
@@ -1176,6 +1233,9 @@ function makeStage(root, still) {
       opt = opt || {};
       const layer = document.createElement('div'); layer.className = 'els t-' + (opt.transition || 'fade') + (opt.animate ? ' anim' : '');
       slide.els.forEach((e, i) => { const n = elNode(e, i, still); if (opt.step != null && (e.step || 0) > opt.step) n.classList.add('stephid'); layer.appendChild(n); });
+      // Video playback gets a lightweight stage: animated backgrounds otherwise
+      // compete with decoding and can cause dropped frames on external LED outputs.
+      root.classList.toggle('video-performance',slide.els.some(e=>e.t==='video'&&e.src));
       const olds=[...cw.children];
       olds.forEach(old=>old.querySelectorAll('video').forEach(cleanupSmoothVideo));
       cw.appendChild(layer);
