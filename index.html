@@ -318,11 +318,11 @@ body.presenting .wactions{display:none}
     <p class="sub">Beyond the Arches</p>
     <p class="tag" id="partyName"></p>
     <form class="login" id="loginForm">
-      <h2>Get your crew pass</h2>
-      <p>Type a nickname to open your invitation. Use the same nickname next time to come back to your pass.</p>
+      <h2>Registration is now closed</h2>
+      <p>Already registered? Enter your existing nickname to access your invitation, raffle number and check-in QR code.</p>
       <label for="nick">Your nickname</label>
       <input type="text" id="nick" maxlength="24" autocomplete="off" placeholder="e.g. DesertFox" required>
-      <button class="btn" id="loginBtn" type="submit">Enter the festival</button>
+      <button class="btn" id="loginBtn" type="submit">Open my existing invitation</button>
       <div class="msg" id="loginMsg" role="status"></div>
     </form>
     <button class="link org" id="adminOpen" type="button">Organizer login</button>
@@ -414,8 +414,8 @@ body.presenting .wactions{display:none}
     <h2 class="sec reveal">Are you coming?</h2>
     <form class="card reveal" id="rsvpForm">
       <label for="rsvp">Will you be there?</label>
-      <select id="rsvp"><option value="going">Yes, I'm in</option><option value="maybe">Maybe</option><option value="no">Can't make it</option></select>
-      <button class="btn" id="saveBtn" type="submit">Save my RSVP</button>
+      <select id="rsvp" disabled><option value="pending" disabled>Not confirmed</option><option value="going">Yes, I'm in</option><option value="maybe">Maybe</option><option value="no">Can't make it</option></select>
+      <button class="btn" id="saveBtn" type="submit" disabled>RSVP is closed</button>
       <div class="msg" id="saveMsg" role="status"></div>
     </form>
   </section>
@@ -466,6 +466,7 @@ body.presenting .wactions{display:none}
         <button class="btn small" id="wheelBtn" type="button">Spin the wheel</button>
         <button class="btn small" id="slidesBtn" type="button">Slide show</button>
         <button class="btn small yellow" id="slides2Btn" type="button">Slideshow 2 ⚡</button>
+        <button class="btn small yellow" id="slides3Btn" type="button">Slideshow 3 🎡</button>
         <button class="btn small" id="wallBtn" type="button">Photo wall</button>
         <button class="btn small yellow" id="boothBtn" type="button">Photo booth</button>
         <button class="btn small yellow" id="certMakerBtn" type="button">Certificate Maker</button>
@@ -640,13 +641,11 @@ function showGuest(g) {
   document.body.classList.add('in');
   $('who').textContent = g.nickname;
 
-  $('rsvp').value = g.rsvp === 'pending' ? 'going' : g.rsvp;
-  $('rsvp').disabled = false;
-  $('saveBtn').disabled = false;
-  $('saveMsg').textContent = '';
-  $('status').textContent = g.rsvp === 'pending'
-    ? 'Registration is open! Please confirm your RSVP below.'
-    : 'RSVP: ' + ({ going: 'Going', maybe: 'Maybe', no: 'Not attending' }[g.rsvp] || g.rsvp);
+  $('rsvp').value = g.rsvp || 'pending';
+  $('rsvp').disabled = true;
+  $('saveBtn').disabled = true;
+  $('saveMsg').textContent = 'RSVP is now closed. Your saved response is unchanged.';
+  $('status').textContent = 'Registration is closed. RSVP: ' + ({pending:'Not confirmed',going:'Going',maybe:'Maybe',no:'Not attending'}[g.rsvp] || 'Not confirmed');
   
   $('realName').value = g.real_name || '';
   $('stageName').value = g.stage_name || '';
@@ -669,12 +668,9 @@ async function login(nick, quiet) {
 $('loginForm').addEventListener('submit', e => { e.preventDefault(); login($('nick').value, false); });
 $('logout').addEventListener('click', () => { LS.del('fest_nick'); guest = null; document.body.classList.remove('in'); $('nick').value = ''; scrollTo({ top: 0 }); });
 /* ---------- RSVP ---------- */
-$('rsvpForm').addEventListener('submit', async e => {
-  e.preventDefault(); const b = $('saveBtn'); b.disabled = true; $('saveMsg').textContent = '';
-  const { data, error } = await sb.rpc('save_rsvp', { p_nickname: guest.nickname, p_rsvp: $('rsvp').value });
-  b.disabled = false;
-  if (error) { $('saveMsg').className = 'msg'; $('saveMsg').textContent = error.message; return; }
-  guest = data; $('saveMsg').className = 'msg ok'; $('saveMsg').textContent = 'RSVP saved.'; $('status').textContent = 'RSVP saved.';
+$('rsvpForm').addEventListener('submit', e => {
+  e.preventDefault();
+  $('saveMsg').textContent = 'RSVP is now closed. Your saved response is unchanged.';
 });
 
 /* ---------- raffle reveal ---------- */
@@ -685,23 +681,26 @@ function renderPass() {
 
   $('num').textContent = has ? guest.raffle_number : '?';
 
-  // Guest registration is open. Existing raffle numbers and one-time reroll status are preserved.
-  $('getBtn').hidden = has;
-  $('rerollBtn').hidden = !has || !!guest.rerolled;
+  // Registration is closed; previously assigned raffle numbers are unchanged.
+  $('getBtn').hidden = true;
+  $('getBtn').disabled = true;
+  $('rerollBtn').hidden = true;
+  $('rerollBtn').disabled = true;
+  $('againBtn').hidden = true;
 
   $('mailBtn').disabled = !has;
 
   $('mailHint').textContent = has
     ? 'We will email you a card with your nickname, raffle number and all the party details.'
-    : 'Claim your raffle number first to email your invitation.';
+    : 'Registration is closed. No new raffle numbers are being issued.';
 
   $('rText').textContent = has
     ? 'Your raffle number is locked in. Keep it handy for the draw.'
-    : 'Registration is open! Tap below to get your raffle number.';
+    : 'Raffle registration is now closed.';
 
   $('rNote').textContent = has
-    ? (guest.rerolled ? 'Your final raffle number is ready. Good luck at the draw!' : 'You have one optional reroll remaining. Good luck at the draw!')
-    : 'Claim your number to complete your festival pass. One optional reroll is allowed.';
+    ? 'Your assigned raffle number remains valid. Good luck at the draw!'
+    : 'Please contact the organizers for assistance.';
   renderGuestQR();
 }
 function renderGuestQR() {
@@ -721,6 +720,9 @@ function confetti() {
     p.style.animationDelay = Math.random() * .5 + 's'; p.style.transform = 'rotate(' + Math.random() * 180 + 'deg)'; box.appendChild(p); }
 }
 async function reveal(fn, isRe) {
+  if (!guest || ($('getBtn').disabled && $('rerollBtn').disabled)) {
+    $('rNote').textContent = 'Raffle registration is now closed.'; return;
+  }
   if (busy) return; busy = true;
   $('modal').hidden = false; $('mbox').className = 'mbox spinning';
   $('mTitle').textContent = isRe ? 'Rolling again...' : 'Spinning your number...';
@@ -1107,6 +1109,7 @@ let idleT; document.addEventListener('mousemove', () => { document.body.classLis
 $('wheelBtn').addEventListener('click', openWheel);
 $('slidesBtn').addEventListener('click', () => { location.href = 'slides.html'; });
 $('slides2Btn').addEventListener('click', () => { location.href = 'slideshow2.html'; });
+$('slides3Btn').addEventListener('click', () => { location.href = 'slideshow3.html'; });
 $('wallBtn').addEventListener('click', () => { location.href = 'wall.html'; });
 $('boothBtn').addEventListener('click', () => { location.href = 'photobooth.html'; });
 $('certMakerBtn').addEventListener('click', () => { location.href = 'certificate-maker.html'; });
