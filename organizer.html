@@ -533,6 +533,7 @@ body.presenting .wactions{display:none}
     <button class="btn small dark" id="wRefresh" type="button">Refresh numbers</button>
     <button class="btn small dark" id="wUndo" type="button">Undo last winner</button>
     <button class="btn small dark" id="wReset" type="button">Reset winners</button>
+    <button class="btn small yellow" id="wLed" type="button" title="Open a clean, synchronized wheel on the second monitor">📺 Send to LED Wall</button>
     <button class="btn small yellow" id="wPresent" type="button">Present full screen (F)</button>
     <button class="btn small dark" id="wClose" type="button">Back to organizer desk</button>
     <div class="wmsg" id="wMsg" role="status"></div>
@@ -924,6 +925,47 @@ async function sendAllPending() {
 }
 $('sendAll').addEventListener('click', () => arm($('sendAll'), sendAllPending));
 
+/* ---------- two-screen LED wheel (read-only audience display) ---------- */
+const WHEEL_LED_CHANNEL = 'coachella-wheel-led-v1';
+const wheelLedSession = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+const WHEEL_LED_EVENT_KEY = 'coachella-wheel-led-event-v1';
+const WHEEL_LED_REQUEST_KEY = 'coachella-wheel-led-request-v1';
+const wheelLedBroadcast = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(WHEEL_LED_CHANNEL) : null;
+let wheelLedWindow = null, wheelLedSeq = 0, wheelLedSpin = null;
+function wheelLedSend(type, extra = {}) {
+  const packet = Object.assign({ sender:'organizer', session:wheelLedSession, type, seq:++wheelLedSeq, at:Date.now() },extra);
+  try { wheelLedBroadcast?.postMessage(packet); } catch (_error) {}
+  try { localStorage.setItem(WHEEL_LED_EVENT_KEY, JSON.stringify(packet)); } catch (_error) {}
+}
+function wheelLedState() {
+  if (!W.open) { wheelLedSend('standby'); return; }
+  const winners = W.practice ? W.practiceList : all.filter(g=>g.won_at).sort((a,b)=>a.won_order-b.won_order)
+    .map(g=>({num:g.raffle_number,nick:g.nickname,order:g.won_order}));
+  const activeOverlay = !$('wOv').hidden;
+  wheelLedSend('state', {
+    pool:W.pool.map(g=>g.num),angle:W.angle,spin:W.spinning?wheelLedSpin:null,
+    practice:W.practice,winners:winners.slice(-10),winnerCount:winners.length,
+    winner:activeOverlay?{num:Number($('wNum').textContent),nick:$('wNick').textContent}:null,
+    party:C.partyName
+  });
+}
+function wheelLedRequest(packet) { if (packet?.sender === 'viewer' && packet.type === 'ready') wheelLedState(); }
+if (wheelLedBroadcast) wheelLedBroadcast.onmessage = e=>wheelLedRequest(e.data);
+window.addEventListener('storage',e=>{
+  if (e.key!==WHEEL_LED_REQUEST_KEY || !e.newValue) return;
+  try { wheelLedRequest(JSON.parse(e.newValue)); } catch (_error) {}
+});
+function openWheelLed() {
+  // Must be launched synchronously from the click to avoid popup blockers.
+  const view = window.open('wheel-led.html','coachella-raffle-led','width=1280,height=900,resizable=yes');
+  if (!view) { wmsg('Allow pop-ups for this website, then click Send to LED Wall again.'); return; }
+  wheelLedWindow=view;
+  $('wLed').textContent='📺 LED Wall connected';
+  wmsg('LED window opened. Move it to your second display, then press F11 to fill the LED screen.');
+  wheelLedState();
+}
+window.addEventListener('pagehide',()=>wheelLedSend('standby'));
+
 /* ---------- spin the wheel ---------- */
 const TAU = Math.PI * 2;
 const W = { angle: 0, spinning: false, busy: false, pool: [], practice: false, practiceWon: new Set(), practiceList: [], sound: true, ac: null, lastIdx: -1, lastTick: 0, open: false, last: 0, ovResolve: null };
@@ -932,6 +974,7 @@ const wmsg = t => { $('wMsg').textContent = t; };
 function rebuildPool() {
   W.pool = all.filter(g => g.raffle_number != null && !g.won_at && !(W.practice && W.practiceWon.has(g.raffle_number)))
     .map(g => ({ num: g.raffle_number, nick: g.nickname })).sort((a, b) => a.num - b.num);
+  if (W.open && !W.spinning) wheelLedState();
 }
 function drawWheel() {
   const cv = $('wheelCv'), S = 1600, ctx = cv.getContext('2d'); cv.width = cv.height = S;
@@ -998,9 +1041,11 @@ function spinTo(num) {
     const want = 1.5 * Math.PI - (i * sl + sl / 2) - (Math.random() - .5) * sl * .7;
     const a0 = W.angle, delta = (((want - a0) % TAU) + TAU) % TAU, total = delta + TAU * (7 + Math.floor(Math.random() * 2)), t0 = performance.now(), DUR = 8000;
     W.spinning = true;
+    wheelLedSpin={from:a0,to:a0+total,startAt:Date.now(),duration:DUR};
+    wheelLedSend('spin', {pool:W.pool.map(p=>p.num),...wheelLedSpin,practice:W.practice,party:C.partyName});
     (function frame(now) {
       const t = Math.min(1, (now - t0) / DUR); W.angle = a0 + total * easeOut(t); applyAngle(); tickCheck(now);
-      if (t < 1) requestAnimationFrame(frame); else { W.spinning = false; resolve(); }
+      if (t < 1) requestAnimationFrame(frame); else { W.spinning = false; wheelLedSpin=null; wheelLedSend('settled',{angle:W.angle}); resolve(); }
     })(t0);
   });
 }
@@ -1018,11 +1063,12 @@ function showWinner(w) {
     $('wNum').textContent = w.raffle_number; $('wNick').textContent = w.nickname;
     $('wNick').style.fontSize = Math.min(innerHeight * .14, innerWidth * .92 / Math.max(6, w.nickname.length * .55)) + 'px';
     const ov = $('wOv'); ov.hidden = false;
+    wheelLedSend('winner',{num:w.raffle_number,nick:w.nickname});
     ov.querySelectorAll('.wanim,.wactions').forEach(el => { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; });
     fanfare(); confetti();
   });
 }
-function endOverlay(action) { if (!W.ovResolve) return; if (document.activeElement) document.activeElement.blur(); $('wOv').hidden = true; const r = W.ovResolve; W.ovResolve = null; r(action); }
+function endOverlay(action) { if (!W.ovResolve) return; if (document.activeElement) document.activeElement.blur(); $('wOv').hidden = true; wheelLedSend('dismiss'); const r = W.ovResolve; W.ovResolve = null; r(action); }
 
 function renderLists() {
   const list = W.practice ? W.practiceList : all.filter(g => g.won_at).sort((a, b) => a.won_order - b.won_order).map(g => ({ num: g.raffle_number, nick: g.nickname, order: g.won_order }));
@@ -1034,7 +1080,7 @@ function renderLists() {
   if (!list.length) { const li = document.createElement('li'); li.className = 'none'; li.textContent = 'No winners yet'; ol.appendChild(li); }
 }
 function setWctl(off) { ['wSpin', 'wRefresh', 'wUndo', 'wReset', 'wPrac', 'wClose'].forEach(id => { $(id).disabled = off; }); }
-async function refreshWheel() { await loadAdmin(); rebuildPool(); drawWheel(); renderLists(); }
+async function refreshWheel() { await loadAdmin(); rebuildPool(); drawWheel(); renderLists(); wheelLedState(); }
 
 async function doSpin() {
   if (W.busy || !W.open) return;
@@ -1063,9 +1109,9 @@ async function openWheel() {
   $('wparty').textContent = C.partyName;
   wmsg(W.practice ? 'The countdown is still running, so practice mode is on. Winners are not saved.' : '');
   try { await document.fonts.load('900 40px "Londrina Solid"'); } catch (e) {}
-  await refreshWheel(); requestAnimationFrame(loop);
+  await refreshWheel(); wheelLedState(); requestAnimationFrame(loop);
 }
-function closeWheel() { if (W.busy) return; W.open = false; $('wheelPage').hidden = true; document.body.classList.remove('wheeling', 'presenting'); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); renderAdmin(); }
+function closeWheel() { if (W.busy) return; W.open = false; wheelLedSend('standby'); $('wheelPage').hidden = true; document.body.classList.remove('wheeling', 'presenting'); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); renderAdmin(); }
 function togglePresent() {
   if (document.fullscreenElement || document.body.classList.contains('presenting')) { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); document.body.classList.remove('presenting'); return; }
   const el = $('wheelPage'); (el.requestFullscreen ? el.requestFullscreen() : Promise.reject()).catch(() => document.body.classList.add('presenting'));
@@ -1084,12 +1130,13 @@ $('camBtn').addEventListener('click', () => { location.href = 'camera.html'; });
 $('wClose').addEventListener('click', closeWheel);
 $('wSpin').addEventListener('click', doSpin);
 $('wPresent').addEventListener('click', togglePresent);
+$('wLed').addEventListener('click',openWheelLed);
 $('wExit').addEventListener('click', togglePresent);
 $('wOk').addEventListener('click', () => endOverlay('ok'));
 $('wBack').addEventListener('click', () => endOverlay('putback'));
 $('wRefresh').addEventListener('click', async () => { setWctl(true); await refreshWheel(); setWctl(false); wmsg('Numbers refreshed.'); });
 $('wSound').addEventListener('click', () => { W.sound = !W.sound; $('wSound').textContent = 'Sound: ' + (W.sound ? 'on' : 'off'); });
-$('wPrac').addEventListener('change', () => { W.practice = $('wPrac').checked; $('wPractice').hidden = !W.practice; rebuildPool(); drawWheel(); renderLists(); wmsg(W.practice ? 'Practice mode: winners are not saved.' : 'REAL mode: winners are saved and removed from the wheel.'); });
+$('wPrac').addEventListener('change', () => { W.practice = $('wPrac').checked; $('wPractice').hidden = !W.practice; rebuildPool(); drawWheel(); renderLists(); wheelLedState(); wmsg(W.practice ? 'Practice mode: winners are not saved.' : 'REAL mode: winners are saved and removed from the wheel.'); });
 $('wUndo').addEventListener('click', () => arm($('wUndo'), async () => {
   setWctl(true);
   if (W.practice) { const l = W.practiceList.pop(); if (l) W.practiceWon.delete(l.num); }
