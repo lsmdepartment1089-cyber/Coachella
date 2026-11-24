@@ -463,11 +463,11 @@ body.presenting .wactions{display:none}
       <div class="msg" id="adminMsg" role="status"></div>
     </form>
     <div id="adminData" hidden>
-      <p><a class="btn small dark" href="checkin-desk.html">Open QR check-in desk</a></p>
       <div class="stats" id="stats"></div>
       <div class="toolbar">
         <input type="text" id="filter" placeholder="Search nickname, number, name or stage name">
         <button class="btn small" id="refresh" type="button">Refresh</button>
+        <a class="btn small yellow" href="checkin-desk.html" style="text-decoration:none" aria-label="Open Registration and QR Check-In page">🎟 REGISTRATION / CHECK-IN</a>
         <button class="btn small" id="wheelBtn" type="button">Spin the wheel</button>
         <button class="btn small" id="slidesBtn" type="button">Slide show</button>
         <button class="btn small yellow" id="slides2Btn" type="button">Slideshow 2 ⚡</button>
@@ -478,16 +478,6 @@ body.presenting .wactions{display:none}
         <button class="btn small yellow" id="xlsx" type="button">Download Excel</button>
         <button class="btn small dark" id="sendAll" type="button">Send to everyone not yet sent</button>
       </div>
-      <section class="scan-card" aria-labelledby="scanTitle">
-        <h3 id="scanTitle">Guest QR check-in</h3>
-        <p>Scan a guest’s personal QR code at the entrance. A guest can only be checked in once.</p>
-        <div class="scan-actions">
-          <button class="btn small" id="scanStart" type="button">Start camera scanner</button>
-          <button class="btn small dark" id="scanStop" type="button" disabled>Stop scanner</button>
-        </div>
-        <div id="qr-reader"></div>
-        <div class="scan-result" id="scanResult" role="status">Scanner is stopped.</div>
-      </section>
       <div class="msg" id="bulkMsg" role="status" style="margin:0 0 12px"></div>
       <div class="tablewrap"><table>
         <thead><tr><th>Raffle #</th><th>Nickname</th><th>RSVP</th><th>Re-rolled</th><th>Talent</th><th>Real name</th><th>Stage name</th><th>Files</th><th>Email</th><th>Invitation email</th><th>Attendance</th><th>Signed up</th><th></th></tr></thead>
@@ -852,7 +842,7 @@ const fmt = d => new Date(d).toLocaleString([], { dateStyle: 'medium', timeStyle
 const fileUrl = f => sb.storage.from(C.uploadBucket).getPublicUrl(f.path).data.publicUrl;
 function openAdmin() { document.body.classList.add('admin'); scrollTo({ top: 0 }); }
 $('adminOpen').addEventListener('click', openAdmin);
-$('adminExit').addEventListener('click', () => { try { sessionStorage.removeItem('fest_admin_pw'); } catch (e) {} adminPw = null; if (qrScanner && qrScanner.isScanning) qrScanner.stop().catch(() => {}); all = []; $('adminData').hidden = true; $('adminForm').hidden = false; $('adminPw').value = ''; location.href = 'index.html'; });
+$('adminExit').addEventListener('click', () => { try { sessionStorage.removeItem('fest_admin_pw'); } catch (e) {} adminPw = null; all = []; $('adminData').hidden = true; $('adminForm').hidden = false; $('adminPw').value = ''; location.href = 'index.html'; });
 async function loadAdmin() {
   const { data, error } = await sb.rpc('admin_list', { p_password: adminPw });
   if (error) { adminPw = null; $('adminMsg').textContent = error.message; return false; }
@@ -909,45 +899,6 @@ function renderAdmin() {
   const waiting = all.filter(g => g.email && g.raffle_number != null && !g.email_sent_at).length;
   $('sendAll').textContent = 'Send to everyone not yet sent (' + waiting + ')';
 }
-/* ---------- QR attendance scanner ---------- */
-let qrScanner = null, scanBusy = false;
-function scanMessage(message, kind) {
-  const el = $('scanResult'); el.textContent = message;
-  el.className = 'scan-result' + (kind ? ' ' + kind : '');
-}
-async function handleGuestQr(decodedText) {
-  if (scanBusy) return;
-  scanBusy = true;
-  try {
-    const { data, error } = await sb.rpc('admin_checkin', {
-      p_password: adminPw, p_qr_token: String(decodedText).trim()
-    });
-    if (error) { scanMessage(error.message || 'Could not check in this QR code.', 'warn'); return; }
-    if (data.already_checked_in) {
-      scanMessage(data.guest.nickname + ' was already checked in at ' + fmt(data.guest.checked_in_at) + '.', 'warn');
-    } else {
-      scanMessage('Checked in: ' + data.guest.nickname + ' · Raffle #' + (data.guest.raffle_number ?? '—'), 'ok');
-    }
-    await loadAdmin();
-  } catch (err) { scanMessage('Check-in failed. Please try again.', 'warn'); }
-  finally { setTimeout(() => { scanBusy = false; }, 1400); }
-}
-$('scanStart').addEventListener('click', async () => {
-  try { await loadOptionalLibrary('QR scanner','https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js',()=>!!window.Html5Qrcode); }
-  catch(e){scanMessage(e.message,'warn');return;}
-  try {
-    if (!qrScanner) qrScanner = new Html5Qrcode('qr-reader');
-    await qrScanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 240, height: 240 } },
-      handleGuestQr, () => {});
-    $('scanStart').disabled = true; $('scanStop').disabled = false;
-    scanMessage('Camera is ready. Point it at a guest QR code.');
-  } catch (err) { scanMessage('Could not start camera. Allow camera access and use the site over HTTPS.', 'warn'); }
-});
-$('scanStop').addEventListener('click', async () => {
-  if (qrScanner && qrScanner.isScanning) await qrScanner.stop();
-  $('scanStart').disabled = false; $('scanStop').disabled = true;
-  scanMessage('Scanner is stopped.');
-});
 /*RESEND_API*/
 async function resendOne(nickname) {
   try {

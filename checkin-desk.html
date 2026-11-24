@@ -2,346 +2,103 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Coachella · Organizer Desk</title>
-<meta name="description" content="Guest QR check-in for Coachella: Beyond the Arches">
-<style>
-:root{color-scheme:light;--ink:#321d27;--muted:#69565d;--paper:#faf5ed;--line:#e9dacf;--plum:#51283d;--orange:#b95634;--white:#fffcf7}
-*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 system-ui,sans-serif}
-button,input,select{font:inherit}button,a,input,select{outline-offset:4px}button,a.action{cursor:pointer}button:disabled{cursor:default;opacity:.55}[hidden]{display:none!important}
-header{background:#2a1823;color:#fff4e8}header .wrap{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-block:16px}.brand{font:700 1.22rem Georgia,serif}.brand small{display:block;font:600 .82rem system-ui;color:#eec0a6}
-.wrap{width:min(1120px,calc(100% - 36px));margin:auto}
-.hero{background:#51283d;color:#fff8ec;padding:34px 0 30px}.hero h1{font:normal clamp(2.5rem,7vw,4.75rem)/1 Georgia,serif;margin:0 0 12px}.hero p{margin:0;color:#f4d2bc}.hero .wrap{display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap}.mode{border:1px solid #d5a88f;border-radius:99px;padding:5px 12px;font-size:.875rem;font-weight:700;color:#ffdbc4}
-main{padding:20px 0 50px}nav{display:flex;gap:4px;overflow:auto;border-bottom:1px solid var(--line);margin-bottom:20px}nav button{white-space:nowrap;background:none;color:var(--muted);border:0;border-bottom:3px solid transparent;border-radius:0;padding:12px}nav button[aria-selected=true]{border-bottom-color:var(--orange);color:var(--plum);font-weight:750}
-.grid{display:grid;grid-template-columns:1.45fr 1fr;gap:16px}.card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}.card h2,.card h3{font-family:Georgia,serif;margin:0 0 8px}.card h2{font-size:1.6rem}.card p{margin:0 0 12px}.subtle{color:var(--muted)}.actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center}.actions input{flex:1;min-width:150px}
-button,.action{border:1px solid var(--plum);background:var(--plum);border-radius:8px;padding:9px 14px;color:white;font-weight:650;text-decoration:none;display:inline-block}.secondary{background:transparent;color:var(--plum);border-color:#bda3ae}input,select{border:1px solid #ac919c;border-radius:8px;background:white;color:var(--ink);padding:9px 10px;max-width:100%}
-label{display:block;font-weight:650;margin-bottom:5px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}.stat{padding:12px 16px;border-radius:10px;background:#f1e5da;color:var(--plum)}.stat strong{display:block;font:normal 2rem Georgia,serif}.stat span{font-size:.875rem}
-.result{min-height:112px;padding:14px;background:#f1e7dd;border-radius:10px;overflow-wrap:anywhere}.result strong{display:block;font-size:1.15rem}.result.ok{background:#e3efdf;color:#224c34}.result.warn{background:#fae5cb;color:#713e19}.result.error{background:#f7e0dc;color:#752f29}
-#reader:not(:empty){margin:14px 0;max-width:420px}.scroll{overflow:auto}.scroll table{width:100%;border-collapse:collapse;text-align:left}td,th{padding:10px 8px;border-bottom:1px solid var(--line)}th{font-size:.875rem;color:var(--muted)}td:last-child{min-width:110px}
-#guest-card{text-align:center;max-width:520px;margin-inline:auto}.qr{width:220px;min-height:220px;background:white;padding:18px;margin:14px auto;display:grid;place-items:center}.qr canvas,.qr img{max-width:100%}.ticket{padding:20px;margin:14px 0;border:1px dashed #ab8595;border-radius:10px;background:#fff6eb}.ticket strong{font-size:1.2rem}.tracker{display:grid;gap:0;margin:0;padding:0;list-style:none}.tracker li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 12px;border-top:1px solid var(--line);padding:13px 0}.tracker p{grid-column:1/-1;margin:0;color:var(--muted)}.pill{font-weight:700;font-size:.875rem;background:#f2e0ca;border-radius:99px;padding:2px 8px;color:#69420f}.pill.done{background:#dfeddf;color:#285437}
-@media(max-width:690px){.grid{grid-template-columns:1fr;gap:0}.hero{padding-block:24px}.card{padding:15px}.stat{padding:9px}.stat strong{font-size:1.6rem}}
-</style>
-<script defer src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#DA291C">
+<title>Registration & QR Check-In | Coachella: Beyond the Arches</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Londrina+Solid:wght@400;900&family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="config.js"></script>
 <script defer src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+:root{--red:#DA291C;--gold:#FFC72C;--dark:#27251F;--cream:#FFF4D6;--white:#FFF9EE;--orange:#FF8A1F;--green:#17784C;--muted:#735D4E;--display:'Londrina Solid','Arial Narrow',sans-serif;--body:'Nunito Sans',system-ui,sans-serif}
+*{box-sizing:border-box}html{min-height:100%;scroll-behavior:smooth}body{margin:0;background:#FFF8E7;color:var(--dark);font:600 15px/1.5 var(--body)}[hidden]{display:none!important}button,input{font:inherit}button,a{outline-offset:3px}button{cursor:pointer}button:disabled{opacity:.54;cursor:not-allowed}
+a{color:inherit}.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:43px;background:var(--red);color:#fff;text-decoration:none;border:3px solid var(--dark);border-radius:11px;padding:8px 17px;box-shadow:4px 4px 0 var(--dark);font:900 17px/1.1 var(--display);letter-spacing:.3px;transition:transform .12s}.btn:hover{transform:translate(-1px,-1px)}.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--dark)}.btn.yellow{background:var(--gold);color:var(--dark)}.btn.dark{background:var(--dark);color:var(--gold)}.btn.paper{background:var(--white);color:var(--dark)}
+.wrap{width:min(1320px,calc(100% - 32px));margin-inline:auto}
+.top{background:var(--dark);color:var(--cream);border-bottom:4px solid var(--gold)}.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:15px;min-height:62px}.brand{display:flex;align-items:center;gap:10px;text-decoration:none}.brand svg{width:48px;height:38px;flex:none}.brand strong{font:900 24px/.9 var(--display);letter-spacing:1px;color:var(--gold)}.brand small{display:block;font-size:10px;letter-spacing:2.1px;color:var(--cream);font-weight:900}.top .btn{font-size:16px;min-height:35px;padding:5px 12px;box-shadow:2px 2px 0 var(--gold)}
+.hero{position:relative;min-height:250px;overflow:hidden;background:radial-gradient(circle at 50% 35%,#FFEBA5 0%,#FFC72C 33%,transparent 58%),linear-gradient(135deg,#D32A1C 0%,#EE491D 45%,#FF9221 100%);border-bottom:6px solid var(--dark)}.hero .wrap{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:20px;padding-block:35px 65px}.hero .eyebrow{font-size:12px;letter-spacing:4px;font-weight:900;color:#FFF4D6;text-shadow:1px 2px 0 #7E2D22}.hero h1{font:900 clamp(46px,7vw,95px)/.85 var(--display);letter-spacing:.4px;text-transform:uppercase;color:white;margin:8px 0 12px;text-shadow:4px 5px 0 var(--dark)}.hero h1 span{color:var(--gold)}.hero p{margin:0;font-size:15px;font-weight:900;color:var(--dark)}.live{background:var(--cream);border:3px solid var(--dark);border-radius:14px;box-shadow:4px 4px 0 var(--dark);padding:9px 15px;font:900 19px var(--display);text-align:center;min-width:150px}.live small{display:block;font:900 10px var(--body);letter-spacing:1px;color:#915629}
+.ferris{position:absolute;width:260px;height:260px;right:30px;bottom:-112px;opacity:.2;animation:turn 80s linear infinite}.hills{position:absolute;left:0;right:0;bottom:0;width:100%;height:83px;z-index:1}@keyframes turn{to{transform:rotate(360deg)}}
+.main{padding:22px 0 55px}.notice{font-size:13px;background:#fff0c6;border-left:5px solid var(--red);padding:10px 13px;border-radius:8px;margin-bottom:16px;min-height:0}.notice:empty{display:none}.login{max-width:540px;margin:25px auto 60px}.card{background:var(--white);border:3px solid var(--dark);border-radius:17px;box-shadow:5px 6px 0 var(--dark);padding:20px;min-width:0}.card h2{font:900 34px/1 var(--display);margin:0 0 8px}.card p{margin:0 0 15px}.muted{color:var(--muted)}.label{display:block;font-size:12px;letter-spacing:1px;font-weight:900;margin-bottom:7px;text-transform:uppercase}
+input{min-height:44px;background:#fff;color:var(--dark);border:2px solid var(--dark);border-radius:10px;padding:10px 13px;max-width:100%;width:100%}input:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid #007dd5;outline-offset:3px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row>*{min-width:0}.row input{flex:1;min-width:145px}.tiny{font-size:12px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:20px}.stat{position:relative;overflow:hidden;background:var(--cream);border:3px solid var(--dark);border-radius:16px;padding:16px 19px;box-shadow:4px 4px 0 var(--dark)}.stat:before{content:'';position:absolute;top:0;left:0;width:100%;height:6px;background:var(--gold)}.stat:nth-child(2):before{background:var(--green)}.stat:nth-child(3):before{background:var(--red)}.stat b{font:900 clamp(37px,5vw,65px)/1 var(--display);display:block}.stat span{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:1px}
+.content{display:grid;grid-template-columns:minmax(320px,.9fr) minmax(440px,1.45fr);gap:19px;align-items:start}.left{display:grid;gap:18px}.scanner-card{background:linear-gradient(145deg,#fffaf0,#fff0ca)}.scanner-card .row{margin:10px 0 12px}#reader{max-width:100%;width:100%;overflow:hidden;border-radius:10px;margin:10px 0}#reader video{max-width:100%}.manual{border-top:2px dashed #dbb68a;padding-top:14px;margin-top:12px}.manual .btn{flex:none}.scanstatus{position:relative;min-height:186px;background:var(--dark);color:white;border:3px solid var(--dark);border-radius:14px;padding:20px;display:flex;flex-direction:column;justify-content:center;gap:6px;transition:background .15s}.scanstatus.ok{background:#0E754D}.scanstatus.warn{background:#A45216}.scanstatus.error{background:#A42723}.scanstatus .tag{font:900 15px var(--body);letter-spacing:2px;text-transform:uppercase;color:var(--gold)}.scanstatus .name{font:900 clamp(29px,4vw,48px)/1 var(--display)}.scanstatus .details{font-weight:900;font-size:17px}.scanstatus .foot{font-size:12px;color:#fff5cd}
+.sectionhead{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between;margin-bottom:12px}.sectionhead h2{margin:0}.sectionhead .row{margin-left:auto}.sectionhead .btn{min-height:37px;font-size:15px;padding:5px 12px}.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px}.filter{background:var(--cream);color:var(--dark);border:2px solid var(--dark);border-radius:100px;padding:6px 14px;font-weight:900}.filter[aria-pressed="true"]{background:var(--red);color:#fff}.search{width:100%;margin-bottom:12px}.tablewrap{overflow:auto;max-height:660px;border:2px solid var(--dark);border-radius:12px;background:#fff}.tablewrap table{border-collapse:collapse;width:100%;text-align:left;min-width:530px}.tablewrap thead{position:sticky;top:0;background:var(--dark);color:var(--cream);z-index:1}.tablewrap th{font-size:11px;text-transform:uppercase;letter-spacing:1px;padding:13px 15px}.tablewrap td{border-bottom:1px solid #ead9be;padding:13px 15px;font-weight:900}.tablewrap tr:nth-child(2n){background:#FFF8E8}.tablewrap tbody tr:hover{background:#fff0bb}.num{color:var(--red);font:900 25px var(--display)}.time{font-variant-numeric:tabular-nums}.pill{display:inline-block;background:#E5F6E7;border:1px solid #93c69e;color:#176238;padding:3px 9px;border-radius:20px;font-size:11px}.pill.pending{background:#F6EBDD;color:#8C4D18;border-color:#e0b76b}.empty{padding:30px 8px;text-align:center;color:var(--muted)}.tablefoot{font-size:12px;margin-top:10px;color:var(--muted)}.tablefoot strong{color:var(--red)}
+@media(max-width:1000px){.content{grid-template-columns:1fr}.left{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.hero .wrap{padding-bottom:60px}}@media(max-width:680px){.top .wrap{min-height:65px}.top .btn{font-size:14px;max-width:130px}.brand strong{font-size:20px}.brand small{font-size:8px}.hero .wrap{display:block;padding-block:30px 65px}.hero h1{font-size:54px}.hero .live{display:inline-block;margin-top:18px}.stats{gap:7px}.stat{padding:13px 8px}.stat span{letter-spacing:0;font-size:10px}.left{grid-template-columns:1fr}.card{padding:16px}.content{display:block}.left{display:grid;margin-bottom:18px}.sectionhead .row{margin-left:0}.ferris{right:-105px}.tablewrap{max-height:530px}}
+/* On phones, show every arrival detail as a compact card instead of hiding raffle numbers offscreen. */
+@media(max-width:680px){
+.hero h1{font-size:clamp(34px,10vw,42px);line-height:.93}.hero h1 span{display:block;margin-top:5px}
+.tablewrap{overflow-x:hidden}.tablewrap table{min-width:0;display:block}.tablewrap thead{display:none}
+.tablewrap tbody{display:grid;gap:10px;padding:10px}
+.tablewrap tbody tr{display:grid;grid-template-columns:1fr 80px 106px;gap:5px 8px;background:#FFF8E8;border:2px solid #E8D7BA;border-radius:10px;padding:11px}
+.tablewrap tbody td{display:block;border:0;padding:0;min-width:0;overflow-wrap:anywhere}
+.tablewrap tbody td:first-child{grid-column:1/-1;font-size:12px;color:#68513F;padding-bottom:7px;border-bottom:1px dashed #D7B999}
+.tablewrap tbody td:nth-child(2){font-size:15px}
+.tablewrap tbody td:nth-child(3){font-size:25px}
+.tablewrap tbody td:nth-child(4){font-size:11px}
+.tablewrap tbody td:nth-child(2)::before{content:'NICKNAME';display:block;font-size:9px;letter-spacing:1px;color:#735D4E}
+.tablewrap tbody td:nth-child(3)::before{content:'RAFFLE #';display:block;font:900 9px var(--body);letter-spacing:1px;color:#735D4E}
+.tablewrap tbody td:nth-child(4)::before{content:'STATUS';display:block;font-size:9px;letter-spacing:1px;color:#735D4E}
+.tablewrap tbody td[colspan]{grid-column:1/-1;text-align:center!important}
+.tablewrap tbody tr:nth-child(2n){background:#FFF4D6}
+.pill{font-size:9px;padding:3px 6px}
+}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+</style>
 </head>
 <body>
-<header><div class="wrap"><div class="brand">Coachella<small>Beyond the Arches</small></div><a class="action secondary" id="existing-desk" style="color:white" href="organizer.html" hidden>Organizer tools</a><button class="secondary" id="signout" style="color:white" hidden>Sign out</button></div></header>
-<section class="hero"><div class="wrap"><div><h1>Organizer Desk</h1><p>QR check-in · November 24 · 7:00 PM</p></div><span class="mode" id="mode">Practice mode</span></div></section>
-<main class="wrap">
-<nav role="tablist" aria-label="Check-in workflow">
-<button id="tab-desk" role="tab" aria-selected="true" aria-controls="desk">Check-in</button>
-<button id="tab-guests" role="tab" aria-selected="false" aria-controls="guests">Guest list</button>
-<button id="tab-history" role="tab" aria-selected="false" aria-controls="history">Attendance history</button>
-<button id="tab-pass" role="tab" aria-selected="false" aria-controls="pass">Guest view</button>
-<button id="tab-tracker" role="tab" aria-selected="false" aria-controls="tracker">Integration tracker</button>
-</nav>
-<section class="card" id="login" hidden><h2>Organizer sign-in</h2><form id="login-form"><label for="password">Organizer password</label><div class="actions"><input id="password" type="password" required autocomplete="current-password"><button>Open desk</button></div></form><p role="status" id="login-status"></p></section>
-<section id="desk" role="tabpanel" aria-labelledby="tab-desk">
-<p id="demo-note" class="subtle">Practice with sample guests. Activity stays in this browser.</p>
-<div class="stats"><div class="stat"><strong id="total">0</strong><span>Registered</span></div><div class="stat"><strong id="present">0</strong><span>Checked in</span></div><div class="stat"><strong id="pending">0</strong><span>Awaiting arrival</span></div></div>
-<div class="grid">
-<section class="card"><h2>Scan a guest pass</h2><p class="subtle">Point the camera at the QR on the guest’s invitation or email.</p><div class="actions"><button id="start">Start camera</button><button id="stop" class="secondary" disabled>Stop camera</button><button id="sample" class="secondary">Scan selected sample</button></div><div id="reader"></div>
-<form id="manual"><label for="token">QR code text</label><div class="actions"><input id="token" required placeholder="Paste a decoded QR code" autocomplete="off" spellcheck="false"><button class="secondary">Check in</button></div></form></section>
-<section class="card"><h2>Scan result</h2><div class="result" role="status" aria-live="polite" id="result"><strong>Ready to scan</strong>Guest details appear here after a scan.</div></section>
+<header class="top"><div class="wrap"><a class="brand" href="organizer.html" aria-label="Back to Coachella Organizer Desk"><svg viewBox="0 0 120 80" aria-hidden="true"><path d="M12 74V38C12 -4 56 -4 60 38 64 -4 108 -4 108 38V74" fill="none" stroke="#FFC72C" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/></svg><span><strong>COACHELLA</strong><small>BEYOND THE ARCHES</small></span></a><a class="btn paper" href="organizer.html">← ORGANIZER DESK</a></div></header>
+<section class="hero"><div class="wrap"><div><div class="eyebrow">McDONALD'S SANTA ROSA BAYAN · YEAR END PARTY</div><h1>REGISTRATION<span> / CHECK-IN</span></h1><p>Scan invitation QR codes · Confirm arrivals · View raffle numbers</p></div><div class="live"><span id="clock">--:--:--</span><small>PHILIPPINE TIME</small></div></div><svg class="ferris" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke="#27251F" stroke-width="5"><circle cx="100" cy="100" r="80"/><circle cx="100" cy="100" r="62"/><circle cx="100" cy="100" r="11"/><path d="M100 20V180M20 100H180M43 43L157 157M157 43L43 157M100 20L70 195M100 20L130 195"/></g><g fill="#FFF4D6" stroke="#27251F" stroke-width="3"><rect x="87" y="14" width="26" height="15" rx="4"/><rect x="158" y="87" width="26" height="15" rx="4"/><rect x="87" y="172" width="26" height="15" rx="4"/><rect x="16" y="87" width="26" height="15" rx="4"/></g></svg><svg class="hills" viewBox="0 0 1200 110" preserveAspectRatio="none" aria-hidden="true"><path d="M0 100L0 75L130 30L255 80L410 42L560 78L725 25L865 83L1020 30L1200 70L1200 110L0 110Z" fill="#A8301F"/><path d="M0 110L0 93L160 62L310 92L460 67L680 99L870 70L1010 96L1200 76L1200 110Z" fill="#6B1F16"/></svg></section>
+<main class="wrap main">
+<div class="notice" id="notice" aria-live="polite"></div>
+<section class="card login" id="login" hidden><h2>ORGANIZER ACCESS</h2><p class="muted">Enter the same password you use for Organizer Desk.</p><form id="loginForm"><label class="label" for="password">Organizer password</label><div class="row"><input id="password" type="password" autocomplete="current-password" required><button class="btn yellow" id="loginButton" type="submit">OPEN REGISTRATION</button></div></form><p id="loginStatus" class="muted" role="status" style="margin-top:13px"></p></section>
+<section id="dashboard" hidden>
+<div class="stats" aria-label="Event attendance overview"><div class="stat"><b id="statTotal">0</b><span>Registered guests</span></div><div class="stat"><b id="statPresent">0</b><span>Checked in</span></div><div class="stat"><b id="statPending">0</b><span>Awaiting arrival</span></div></div>
+<div class="content">
+<div class="left"><section class="card scanner-card"><h2>SCAN GUEST QR</h2><p class="muted">Open the camera and scan the QR code on the guest's digital invitation.</p><div class="row"><button class="btn yellow" id="scanStart" type="button">📷 START SCANNER</button><button class="btn dark" id="scanStop" type="button" disabled>STOP SCANNER</button></div><div id="reader" aria-label="QR camera view"></div><form id="manualForm" class="manual"><label class="label" for="token">OR PASTE QR CODE</label><div class="row"><input id="token" type="text" autocomplete="off" spellcheck="false" placeholder="Paste QR code text" required><button class="btn" type="submit">CHECK IN</button></div></form><p class="tiny">One check-in per guest. Scanning again shows the original check-in time.</p></section>
+<section class="card"><h2>SCAN RESULT</h2><div id="result" class="scanstatus" role="status" aria-live="polite"><div class="tag" id="resultTag">READY</div><div class="name" id="resultName">Ready to scan!</div><div class="details" id="resultDetails">Guest details will appear here.</div><div class="foot" id="resultFoot">Point the camera at an invitation QR code.</div></div></section></div>
+<section class="card" aria-labelledby="attendeesTitle"><div class="sectionhead"><h2 id="attendeesTitle">ATTENDANCE LIST</h2><div class="row"><button class="btn paper" type="button" id="refresh">↻ REFRESH</button><button class="btn yellow" type="button" id="export">↓ EXPORT CSV</button></div></div><div class="filters"><button class="filter" id="filterChecked" aria-pressed="true" type="button">✓ CHECKED IN</button><button class="filter" id="filterAll" aria-pressed="false" type="button">ALL GUESTS</button></div><label class="label" for="search">SEARCH NICKNAME OR RAFFLE #</label><input id="search" class="search" type="search" placeholder="Search guests or raffle numbers…"><div class="tablewrap"><table><thead><tr><th scope="col">CHECK-IN TIME</th><th scope="col">NICKNAME</th><th scope="col">RAFFLE #</th><th scope="col">STATUS</th></tr></thead><tbody id="rows"></tbody></table></div><p class="tablefoot" id="tableFoot">Loading guest list…</p></section>
 </div></section>
-<section id="guests" role="tabpanel" aria-labelledby="tab-guests" hidden><div class="card"><h2>Guest list</h2><div class="actions"><div style="flex:1"><label for="search">Search by nickname or raffle number</label><input id="search" type="search" placeholder="e.g. Sol or 108" style="width:100%"></div><button id="refresh-guests" class="secondary">Refresh</button></div><div class="scroll"><table><thead><tr><th scope="col">Nickname</th><th scope="col">Raffle</th><th scope="col">Attendance</th><th scope="col">Arrival time</th></tr></thead><tbody id="guest-rows"></tbody></table></div></div></section>
-<section id="history" role="tabpanel" aria-labelledby="tab-history" hidden><div class="card"><h2>Attendance history</h2><p class="subtle">First check-in for each guest, latest arrivals first.</p><button id="refresh-history" class="secondary">Refresh</button><div class="scroll"><table><thead><tr><th scope="col">Nickname</th><th scope="col">Raffle</th><th scope="col">Attendance</th><th scope="col">Arrival time</th></tr></thead><tbody id="history-rows"></tbody></table></div></div></section>
-<section id="pass" role="tabpanel" aria-labelledby="tab-pass" hidden><div class="card" id="guest-card"><h2>Guest invitation</h2><div id="guest-preview"><label for="preview-guest">Sample guest</label><select id="preview-guest"></select><div class="ticket"><strong id="pass-details"></strong><div class="qr" id="qr-image" aria-label="Sample check-in QR code"></div><p id="pass-caption"></p><div class="actions" style="justify-content:center"><button id="invite-view" class="secondary" aria-pressed="true">Invitation page</button><button id="email-view" class="secondary" aria-pressed="false">Email copy</button></div></div><button id="use-sample">Use this pass at check-in</button></div><div id="live-pass" hidden><p>Your existing invitation shows the guest’s QR after the raffle number is claimed. Guests can request an email copy from the invitation page.</p><a class="action" href="index.html">Open event invitation</a></div></div></section>
-<section id="tracker" role="tabpanel" aria-labelledby="tab-tracker" hidden><div class="card"><h2>Integration tracker</h2><p class="subtle">Repository connections and checks to complete before guests arrive.</p><ul class="tracker">
-<li><strong>Website invitation</strong><span class="pill done">In repository</span><p>The invitation renders the guest’s saved QR token after raffle assignment.</p></li>
-<li><strong>Email invitation and resend</strong><span class="pill done">In repository</span><p>Both mail endpoints use the same stored token as the invitation. Live inbox delivery and QR image loading need a test.</p></li>
-<li><strong>Supabase attendance</strong><span class="pill" id="db-pill">Needs live verification</span><p id="db-detail">Confirm that the QR migration is installed and that the organizer can load the guest roster and scan a test pass.</p></li>
-<li><strong>Organizer navigation</strong><span class="pill" id="nav-pill">Manual update</span><p>Add <code>checkin-desk.html</code> and update <code>organizer.html</code> using the replacement package.</p></li>
-<li><strong>Entrance rehearsal</strong><span class="pill">To do</span><p>On the actual gate device, scan a test guest’s invitation, then scan their emailed copy. Confirm a duplicate warning with the same nickname, raffle number and original arrival time.</p></li>
-</ul></div></section>
-<p role="status" id="notice"></p>
 </main>
 <script>
-"use strict";
-const el = id => document.getElementById(id);
-const views = ["desk", "guests", "history", "pass", "tracker"];
-const sampleGuests = [
-  { nickname: "Sol", raffle_number: 108, qr_token: "a".repeat(64) },
-  { nickname: "Mika", raffle_number: 42, qr_token: "b".repeat(64) },
-  { nickname: "Kai", raffle_number: 76, qr_token: "c".repeat(64) },
-  { nickname: "Luna", raffle_number: 125, qr_token: "d".repeat(64) }
-];
-const demoKey = "coachella-desk-attendance-v1";
-const formatTime = timestamp => timestamp ? new Intl.DateTimeFormat("en-PH", {
-  timeZone: "Asia/Manila", dateStyle: "medium", timeStyle: "short"
-}).format(new Date(timestamp)) : "—";
-const live = location.pathname.endsWith("/checkin-desk.html");
-let roster = [], password = "", activeView = "desk", reader, cameraState = "idle", scanning = false;
-let lastCameraToken = "", lastCameraTime = 0, emailPreview = false, qrReady = false;
-
-function loadSamples() {
-  let attendance = {};
-  try { attendance = JSON.parse(localStorage.getItem(demoKey) || "{}") || {}; } catch {}
-  roster = sampleGuests.map(guest => ({ ...guest, checked_in_at: attendance[guest.qr_token] || null }));
-}
-function result(title, message, kind = "") {
-  const heading = document.createElement("strong");
-  heading.textContent = title;
-  el("result").className = ("result " + kind).trim();
-  el("result").replaceChildren(heading, document.createTextNode(message));
-}
-function show(view, focus = false) {
-  activeView = view;
-  const restricted = live && !password && ["desk", "guests", "history"].includes(view);
-  el("login").hidden = !restricted;
-  for (const name of views) {
-    const tab = el("tab-" + name);
-    tab.setAttribute("aria-selected", name === view);
-    tab.tabIndex = name === view ? 0 : -1;
-    el(name).hidden = name !== view || restricted;
-  }
-  if (focus) el("tab-" + view).focus();
-  if (view !== "desk") stopCamera();
-  if (view === "pass") renderPass();
-}
-for (const view of views) el("tab-" + view).onclick = () => show(view);
-document.querySelector("nav").addEventListener("keydown", event => {
-  const current = views.indexOf(activeView);
-  const next = { ArrowRight: (current + 1) % views.length, ArrowLeft: (current + views.length - 1) % views.length, Home: 0, End: views.length - 1 }[event.key];
-  if (next === undefined) return;
-  event.preventDefault();
-  show(views[next], true);
-});
-
-function rows(id, guests, empty) {
-  const body = el(id);
-  body.replaceChildren();
-  if (!guests.length) {
-    const cell = body.insertRow().insertCell();
-    cell.colSpan = 4;
-    cell.textContent = empty;
-  }
-  for (const guest of guests) {
-    const row = body.insertRow();
-    for (const value of [guest.nickname, guest.raffle_number ?? "—", guest.checked_in_at ? "Checked in" : "Awaiting arrival", formatTime(guest.checked_in_at)]) {
-      row.insertCell().textContent = value;
-    }
-  }
-}
-function render() {
-  const present = roster.filter(guest => guest.checked_in_at).sort((a, b) => Date.parse(b.checked_in_at) - Date.parse(a.checked_in_at));
-  el("total").textContent = roster.length;
-  el("present").textContent = present.length;
-  el("pending").textContent = roster.length - present.length;
-  const query = el("search").value.trim().toLowerCase().replace(/^#(?=\d)/, "");
-  const matching = roster.filter(guest => guest.nickname.toLowerCase().includes(query) || String(guest.raffle_number ?? "").includes(query));
-  rows("guest-rows", matching, query ? "No matching guests." : "No guests loaded.");
-  rows("history-rows", present, "No arrivals recorded.");
-}
-el("search").oninput = render;
-
-const configReady = live ? new Promise(resolve => {
-  const config = document.createElement("script");
-  config.src = "config.js";
-  config.onload = config.onerror = resolve;
-  document.head.append(config);
-}) : Promise.resolve();
-
-async function rpc(name, args) {
-  await configReady;
-  const config = window.CONFIG;
-  if (!config?.SUPABASE_URL || !config.SUPABASE_ANON_KEY) throw Error("Missing event database settings in config.js.");
-  const headers = { "Content-Type": "application/json", apikey: config.SUPABASE_ANON_KEY };
-  if (!config.SUPABASE_ANON_KEY.startsWith("sb_")) headers.Authorization = "Bearer " + config.SUPABASE_ANON_KEY;
-  const response = await fetch(config.SUPABASE_URL.replace(/\/$/, "") + "/rest/v1/rpc/" + name, {
-    method: "POST", headers, body: JSON.stringify(args), cache: "no-store", signal: AbortSignal.timeout(12000)
-  });
-  const data = await response.json();
-  if (!response.ok) throw Error(data.message || "The event database did not accept the request.");
-  return data;
-}
-async function loadRoster(secret) {
-  const data = await rpc("admin_list", { p_password: secret });
-  if (!Array.isArray(data)) throw Error("The event database returned an unexpected guest list.");
-  return data.map(({ nickname, raffle_number, checked_in_at }) => ({ nickname, raffle_number, checked_in_at }));
-}
-async function refresh() {
-  if (live) {
-    const secret = password;
-    const guests = await loadRoster(secret);
-    if (password !== secret) return;
-    roster = guests;
-  } else loadSamples();
-  render();
-}
-async function refreshFromButton() {
-  try { await refresh(); el("notice").textContent = "Guest records refreshed."; }
-  catch (error) { el("notice").textContent = "Refresh failed. " + error.message; }
-}
-el("refresh-guests").onclick = el("refresh-history").onclick = refreshFromButton;
-el("login-form").onsubmit = async event => {
-  event.preventDefault();
-  const button = event.submitter;
-  if (button.disabled) return;
-  const secret = el("password").value;
-  button.disabled = true;
-  el("login-status").textContent = "Opening guest roster…";
-  try {
-    roster = await loadRoster(secret);
-    password = secret;
-    el("password").value = "";
-    el("login-status").textContent = "";
-    el("signout").hidden = false;
-    if (roster.some(guest => guest.checked_in_at !== undefined)) {
-      el("db-pill").textContent = "Roster connected";
-      el("db-pill").className = "pill done";
-      el("db-detail").textContent = "Guest roster exposes attendance. A successful QR scan verifies attendance recording.";
-    }
-    render();
-    show(activeView);
-  } catch (error) { el("login-status").textContent = error.message; }
-  finally { button.disabled = false; }
-};
-el("signout").onclick = () => {
-  password = "";
-  roster = [];
-  el("signout").hidden = true;
-  el("token").value = "";
-  el("notice").textContent = "";
-  result("Ready to scan", "Guest details appear here after a scan.");
-  stopCamera();
-  render();
-  show("desk");
-};
-
-async function checkIn(rawToken) {
-  if (scanning || (live && !password)) return;
-  const token = rawToken.trim().toLowerCase();
-  if (!/^[a-f0-9]{64}$/.test(token)) {
-    result("Invalid QR code", "Ask the guest to open their Coachella invitation.", "error");
-    return;
-  }
-  scanning = true;
-  const secret = password;
-  try {
-    let guest, duplicate;
-    if (live) {
-      const response = await rpc("admin_checkin", { p_password: secret, p_qr_token: token });
-      if (password !== secret) return;
-      guest = response.guest;
-      duplicate = response.already_checked_in;
-      el("db-pill").textContent = "Scan verified";
-      el("db-pill").className = "pill done";
-      el("db-detail").textContent = "The event database returned nickname, raffle number and arrival time for a QR scan.";
-      const index = roster.findIndex(entry => entry.nickname === guest.nickname);
-      if (index === -1) roster.push(guest);
-      else roster[index] = guest;
-    } else {
-      loadSamples();
-      guest = roster.find(entry => entry.qr_token === token);
-      if (!guest) throw Error("This QR code does not match a practice guest.");
-      duplicate = Boolean(guest.checked_in_at);
-      if (!duplicate) {
-        guest.checked_in_at = new Date().toISOString();
-        localStorage.setItem(demoKey, JSON.stringify(Object.fromEntries(
-          roster.filter(entry => entry.checked_in_at).map(entry => [entry.qr_token, entry.checked_in_at])
-        )));
-      }
-    }
-    const raffle = guest.raffle_number == null ? "Raffle number unassigned" : "Raffle #" + guest.raffle_number;
-    result(duplicate ? "Duplicate scan · Already checked in" : "Checked in",
-      guest.nickname + " · " + raffle + " · " + formatTime(guest.checked_in_at), duplicate ? "warn" : "ok");
-    el("token").value = "";
-    render();
-    if (live) {
-      try { await refresh(); }
-      catch { el("notice").textContent = "Scan recorded. Refresh the guest list to see other recent arrivals."; }
-    }
-  } catch (error) {
-    if (!live || password === secret) result("Check-in failed", error.message, "error");
-  } finally { scanning = false; }
-}
-el("manual").onsubmit = event => {
-  event.preventDefault();
-  checkIn(el("token").value);
-};
-function onCameraCode(code) {
-  const now = Date.now();
-  if (scanning || (lastCameraToken === code && now - lastCameraTime < 4500)) return;
-  lastCameraToken = code;
-  lastCameraTime = now;
-  checkIn(code);
-}
-async function stopCamera() {
-  if (cameraState !== "running") return;
-  cameraState = "stopping";
-  el("stop").disabled = true;
-  try { await reader.stop(); reader.clear(); }
-  catch {
-    result("Camera could not stop", "Try stopping the camera again, or close this page.", "error");
-    cameraState = "running";
-    el("stop").disabled = false;
-    return;
-  }
-  cameraState = "idle";
-  el("start").disabled = false;
-}
-el("stop").onclick = stopCamera;
-el("start").onclick = async () => {
-  if (cameraState !== "idle") return;
-  if (!window.Html5Qrcode) {
-    result("Scanner unavailable", "Reload the page or paste the decoded QR text.", "error");
-    return;
-  }
-  cameraState = "starting";
-  lastCameraToken = "";
-  el("start").disabled = true;
-  try {
-    reader ||= new Html5Qrcode("reader");
-    await reader.start({ facingMode: "environment" }, { fps: 10 }, onCameraCode, () => {});
-    cameraState = "running";
-    el("stop").disabled = false;
-    if (activeView !== "desk" || (live && !password)) await stopCamera();
-    else result("Camera ready", "Hold a guest’s QR code in view.");
-  } catch {
-    cameraState = "idle";
-    el("start").disabled = false;
-    result("Camera unavailable", "Allow camera access, or paste the decoded QR text.", "error");
-  }
-};
-const select = el("preview-guest");
-for (const guest of sampleGuests) select.add(new Option(guest.nickname + " · #" + guest.raffle_number, guest.qr_token));
-function renderPass() {
-  if (live) return;
-  const guest = sampleGuests.find(entry => entry.qr_token === select.value);
-  el("pass-details").textContent = guest.nickname + " · Raffle #" + guest.raffle_number;
-  el("pass-caption").textContent = emailPreview ? "Email copy preview · Show this QR at the entrance." : "Invitation page preview · Show this QR at the entrance.";
-  el("invite-view").setAttribute("aria-pressed", !emailPreview);
-  el("email-view").setAttribute("aria-pressed", emailPreview);
-  const image = el("qr-image");
-  if (image.dataset.token === guest.qr_token) return;
-  image.replaceChildren();
-  if (!window.QRCode) {
-    image.textContent = qrReady ? "QR image unavailable. Reload to try again." : "Loading QR image…";
-    return;
-  }
-  new QRCode(image, { text: guest.qr_token, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.H });
-  image.dataset.token = guest.qr_token;
-}
-window.addEventListener("load", () => { qrReady = true; if (activeView === "pass") renderPass(); });
-select.onchange = renderPass;
-el("invite-view").onclick = () => { emailPreview = false; renderPass(); };
-el("email-view").onclick = () => { emailPreview = true; renderPass(); };
-el("sample").onclick = () => checkIn(select.value);
-el("use-sample").onclick = () => { show("desk"); el("token").value = select.value; el("token").focus(); };
-window.addEventListener("storage", event => { if (!live && event.key === demoKey) { loadSamples(); render(); } });
-if (live) {
-  el("mode").textContent = "Event mode";
-  el("existing-desk").hidden = false;
-  el("demo-note").hidden = true;
-  el("sample").hidden = true;
-  el("guest-preview").hidden = true;
-  el("live-pass").hidden = false;
-  el("nav-pill").textContent = "Desk installed";
-  el("nav-pill").className = "pill done";
-} else loadSamples();
-render();
-show("desk");
+'use strict';
+const $=id=>document.getElementById(id);
+const CONFIG=window.CONFIG||{};
+const API=String(CONFIG.SUPABASE_URL||'').replace(/\/$/,'')+'/rest/v1/rpc/';
+const HEADERS={'Content-Type':'application/json','apikey':CONFIG.SUPABASE_ANON_KEY||''};
+if(CONFIG.SUPABASE_ANON_KEY && !CONFIG.SUPABASE_ANON_KEY.startsWith('sb_'))HEADERS.Authorization='Bearer '+CONFIG.SUPABASE_ANON_KEY;
+const TZ='Asia/Manila';
+const dateFmt=new Intl.DateTimeFormat('en-PH',{timeZone:TZ,year:'numeric',month:'short',day:'numeric'});
+const timeFmt=new Intl.DateTimeFormat('en-PH',{timeZone:TZ,hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true});
+const stamp=x=>x?dateFmt.format(new Date(x))+' · '+timeFmt.format(new Date(x)):'—';
+let pass='',roster=[],isChecked=true,scanBusy=false,scanning=false,reader=null,camState='idle',lastToken='',lastAt=0,refreshBusy=false;
+function liveClock(){$('clock').textContent=new Intl.DateTimeFormat('en-PH',{timeZone:TZ,hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true}).format(new Date());}
+liveClock();setInterval(liveClock,1000);
+function note(t){$('notice').textContent=t||'';}
+function showResult(kind,title,name,details,foot){const b=$('result');b.className='scanstatus'+(kind?' '+kind:'');$('resultTag').textContent=title;$('resultName').textContent=name;$('resultDetails').textContent=details;$('resultFoot').textContent=foot||'';}
+function showLogin(message){pass='';roster=[];$('login').hidden=false;$('dashboard').hidden=true;$('loginStatus').textContent=message||'';stopScan();}
+function showDashboard(){$('login').hidden=true;$('dashboard').hidden=false;render();}
+async function rpc(name,args){if(!CONFIG.SUPABASE_URL||!CONFIG.SUPABASE_ANON_KEY)throw Error('Missing Supabase config.js settings.');const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),16000);try{const res=await fetch(API+name,{method:'POST',headers:HEADERS,body:JSON.stringify(args),cache:'no-store',signal:controller.signal});const data=await res.json().catch(()=>({}));if(!res.ok)throw Error(data.message||data.error||'Database connection failed');return data;}catch(e){if(e.name==='AbortError')throw Error('Connection timed out. Check internet and try again.');throw e;}finally{clearTimeout(timeout);}}
+async function enter(password){const data=await rpc('admin_list',{p_password:password});if(!Array.isArray(data))throw Error('Unexpected guest list from database.');pass=password;try{sessionStorage.setItem('fest_admin_pw',password)}catch{}roster=data;showDashboard();return true;}
+$('loginForm').addEventListener('submit',async e=>{e.preventDefault();const b=$('loginButton');b.disabled=true;$('loginStatus').textContent='Checking organizer password…';try{await enter($('password').value);$('password').value='';note('Registration desk connected. Scan a guest to record their arrival.');}catch(err){$('loginStatus').textContent=err.message;}finally{b.disabled=false;}});
+async function refresh(quiet=false){if(!pass||refreshBusy)return;refreshBusy=true;const secret=pass;try{const data=await rpc('admin_list',{p_password:secret});if(secret!==pass)return;if(!Array.isArray(data))throw Error('Unable to read guest list.');roster=data;render();if(!quiet)note('Attendance refreshed at '+timeFmt.format(new Date())+'.');}catch(err){if(secret===pass){if(/Wrong organizer password/i.test(err.message))showLogin('Your organizer session has expired. Sign in again.');else if(!quiet)note('Refresh failed: '+err.message);}}finally{refreshBusy=false;}}
+function render(){const checked=roster.filter(g=>g.checked_in_at).sort((a,b)=>new Date(b.checked_in_at)-new Date(a.checked_in_at));$('statTotal').textContent=roster.length;$('statPresent').textContent=checked.length;$('statPending').textContent=roster.length-checked.length;const term=$('search').value.trim().toLowerCase();const subset=(isChecked?checked:[...roster].sort((a,b)=>Number(!!b.checked_in_at)-Number(!!a.checked_in_at)||(b.checked_in_at?new Date(b.checked_in_at)-new Date(a.checked_in_at):String(a.nickname).localeCompare(String(b.nickname))))).filter(g=>String(g.nickname||'').toLowerCase().includes(term)||String(g.raffle_number??'').includes(term));const body=$('rows');body.replaceChildren();if(!subset.length){const tr=body.insertRow();const td=tr.insertCell();td.colSpan=4;td.className='empty';td.textContent=term?'No matching guest found.':isChecked?'No guests have checked in yet.':'No registered guests found.';}for(const g of subset){const tr=body.insertRow();const time=tr.insertCell();time.className='time';time.textContent=stamp(g.checked_in_at);tr.insertCell().textContent=g.nickname||'—';const raffle=tr.insertCell();raffle.className='num';raffle.textContent=g.raffle_number??'—';const st=tr.insertCell();const pill=document.createElement('span');pill.className='pill'+(g.checked_in_at?'':' pending');pill.textContent=g.checked_in_at?'✓ Checked in':'Awaiting arrival';st.appendChild(pill);}$('tableFoot').textContent=`Showing ${subset.length} ${isChecked?'checked-in':'registered'} guest${subset.length===1?'':'s'} · Times shown in Philippine Standard Time (UTC+8)`;}
+$('search').addEventListener('input',render);
+function filter(checked){isChecked=checked;$('filterChecked').setAttribute('aria-pressed',String(checked));$('filterAll').setAttribute('aria-pressed',String(!checked));render();}
+$('filterChecked').onclick=()=>filter(true);$('filterAll').onclick=()=>filter(false);
+$('refresh').onclick=()=>refresh();
+// Keep the on-screen attendance history current when another registration device scans a guest.
+setInterval(()=>{if(!document.hidden&&pass)refresh(true)},5000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&pass)refresh(true)});
+async function checkIn(raw){if(scanBusy||!pass)return;const token=String(raw||'').trim();if(!token){showResult('error','INVALID CODE','No QR detected','Please scan an event invitation QR code.','');return;}scanBusy=true;const secret=pass;showResult('','CHECKING…','Verifying guest','Matching this QR code to registration records.','');try{const data=await rpc('admin_checkin',{p_password:secret,p_qr_token:token});if(secret!==pass)return;const guest=data?.guest;if(!guest||!guest.nickname)throw Error('No matching guest was returned by the database.');const duplicate=!!data.already_checked_in;const when=stamp(guest.checked_in_at);showResult(duplicate?'warn':'ok',duplicate?'ALREADY CHECKED IN':'CHECK-IN SUCCESSFUL',guest.nickname,`RAFFLE #${guest.raffle_number??'—'} · ${when}`,duplicate?'This guest was already registered at the entrance. Their first check-in time is unchanged.':'Attendance recorded successfully. Welcome to Coachella!');$('token').value='';if(!duplicate){try{navigator.vibrate?.(120)}catch{}}await refresh(true);}catch(err){if(secret===pass)showResult('error','SCAN FAILED','Could not check in',err.message||'Invalid QR code. Please try again.','Ensure this is the event QR from the guest invitation.');}finally{setTimeout(()=>{scanBusy=false;},900)}}
+$('manualForm').addEventListener('submit',e=>{e.preventDefault();checkIn($('token').value)});
+async function startScan(){if(camState!=='idle'||!pass)return;const button=$('scanStart');button.disabled=true;camState='starting';try{if(!window.Html5Qrcode)throw Error('The QR scanner library did not load. Refresh the page and try again.');reader||=new Html5Qrcode('reader');await reader.start({facingMode:'environment'},{fps:10,qrbox:250,aspectRatio:1},code=>{const now=Date.now();if(scanBusy||(code===lastToken&&now-lastAt<2500))return;lastToken=code;lastAt=now;checkIn(code)},()=>{});camState='running';$('scanStop').disabled=false;showResult('','SCANNER READY','Point at a QR code','Hold the guest invitation inside the camera frame.','');}catch(err){camState='idle';button.disabled=false;showResult('error','CAMERA UNAVAILABLE','Cannot start camera',err.message||'Allow camera permissions, use HTTPS, or paste the QR code.','');}}
+async function stopScan(){if(camState!=='running')return;camState='stopping';$('scanStop').disabled=true;try{await reader.stop();reader.clear?.();}catch(e){console.warn(e)}camState='idle';$('scanStart').disabled=false;}
+$('scanStart').onclick=startScan;$('scanStop').onclick=stopScan;
+window.addEventListener('pagehide',stopScan);
+function safeCSV(t){const v=String(t??'');return '"'+(/^[\s]*[=+@\-]/.test(v)?"'"+v:v).replace(/"/g,'""')+'"';}
+$('export').onclick=()=>{const checked=roster.filter(g=>g.checked_in_at).sort((a,b)=>new Date(b.checked_in_at)-new Date(a.checked_in_at));const lines=[['Check-in time (Philippines)','Nickname','Raffle number','Status'].map(safeCSV).join(',')];for(const g of checked)lines.push([stamp(g.checked_in_at),g.nickname,g.raffle_number??'','Checked in'].map(safeCSV).join(','));const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download='coachella-registration-check-in.csv';a.click();setTimeout(()=>URL.revokeObjectURL(u),3000)};
+(async()=>{let saved='';try{saved=sessionStorage.getItem('fest_admin_pw')||''}catch{}if(saved){try{await enter(saved);note('Welcome back! Ready to scan guest invitations.');}catch{try{sessionStorage.removeItem('fest_admin_pw')}catch{}showLogin('Please sign in with your organizer password.');}}else showLogin('');})();
 </script>
 </body>
 </html>
